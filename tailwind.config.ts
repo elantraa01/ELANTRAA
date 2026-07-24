@@ -9,8 +9,20 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        brand: {
+          gold: "#C9A648",
+          white: "#FFFFFF",
+        },
+        background: "var(--color-background)",
+        foreground: "var(--color-foreground)",
+        surface: "var(--color-surface)",
+        accent: "var(--color-accent)",
+        ink: "var(--color-ink)",
+      },
+      fontFamily: {
+        heading: ["var(--font-heading)", "Georgia", "serif"],
+        logo: ["var(--font-logo)", "Georgia", "serif"],
+        body: ["var(--font-body)", "Arial", "sans-serif"],
       },
     },
   },

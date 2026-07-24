@@ -1,0 +1,86 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { userId, guestCartItems, guestId } = body;
+
+    if (!userId) {
+      return NextResponse.json({ error: "userId is required for merge" }, { status: 400 });
+    }
+
+    // Find or create user DB cart
+    let userCart = await prisma.cart.findUnique({
+      where: { userId },
+      include: { items: true },
+    });
+
+    if (!userCart) {
+      userCart = await prisma.cart.create({
+        data: { userId },
+        include: { items: true },
+      });
+    }
+
+    // If guestCartItems provided from localStorage or DB guest cart
+    if (Array.isArray(guestCartItems) && guestCartItems.length > 0) {
+      for (const gItem of guestCartItems) {
+        if (!gItem.productId) continue;
+
+        const existing = userCart.items.find(
+          (item) =>
+            item.productId === gItem.productId &&
+            item.size === (gItem.size || null) &&
+            item.color === (gItem.color || null)
+        );
+
+        if (existing) {
+          await prisma.cartItem.update({
+            where: { id: existing.id },
+            data: { quantity: existing.quantity + (gItem.quantity || 1) },
+          });
+        } else {
+          // Verify product exists in DB before creating relation
+          const prodExists = await prisma.product.findUnique({
+            where: { id: gItem.productId },
+          });
+
+          if (prodExists) {
+            await prisma.cartItem.create({
+              data: {
+                cartId: userCart.id,
+                productId: gItem.productId,
+                size: gItem.size || null,
+                color: gItem.color || null,
+                quantity: gItem.quantity || 1,
+              },
+            });
+          }
+        }
+      }
+    }
+
+    // Clean up guest DB cart if exists
+    if (guestId) {
+      const guestCart = await prisma.cart.findUnique({ where: { guestId } });
+      if (guestCart) {
+        await prisma.cart.delete({ where: { id: guestCart.id } });
+      }
+    }
+
+    const finalCart = await prisma.cart.findUnique({
+      where: { id: userCart.id },
+      include: { items: { include: { product: true } } },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Merged guest cart into user cart successfully",
+      cart: finalCart,
+    });
+  } catch (error) {
+    console.error("Cart Merge Error:", error);
+    return NextResponse.json({ error: "Failed to merge cart" }, { status: 500 });
+  }
+}
