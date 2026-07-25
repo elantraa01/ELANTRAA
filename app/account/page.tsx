@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
@@ -34,7 +34,7 @@ interface OrderHistoryItem {
   itemsSummary: string;
 }
 
-export default function AccountPage() {
+function AccountPageContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const { addItem, wishlistItems } = useCart();
@@ -479,5 +479,19 @@ export default function AccountPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function AccountPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-white flex items-center justify-center font-sans text-xs uppercase tracking-widest text-gray-500">
+          Loading ELANTRAA Account...
+        </div>
+      }
+    >
+      <AccountPageContent />
+    </Suspense>
   );
 }

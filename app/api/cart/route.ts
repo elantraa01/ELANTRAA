@@ -44,6 +44,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const body = await req.json();
     const { guestId, productId, size, color, quantity } = body;
     let userId = body.userId;
 
