@@ -27,7 +27,9 @@ export default function Navbar({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [navCategories, setNavCategories] = useState<{ id: string; name: string; slug: string }[]>([]);
+  const [navCategories, setNavCategories] = useState<
+    { id: string; name: string; slug: string; parentCategoryId?: string | null; subcategories?: { id: string; name: string; slug: string }[] }[]
+  >([]);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -77,6 +79,8 @@ export default function Navbar({
     loadHeadline();
   }, []);
 
+  const [mobileActiveTab, setMobileActiveTab] = useState<"menu" | "categories">("menu");
+
   return (
     <>
       {/* Top Announcement Bar */}
@@ -90,10 +94,11 @@ export default function Navbar({
 
       {/* Main Sticky Navigation Bar */}
       <header
-        className={`sticky top-0 z-40 w-full transition-all duration-300 ${isScrolled
+        className={`sticky top-0 z-40 w-full transition-all duration-300 ${
+          isScrolled
             ? "bg-white/95 backdrop-blur-md shadow-md py-3 border-b border-[#C9A648]/20"
             : "bg-white py-4 border-b border-gray-100"
-          }`}
+        }`}
       >
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Left: Mobile Menu Button */}
@@ -259,115 +264,236 @@ export default function Navbar({
         </div>
       </header>
 
-      {/* Mobile Drawer Navigation */}
+      {/* Mobile Drawer Navigation (Tabbed like screenshot) */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden flex">
-          <div className="w-4/5 max-w-sm bg-white h-full shadow-2xl flex flex-col justify-between p-6 overflow-y-auto animate-in slide-in-from-left duration-300">
-            <div>
-              <div className="flex items-center justify-between pb-6 border-b border-gray-100">
-                <span className="text-xl font-serif tracking-[0.2em] text-gray-900">ELANTRAA</span>
+          <div className="w-[85%] max-w-xs sm:max-w-sm bg-white h-full shadow-2xl flex flex-col justify-between overflow-hidden animate-in slide-in-from-left duration-300">
+            {/* Drawer Header Tabs: MENU & CATEGORIES + Close Button */}
+            <div className="border-b border-gray-200 bg-gray-50 flex items-center justify-between sticky top-0 z-10">
+              <div className="flex-1 flex">
                 <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="p-2 text-gray-500 hover:text-gray-900"
+                  type="button"
+                  onClick={() => setMobileActiveTab("menu")}
+                  className={`flex-1 py-3 text-center text-xs font-semibold tracking-widest uppercase transition-colors relative ${
+                    mobileActiveTab === "menu"
+                      ? "text-gray-900 bg-white font-bold"
+                      : "text-gray-500 hover:text-gray-800 bg-gray-100/70"
+                  }`}
                 >
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  MENU
+                  {mobileActiveTab === "menu" && (
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#C9A648]" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileActiveTab("categories")}
+                  className={`flex-1 py-3 text-center text-xs font-semibold tracking-widest uppercase transition-colors relative ${
+                    mobileActiveTab === "categories"
+                      ? "text-gray-900 bg-white font-bold"
+                      : "text-gray-500 hover:text-gray-800 bg-gray-100/70"
+                  }`}
+                >
+                  CATEGORIES
+                  {mobileActiveTab === "categories" && (
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#C9A648]" />
+                  )}
                 </button>
               </div>
-
-              <div className="py-5 space-y-4 text-xs sm:text-sm font-medium tracking-widest uppercase text-gray-800">
-                <Link
-                  href="/shop"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block text-[#C9A648] font-bold py-1 border-b border-gray-100"
-                >
-                  ✦ Shop All Catalogue
-                </Link>
-                {navCategories.length > 0 ? (
-                  navCategories.map((cat) => (
-                    <Link
-                      key={cat.id}
-                      href={`/shop?category=${encodeURIComponent(cat.name)}`}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block hover:text-[#C9A648] transition-colors py-1"
-                    >
-                      {cat.name}
-                    </Link>
-                  ))
-                ) : (
-                  <>
-                    <Link
-                      href="/category/women"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block hover:text-[#C9A648] transition-colors py-1"
-                    >
-                      Women&apos;s Collection
-                    </Link>
-                    <Link
-                      href="/category/men"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block hover:text-[#C9A648] transition-colors py-1"
-                    >
-                      Men&apos;s Collection
-                    </Link>
-                    <Link
-                      href="/category/accessories"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block hover:text-[#C9A648] transition-colors py-1"
-                    >
-                      Accessories
-                    </Link>
-                  </>
-                )}
-                <Link
-                  href="/category/new-arrivals"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block hover:text-[#C9A648] transition-colors py-1"
-                >
-                  New Arrivals
-                </Link>
-                <Link
-                  href="/category/sale"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block text-red-600 font-semibold transition-colors py-1"
-                >
-                  Sale & Offers
-                </Link>
-                <Link
-                  href="/admin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block text-[#171717] font-semibold transition-colors py-1 border-t border-gray-100 pt-3"
-                >
-                  ⚙ Admin Dashboard
-                </Link>
-              </div>
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-3 text-gray-700 hover:text-black hover:bg-gray-100 transition-colors border-l border-gray-200"
+                aria-label="Close Navigation Menu"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
 
-            <div className="pt-4 border-t border-gray-100 space-y-3">
-              <div className="flex items-center space-x-3 text-xs">
-                <Link
-                  href={accountHref}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex-1 py-2 px-3 bg-gray-100 text-gray-800 text-center font-medium rounded uppercase tracking-wider"
-                >
-                  {session?.user ? "My Profile" : "Sign In"}
-                </Link>
-                <Link
-                  href="/cart"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex-1 py-2 px-3 bg-[#171717] text-[#D4AF37] text-center font-medium rounded uppercase tracking-wider"
-                >
-                  Cart ({activeCartCount})
-                </Link>
-              </div>
+            {/* Scrollable Drawer Content */}
+            <div className="flex-1 overflow-y-auto">
+              {mobileActiveTab === "menu" ? (
+                /* MENU CONTENT */
+                <div className="py-1 divide-y divide-gray-100">
+                  <Link
+                    href="/category/new-arrivals"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-5 py-3.5 text-xs sm:text-sm font-medium tracking-wider text-gray-800 hover:bg-gray-50 transition-colors"
+                  >
+                    New Arrival
+                  </Link>
+                  <Link
+                    href="/shop?category=Lehenga%20choli"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-5 py-3.5 text-xs sm:text-sm font-medium tracking-wider text-gray-800 hover:bg-gray-50 transition-colors"
+                  >
+                    Lehenga choli
+                  </Link>
+                  <Link
+                    href="/shop?category=Saree"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-5 py-3.5 text-xs sm:text-sm font-medium tracking-wider text-gray-800 hover:bg-gray-50 transition-colors"
+                  >
+                    saree
+                  </Link>
+                  <Link
+                    href="/shop?featured=true"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-5 py-3.5 text-xs sm:text-sm font-medium tracking-wider text-gray-800 hover:bg-gray-50 transition-colors"
+                  >
+                    Best Seller
+                  </Link>
 
-              <div className="text-[11px] text-gray-500 font-sans space-y-1 pt-1">
-                <p className="font-semibold text-gray-800 uppercase tracking-wider">Customer Care</p>
-                <p>Mon - Sat: 10am - 8pm IST</p>
-                <p className="text-[#C9A648]">elantraa.01@gmail.com</p>
-                <p className="text-gray-700 font-medium">+91 9015342951</p>
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      if (onOpenWishlist) {
+                        onOpenWishlist();
+                      }
+                    }}
+                    className="w-full text-left px-5 py-3.5 text-xs sm:text-sm font-medium tracking-wider text-gray-800 hover:bg-gray-50 transition-colors flex items-center space-x-3"
+                  >
+                    <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
+                    </svg>
+                    <span>Wishlist {wishlistCount > 0 && `(${wishlistCount})`}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setSearchOpen(true);
+                    }}
+                    className="w-full text-left px-5 py-3.5 text-xs sm:text-sm font-medium tracking-wider text-gray-800 hover:bg-gray-50 transition-colors flex items-center space-x-3"
+                  >
+                    <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <span>Search</span>
+                  </button>
+
+                  <Link
+                    href={accountHref}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-5 py-3.5 text-xs sm:text-sm font-medium tracking-wider text-gray-800 hover:bg-gray-50 transition-colors flex items-center space-x-3"
+                  >
+                    <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span>{session?.user ? "My Account" : "Login / Register"}</span>
+                  </Link>
+
+                  <Link
+                    href="/returns"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-5 py-3.5 text-xs sm:text-sm font-medium tracking-wider text-gray-800 hover:bg-gray-50 transition-colors flex items-center space-x-3"
+                  >
+                    <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 14l-4-4m0 0l4-4m-4 4h11a4 4 0 014 4v1" />
+                    </svg>
+                    <span>Return/Exchange Request</span>
+                  </Link>
+
+                  {/* Need help? Footer section matching screenshot */}
+                  <div className="p-5 bg-gray-50/80 mt-4 space-y-2 border-t border-gray-100">
+                    <p className="text-xs font-semibold text-gray-800 tracking-wider">Need help?</p>
+                    <a
+                      href="tel:+919015342951"
+                      className="flex items-center space-x-2 text-xs text-gray-600 hover:text-[#C9A648] transition-colors"
+                    >
+                      <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                      <span className="underline decoration-gray-300 underline-offset-4">+91 9015342951</span>
+                    </a>
+                    <a
+                      href="mailto:elantraa.01@gmail.com"
+                      className="flex items-center space-x-2 text-xs text-gray-600 hover:text-[#C9A648] transition-colors"
+                    >
+                      <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      <span className="underline decoration-gray-300 underline-offset-4">elantraa.01@gmail.com</span>
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                /* CATEGORIES CONTENT */
+                <div className="py-1 divide-y divide-gray-100">
+                  <Link
+                    href="/shop"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-5 py-3.5 text-xs sm:text-sm font-semibold tracking-wider text-[#C9A648] hover:bg-gray-50 flex items-center justify-between"
+                  >
+                    <span>All Products & Catalogue</span>
+                    <svg className="w-4 h-4 text-[#C9A648]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </Link>
+
+                  {navCategories && navCategories.length > 0 ? (
+                    navCategories.map((cat) => (
+                      <div key={cat.id} className="py-0.5">
+                        <Link
+                          href={`/shop?category=${encodeURIComponent(cat.name)}`}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block px-5 py-3.5 text-xs sm:text-sm font-medium tracking-wider text-gray-800 hover:text-[#C9A648] hover:bg-gray-50 transition-colors flex items-center justify-between"
+                        >
+                          <span className="capitalize">{cat.name}</span>
+                          <svg className="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </Link>
+
+                        {/* Display subcategories if present from database */}
+                        {cat.subcategories && cat.subcategories.length > 0 && (
+                          <div className="pl-8 pr-5 py-1 space-y-1 bg-gray-50/60 border-t border-b border-gray-100">
+                            {cat.subcategories.map((sub) => (
+                              <Link
+                                key={sub.id}
+                                href={`/shop?category=${encodeURIComponent(sub.name)}`}
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="block py-1.5 text-xs text-gray-600 hover:text-[#C9A648] transition-colors"
+                              >
+                                ↳ {sub.name}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    /* Fallback categories */
+                    [
+                      { name: "Women's Wear", href: "/category/women" },
+                      { name: "Men's Collection", href: "/category/men" },
+                      { name: "Lehenga Choli", href: "/shop?category=Lehenga%20choli" },
+                      { name: "Saree Collection", href: "/shop?category=Saree" },
+                      { name: "Dresses & Gowns", href: "/category/dresses" },
+                      { name: "Tops & Kurtas", href: "/category/tops" },
+                      { name: "Outerwear & Jackets", href: "/category/outerwear" },
+                      { name: "Luxury Accessories", href: "/category/accessories" },
+                      { name: "New Arrivals", href: "/category/new-arrivals" },
+                      { name: "Sale & Offers", href: "/category/sale" },
+                    ].map((cat, idx) => (
+                      <Link
+                        key={idx}
+                        href={cat.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block px-5 py-3.5 text-xs sm:text-sm font-medium tracking-wider text-gray-800 hover:text-[#C9A648] hover:bg-gray-50 transition-colors flex items-center justify-between"
+                      >
+                        <span>{cat.name}</span>
+                        <svg className="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
