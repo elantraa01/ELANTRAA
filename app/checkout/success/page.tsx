@@ -65,7 +65,7 @@ function OrderSuccessContent() {
               Customer Concierge
             </h4>
             <p>Questions about your order?</p>
-            <p className="text-[#C9A648] font-medium">concierge@elantraa.com</p>
+            <p className="text-[#C9A648] font-medium">elantraa.01@gmail.com | +91 9015342951</p>
           </div>
         </div>
       </div>

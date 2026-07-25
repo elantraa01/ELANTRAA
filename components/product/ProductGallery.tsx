@@ -82,22 +82,35 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
 
       {/* Lightbox Modal */}
       {lightboxOpen && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setLightboxOpen(false)}
+        >
+          {/* Close Button */}
           <button
-            onClick={() => setLightboxOpen(false)}
-            className="absolute top-6 right-6 p-3 text-white hover:text-[#D4AF37] transition-colors"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightboxOpen(false);
+            }}
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 z-50 p-3 bg-black/60 hover:bg-[#C9A648] text-white rounded-full transition-all shadow-2xl border border-white/20 active:scale-95"
             aria-label="Close Lightbox"
           >
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          <div className="relative max-w-4xl max-h-[85vh] w-full h-full flex items-center justify-center">
+
+          {/* Expanded Image Box */}
+          <div
+            className="relative max-w-4xl max-h-[85vh] w-full h-full flex items-center justify-center p-2 pointer-events-none"
+          >
             <Image
               src={activeImage}
               alt={productName}
               fill
-              className="object-contain"
+              className="object-contain pointer-events-auto"
+              sizes="100vw"
             />
           </div>
         </div>

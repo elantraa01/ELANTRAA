@@ -104,8 +104,13 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <a href="mailto:concierge@elantraa.com" className="hover:text-[#D4AF37] transition-colors">
-                  Contact Concierge
+                <a href="mailto:elantraa.01@gmail.com" className="hover:text-[#D4AF37] transition-colors">
+                  Email: elantraa.01@gmail.com
+                </a>
+              </li>
+              <li>
+                <a href="https://wa.me/919015342951" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4AF37] transition-colors">
+                  WhatsApp: +91 9015342951
                 </a>
               </li>
             </ul>

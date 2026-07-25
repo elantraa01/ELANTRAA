@@ -14,14 +14,15 @@ interface NavbarProps {
 
 export default function Navbar({
   cartCount: customCartCount,
-  wishlistCount = 0,
+  wishlistCount: customWishlistCount,
   onOpenCart,
   onOpenWishlist,
 }: NavbarProps) {
   const { data: session } = useSession();
   const accountHref = session?.user ? "/account" : "/login";
-  const { cartCount: ctxCartCount } = useCart();
+  const { cartCount: ctxCartCount, wishlistCount: ctxWishlistCount } = useCart();
   const activeCartCount = customCartCount !== undefined ? customCartCount : ctxCartCount;
+  const wishlistCount = customWishlistCount !== undefined ? customWishlistCount : ctxWishlistCount;
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -190,20 +191,37 @@ export default function Navbar({
             </Link>
 
             {/* Wishlist */}
-            <button
-              onClick={onOpenWishlist}
-              className="p-1 hover:text-[#C9A648] transition-colors relative"
-              aria-label="Wishlist"
-            >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
-              </svg>
-              {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] px-1 bg-[#C9A648] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
-                  {wishlistCount}
-                </span>
-              )}
-            </button>
+            {onOpenWishlist ? (
+              <button
+                onClick={onOpenWishlist}
+                className="p-1 hover:text-[#C9A648] transition-colors relative"
+                aria-label="Wishlist"
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
+                </svg>
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] px-1 bg-[#C9A648] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
+                    {wishlistCount}
+                  </span>
+                )}
+              </button>
+            ) : (
+              <Link
+                href={session?.user ? "/account?tab=wishlist" : "/login"}
+                className="p-1 hover:text-[#C9A648] transition-colors relative inline-block"
+                aria-label="Wishlist"
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
+                </svg>
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] px-1 bg-[#C9A648] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
             {/* Shopping Cart Button / Link */}
             {onOpenCart ? (
@@ -347,7 +365,8 @@ export default function Navbar({
               <div className="text-[11px] text-gray-500 font-sans space-y-1 pt-1">
                 <p className="font-semibold text-gray-800 uppercase tracking-wider">Customer Care</p>
                 <p>Mon - Sat: 10am - 8pm IST</p>
-                <p className="text-[#C9A648]">concierge@elantraa.com</p>
+                <p className="text-[#C9A648]">elantraa.01@gmail.com</p>
+                <p className="text-gray-700 font-medium">+91 9015342951</p>
               </div>
             </div>
           </div>

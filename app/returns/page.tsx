@@ -42,7 +42,7 @@ export default function ReturnsPolicyPage() {
 
             <h3 className="text-lg font-serif text-gray-900 font-semibold mt-6">2. Complimentary Courier Pickup</h3>
             <p>
-              Our client concierge will arrange a doorstep pickup at your preferred address. Simply contact us at <strong className="text-[#C9A648]">concierge@elantraa.com</strong> or via WhatsApp.
+              Our client concierge will arrange a doorstep pickup at your preferred address. Simply contact us at <strong className="text-[#C9A648]">elantraa.01@gmail.com</strong> or via WhatsApp / Phone at <strong className="text-[#C9A648]">+91 9015342951</strong>.
             </p>
 
             <h3 className="text-lg font-serif text-gray-900 font-semibold mt-6">3. Refund Processing</h3>

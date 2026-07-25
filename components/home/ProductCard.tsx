@@ -4,12 +4,13 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Product } from "./mockData";
+import { useCart } from "@/context/CartContext";
 
 interface ProductCardProps {
   product: Product;
   onQuickView: (product: Product) => void;
   onAddToCart: (product: Product) => void;
-  onToggleWishlist: (product: Product) => void;
+  onToggleWishlist?: (product: Product) => void;
   isWishlisted?: boolean;
 }
 
@@ -18,14 +19,17 @@ export default function ProductCard({
   onQuickView,
   onAddToCart,
   onToggleWishlist,
-  isWishlisted = false,
 }: ProductCardProps) {
-  const [liked, setLiked] = useState(isWishlisted);
+  const { toggleWishlist, isInWishlist } = useCart();
+  const liked = isInWishlist(product.id);
 
   const handleWishlistClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
-    setLiked(!liked);
-    onToggleWishlist(product);
+    toggleWishlist(product);
+    if (onToggleWishlist) {
+      onToggleWishlist(product);
+    }
   };
 
   return (

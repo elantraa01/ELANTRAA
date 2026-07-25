@@ -69,6 +69,11 @@ export default function AdminDashboardPage() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  const handleSignOut = async () => {
+    await signOut({ redirect: false });
+    window.location.href = "/login";
+  };
+
   // Hero Banner Form State
   const [heroForm, setHeroForm] = useState({
     announcement: "COMPLIMENTARY WORLDWIDE EXPRESS SHIPPING ON ORDERS ABOVE ₹5,000",
@@ -696,7 +701,7 @@ export default function AdminDashboardPage() {
               Back to Client Home
             </Link>
             <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={handleSignOut}
               className="w-full py-2.5 text-xs text-gray-500 hover:text-gray-900 underline font-medium"
             >
               Sign in with another account
@@ -752,7 +757,7 @@ export default function AdminDashboardPage() {
             </div>
 
             <button
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={handleSignOut}
               className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs uppercase tracking-widest rounded font-medium transition-colors"
             >
               Sign Out

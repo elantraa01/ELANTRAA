@@ -1,14 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { userId, guestCartItems, guestId } = body;
+    const session = await getServerSession(authOptions);
+    const sessionUserId = (session?.user as { id?: string })?.id;
+    const sessionEmail = session?.user?.email;
 
-    if (!userId) {
-      return NextResponse.json({ error: "userId is required for merge" }, { status: 400 });
+    const body = await req.json().catch(() => ({}));
+    const { userId: bodyUserId, guestCartItems, guestId } = body;
+
+    let targetUser = null;
+    if (sessionEmail || sessionUserId) {
+      targetUser = await prisma.user.findFirst({
+        where: sessionUserId ? { id: sessionUserId } : { email: sessionEmail! },
+      });
+    } else if (bodyUserId) {
+      targetUser = await prisma.user.findFirst({
+        where: { OR: [{ id: bodyUserId }, { email: bodyUserId }] },
+      });
     }
+
+    if (!targetUser) {
+      return NextResponse.json({
+        success: true,
+        message: "No database user found to merge cart into.",
+      });
+    }
+
+    const userId = targetUser.id;
 
     // Find or create user DB cart
     let userCart = await prisma.cart.findUnique({

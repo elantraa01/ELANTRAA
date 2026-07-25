@@ -95,7 +95,7 @@ Below is the complete list of environment variables used by ELANTRAA:
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/elantraa?schema=public"
 
 # App & Public Variables
-NEXT_PUBLIC_WHATSAPP_NUMBER="919876543210"
+NEXT_PUBLIC_WHATSAPP_NUMBER="919015342951"
 
 # NextAuth.js Authentication
 NEXTAUTH_SECRET="elantraa_luxury_haute_couture_secret_key_2026"
@@ -115,7 +115,7 @@ SMTP_HOST="smtp.ethereal.email"
 SMTP_PORT="587"
 SMTP_USER="your_smtp_username"
 SMTP_PASS="your_smtp_password"
-EMAIL_FROM="ELANTRAA Concierge <concierge@elantraa.com>"
+EMAIL_FROM="ELANTRAA Concierge <elantraa.01@gmail.com>"
 ```
 
 ---

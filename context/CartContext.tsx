@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo, useRef } from "react";
+import { useSession } from "next-auth/react";
 import { Product } from "@/components/home/mockData";
 
 export interface CartItemType {
@@ -35,6 +36,11 @@ interface CartContextType {
   removePromoCode: () => void;
   mergeCartOnLogin: (userId: string) => Promise<void>;
   guestId: string;
+  // Wishlist
+  wishlistItems: Product[];
+  wishlistCount: number;
+  toggleWishlist: (product: Product) => void;
+  isInWishlist: (productId: string) => boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -42,16 +48,39 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 const GUEST_CART_KEY = "elantraa_guest_cart";
 const GUEST_ID_KEY = "elantraa_guest_id";
 const PROMO_CODE_KEY = "elantraa_promo_code";
+const WISHLIST_KEY = "elantraa_wishlist";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const { data: session, status } = useSession();
+  const userEmail = session?.user?.email;
+
   const [items, setItems] = useState<CartItemType[]>([]);
+  const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [promoCode, setPromoCode] = useState("");
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [guestId, setGuestId] = useState("");
-  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Initialize Guest ID and load Cart from localStorage on mount
+  const activeUserRef = useRef<string | null | undefined>(undefined);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  const getCartKeyForEmail = (email?: string | null) => {
+    if (email) {
+      const cleanEmail = email.replace(/[^a-zA-Z0-9]/g, "_");
+      return `elantraa_user_cart_${cleanEmail}`;
+    }
+    return GUEST_CART_KEY;
+  };
+
+  const getWishlistKeyForEmail = (email?: string | null) => {
+    if (email) {
+      const cleanEmail = email.replace(/[^a-zA-Z0-9]/g, "_");
+      return `elantraa_user_wishlist_${cleanEmail}`;
+    }
+    return WISHLIST_KEY;
+  };
+
+  // 1. Initialize Guest ID and Promo Code on mount
   useEffect(() => {
     let gid = localStorage.getItem(GUEST_ID_KEY);
     if (!gid) {
@@ -60,16 +89,30 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
     setGuestId(gid);
 
-    // Load guest cart
-    const savedCart = localStorage.getItem(GUEST_CART_KEY);
+    const savedPromo = localStorage.getItem(PROMO_CODE_KEY);
+    if (savedPromo) {
+      setPromoCode(savedPromo);
+      setPromoDiscount(savedPromo === "ELANTRAAGOLD" ? 500 : 0);
+    }
+  }, []);
+
+  // 2. Hydrate Cart and Wishlist whenever session/user changes
+  useEffect(() => {
+    if (status === "loading") return;
+
+    const cartKey = getCartKeyForEmail(userEmail);
+    const wishlistKey = getWishlistKeyForEmail(userEmail);
+
+    // Load User or Guest Cart
+    const savedCart = localStorage.getItem(cartKey);
     if (savedCart) {
       try {
         setItems(JSON.parse(savedCart));
       } catch (e) {
-        console.error("Failed to parse guest cart", e);
+        console.error("Failed to parse cart", e);
+        setItems([]);
       }
-    } else {
-      // Seed 2 default items for seamless demo
+    } else if (!userEmail) {
       const defaultDemoItems: CartItemType[] = [
         {
           id: "demo-item-1",
@@ -83,38 +126,47 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           color: "Champagne",
           quantity: 1,
         },
-        {
-          id: "demo-item-2",
-          productId: "prod-3",
-          name: "Elan Classic Oxford Shirt",
-          slug: "elan-classic-oxford-shirt",
-          price: 2499,
-          discountPrice: null,
-          image: "/images/collections/menswear.png",
-          size: "L",
-          color: "White",
-          quantity: 1,
-        },
       ];
       setItems(defaultDemoItems);
-      localStorage.setItem(GUEST_CART_KEY, JSON.stringify(defaultDemoItems));
+      localStorage.setItem(cartKey, JSON.stringify(defaultDemoItems));
+    } else {
+      setItems([]);
     }
 
-    const savedPromo = localStorage.getItem(PROMO_CODE_KEY);
-    if (savedPromo) {
-      setPromoCode(savedPromo);
-      setPromoDiscount(savedPromo === "ELANTRAAGOLD" ? 500 : 0);
+    // Load User or Guest Wishlist
+    const savedWishlist = localStorage.getItem(wishlistKey);
+    if (savedWishlist) {
+      try {
+        setWishlistItems(JSON.parse(savedWishlist));
+      } catch (e) {
+        console.error("Failed to parse wishlist", e);
+        setWishlistItems([]);
+      }
+    } else {
+      setWishlistItems([]);
     }
 
-    setIsLoaded(true);
-  }, []);
+    activeUserRef.current = userEmail || null;
+    setIsHydrated(true);
+  }, [userEmail, status]);
 
-  // Save guest cart changes to localStorage
+  // 3. Save Cart changes to active user profile key
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem(GUEST_CART_KEY, JSON.stringify(items));
-    }
-  }, [items, isLoaded]);
+    if (!isHydrated) return;
+    if (activeUserRef.current !== (userEmail || null)) return;
+
+    const cartKey = getCartKeyForEmail(userEmail);
+    localStorage.setItem(cartKey, JSON.stringify(items));
+  }, [items, isHydrated, userEmail]);
+
+  // 4. Save Wishlist changes to active user profile key
+  useEffect(() => {
+    if (!isHydrated) return;
+    if (activeUserRef.current !== (userEmail || null)) return;
+
+    const wishlistKey = getWishlistKeyForEmail(userEmail);
+    localStorage.setItem(wishlistKey, JSON.stringify(wishlistItems));
+  }, [wishlistItems, isHydrated, userEmail]);
 
   const addItem = (
     product: Product,
@@ -167,7 +219,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => {
     setItems([]);
-    localStorage.removeItem(GUEST_CART_KEY);
+    const key = getCartKeyForEmail(userEmail);
+    localStorage.removeItem(key);
   };
 
   const applyPromoCode = (code: string) => {
@@ -192,7 +245,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(PROMO_CODE_KEY);
   };
 
-  // Merge Guest Cart into User DB Cart upon login
   const mergeCartOnLogin = async (userId: string) => {
     try {
       const response = await fetch("/api/cart/merge", {
@@ -210,6 +262,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       console.error("Failed to merge guest cart on login", e);
     }
   };
+
+  const toggleWishlist = (product: Product) => {
+    setWishlistItems((prev) => {
+      const exists = prev.some((item) => item.id === product.id);
+      let updated: Product[];
+      if (exists) {
+        updated = prev.filter((item) => item.id !== product.id);
+      } else {
+        updated = [...prev, product];
+      }
+      return updated;
+    });
+  };
+
+  const isInWishlist = (productId: string) => {
+    return wishlistItems.some((item) => item.id === productId);
+  };
+
+  const wishlistCount = wishlistItems.length;
 
   const cartCount = useMemo(
     () => items.reduce((acc, item) => acc + item.quantity, 0),
@@ -250,6 +321,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         removePromoCode,
         mergeCartOnLogin,
         guestId,
+        wishlistItems,
+        wishlistCount,
+        toggleWishlist,
+        isInWishlist,
       }}
     >
       {children}

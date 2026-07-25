@@ -1,18 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const userId = searchParams.get("userId");
+  let userId = searchParams.get("userId");
   const guestId = searchParams.get("guestId");
 
+  if (!userId) {
+    const session = await getServerSession(authOptions);
+    const userEmail = session?.user?.email;
+    if (userEmail) {
+      const user = await prisma.user.findFirst({ where: { email: userEmail } });
+      if (user) {
+        userId = user.id;
+      }
+    }
+  }
+
   if (!userId && !guestId) {
-    return NextResponse.json({ error: "Missing userId or guestId" }, { status: 400 });
+    return NextResponse.json({ cart: null });
   }
 
   try {
     const cart = await prisma.cart.findFirst({
-      where: userId ? { userId } : { guestId },
+      where: userId ? { userId } : { guestId: guestId || undefined },
       include: {
         items: {
           include: {
@@ -32,7 +45,18 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { userId, guestId, productId, size, color, quantity } = body;
+    let { userId, guestId, productId, size, color, quantity } = body;
+
+    if (!userId) {
+      const session = await getServerSession(authOptions);
+      const userEmail = session?.user?.email;
+      if (userEmail) {
+        const user = await prisma.user.findFirst({ where: { email: userEmail } });
+        if (user) {
+          userId = user.id;
+        }
+      }
+    }
 
     if (!productId) {
       return NextResponse.json({ error: "productId is required" }, { status: 400 });

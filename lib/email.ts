@@ -122,7 +122,7 @@ export async function sendOrderConfirmationEmail(details: EmailOrderDetails) {
             <!-- Email Footer -->
             <div style="background-color: #FAF8F5; text-align: center; padding: 20px; border-top: 1px solid #e5e5e5; font-size: 11px; color: #888888;">
               <p style="margin: 0 0 5px 0;">Need assistance with your couture order?</p>
-              <p style="margin: 0; font-weight: bold; color: #C9A648;">concierge@elantraa.com | +91 98765 43210</p>
+              <p style="margin: 0; font-weight: bold; color: #C9A648;">elantraa.01@gmail.com | +91 9015342951</p>
             </div>
           </div>
         </body>
@@ -130,7 +130,7 @@ export async function sendOrderConfirmationEmail(details: EmailOrderDetails) {
     `;
 
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"ELANTRAA Concierge" <concierge@elantraa.com>',
+      from: process.env.EMAIL_FROM || '"ELANTRAA Concierge" <elantraa.01@gmail.com>',
       to: details.customerEmail,
       subject: `Order Confirmation: ${details.orderId} | ELANTRAA Haute Couture`,
       html: emailHtml,

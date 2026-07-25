@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Product } from "@/components/home/mockData";
+import { useCart } from "@/context/CartContext";
 
 interface ProductInfoProps {
   product: Product;
@@ -14,10 +15,12 @@ export default function ProductInfo({
   onAddToCart,
   onToggleWishlist,
 }: ProductInfoProps) {
+  const { toggleWishlist, isInWishlist } = useCart();
+  const isWishlisted = isInWishlist(product.id);
+
   const [selectedSize, setSelectedSize] = useState(product.sizes[0] || "M");
   const [selectedColor, setSelectedColor] = useState(product.colors[0] || "Default");
   const [quantity, setQuantity] = useState(1);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
 
   // Accordion open states
@@ -28,7 +31,7 @@ export default function ProductInfo({
   };
 
   const handleWishlist = () => {
-    setIsWishlisted(!isWishlisted);
+    toggleWishlist(product);
     onToggleWishlist(product);
   };
 

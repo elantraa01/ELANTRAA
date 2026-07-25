@@ -7,7 +7,7 @@ export default function WhatsAppButton() {
 
   // Phone number from environment variable (default fallback provided if not set in .env)
   const rawPhoneNumber =
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "919876543210";
+    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "919015342951";
   // Clean phone number: keep only digits
   const phoneNumber = rawPhoneNumber.replace(/\D/g, "");
 

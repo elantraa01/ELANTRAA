@@ -11,6 +11,8 @@ import QuickViewModal from "@/components/home/QuickViewModal";
 import { Product } from "@/components/home/mockData";
 import { useCart } from "@/context/CartContext";
 
+import { useSearchParams } from "next/navigation";
+
 interface SavedAddress {
   id: string;
   line1: string;
@@ -34,9 +36,23 @@ interface OrderHistoryItem {
 
 export default function AccountPage() {
   const { data: session } = useSession();
-  const { addItem } = useCart();
+  const searchParams = useSearchParams();
+  const { addItem, wishlistItems } = useCart();
+
+  const handleSignOut = async () => {
+    await signOut({ redirect: false });
+    window.location.href = "/login";
+  };
 
   const [activeTab, setActiveTab] = useState<"orders" | "addresses" | "wishlist">("orders");
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam === "wishlist" || tabParam === "addresses" || tabParam === "orders") {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
+
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -158,7 +174,7 @@ export default function AccountPage() {
             </div>
 
             <button
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={handleSignOut}
               className="px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs uppercase tracking-widest rounded font-medium transition-colors"
             >
               Sign Out
@@ -308,22 +324,34 @@ export default function AccountPage() {
           {/* TAB 3: WISHLIST */}
           {activeTab === "wishlist" && (
             <div className="space-y-6 animate-in fade-in duration-300">
-              <h3 className="text-lg font-serif font-semibold text-gray-900">Your Saved Wishlist ({wishlistProducts.length})</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {wishlistProducts.map((prod) => (
-                  <ProductCard
-                    key={prod.id}
-                    product={prod}
-                    isWishlisted={true}
-                    onQuickView={(p) => setSelectedProduct(p)}
-                    onAddToCart={(p) => {
-                      addItem(p);
-                      showNotification(`Added ${p.name} to shopping bag.`);
-                    }}
-                    onToggleWishlist={() => showNotification("Wishlist updated.")}
-                  />
-                ))}
-              </div>
+              <h3 className="text-lg font-serif font-semibold text-gray-900">Your Saved Wishlist ({wishlistItems.length})</h3>
+              {wishlistItems.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {wishlistItems.map((prod) => (
+                    <ProductCard
+                      key={prod.id}
+                      product={prod}
+                      isWishlisted={true}
+                      onQuickView={(p) => setSelectedProduct(p)}
+                      onAddToCart={(p) => {
+                        addItem(p);
+                        showNotification(`Added ${p.name} to shopping bag.`);
+                      }}
+                      onToggleWishlist={() => showNotification("Wishlist updated.")}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-[#FAF8F5] rounded-xl p-8 text-center border border-gray-200 space-y-3">
+                  <p className="text-xs text-gray-500 italic">Your wishlist is currently empty.</p>
+                  <a
+                    href="/shop"
+                    className="inline-block text-xs text-[#C9A648] font-bold uppercase tracking-widest hover:underline"
+                  >
+                    ✦ Explore Couture Catalogue
+                  </a>
+                </div>
+              )}
             </div>
           )}
         </main>
