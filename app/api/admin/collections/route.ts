@@ -103,9 +103,9 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ collection }, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("POST /api/admin/collections error:", error);
-    if (error.code === "P2002") {
+    if ((error as { code?: string })?.code === "P2002") {
       return NextResponse.json({ error: "A collection with this title or slug already exists." }, { status: 400 });
     }
     return NextResponse.json({ error: "Failed to create collection" }, { status: 500 });
@@ -126,7 +126,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Collection ID is required" }, { status: 400 });
     }
 
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (title !== undefined) {
       updateData.title = title;
       updateData.slug = title

@@ -44,8 +44,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    let { userId, guestId, productId, size, color, quantity } = body;
+    const { guestId, productId, size, color, quantity } = body;
+    let userId = body.userId;
 
     if (!userId) {
       const session = await getServerSession(authOptions);

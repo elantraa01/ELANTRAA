@@ -88,9 +88,6 @@ export default function AccountPage() {
     loadUserData();
   }, [session]);
 
-  // Wishlist Items
-  const wishlistProducts: Product[] = [];
-
   const showNotification = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
