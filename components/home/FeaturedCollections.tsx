@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MOCK_COLLECTIONS } from "./mockData";
 
 export interface CollectionItem {
   id: string;
@@ -16,7 +15,7 @@ export interface CollectionItem {
 }
 
 export default function FeaturedCollections() {
-  const [collections, setCollections] = useState<CollectionItem[]>(MOCK_COLLECTIONS);
+  const [collections, setCollections] = useState<CollectionItem[]>([]);
 
   useEffect(() => {
     async function fetchCollections() {
@@ -24,12 +23,12 @@ export default function FeaturedCollections() {
         const res = await fetch("/api/collections");
         if (res.ok) {
           const data = await res.json();
-          if (data.collections && data.collections.length > 0) {
+          if (data.collections) {
             setCollections(data.collections);
           }
         }
       } catch (err) {
-        console.warn("Failed to load DB collections, using mock", err);
+        console.warn("Failed to load DB collections", err);
       }
     }
     fetchCollections();

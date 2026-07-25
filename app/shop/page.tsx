@@ -7,7 +7,7 @@ import ProductCard from "@/components/home/ProductCard";
 import QuickViewModal from "@/components/home/QuickViewModal";
 import FilterSidebar, { FilterState } from "@/components/shop/FilterSidebar";
 import ShopHeader from "@/components/shop/ShopHeader";
-import { MOCK_PRODUCTS, Product } from "@/components/home/mockData";
+import { Product } from "@/components/home/mockData";
 import { useCart } from "@/context/CartContext";
 
 const DEFAULT_FILTERS: FilterState = {
@@ -102,13 +102,9 @@ export default function ShopPage() {
 
         if (prodRes.ok) {
           const data = await prodRes.json();
-          if (data.products && data.products.length > 0) {
-            setDbProducts(data.products);
-          } else {
-            setDbProducts(MOCK_PRODUCTS);
-          }
+          setDbProducts(data.products || []);
         } else {
-          setDbProducts(MOCK_PRODUCTS);
+          setDbProducts([]);
         }
 
         if (catRes.ok) {
@@ -118,7 +114,7 @@ export default function ShopPage() {
           }
         }
       } catch {
-        setDbProducts(MOCK_PRODUCTS);
+        setDbProducts([]);
       } finally {
         setLoading(false);
       }
@@ -127,7 +123,7 @@ export default function ShopPage() {
     loadShopData();
   }, []);
 
-  const allProducts = dbProducts.length > 0 ? dbProducts : MOCK_PRODUCTS;
+  const allProducts = dbProducts;
 
   const showNotification = (msg: string) => {
     setToastMessage(msg);

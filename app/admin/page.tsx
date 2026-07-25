@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
-import { MOCK_PRODUCTS, Product } from "@/components/home/mockData";
+import { Product } from "@/components/home/mockData";
 
 interface AdminCategory {
   id: string;
@@ -71,6 +71,7 @@ export default function AdminDashboardPage() {
 
   // Hero Banner Form State
   const [heroForm, setHeroForm] = useState({
+    announcement: "COMPLIMENTARY WORLDWIDE EXPRESS SHIPPING ON ORDERS ABOVE ₹5,000",
     tagline: "AUTUMN / WINTER 2026 COLLECTION",
     title: "ELANTRAA",
     highlight: "& Timeless Elegance",
@@ -136,15 +137,16 @@ export default function AdminDashboardPage() {
 
         if (prodRes.ok) {
           const data = await prodRes.json();
-          setProducts(data.products && data.products.length > 0 ? data.products : MOCK_PRODUCTS);
+          setProducts(data.products || []);
         } else {
-          setProducts(MOCK_PRODUCTS);
+          setProducts([]);
         }
 
         if (heroRes && heroRes.ok) {
           const data = await heroRes.json();
           if (data.hero) {
             setHeroForm({
+              announcement: data.hero.announcement || "COMPLIMENTARY WORLDWIDE EXPRESS SHIPPING ON ORDERS ABOVE ₹5,000",
               tagline: data.hero.tagline || "AUTUMN / WINTER 2026 COLLECTION",
               title: data.hero.title || "ELANTRAA",
               highlight: data.hero.highlight || "& Timeless Elegance",
@@ -158,87 +160,48 @@ export default function AdminDashboardPage() {
 
         if (catRes.ok) {
           const data = await catRes.json();
-          if (data.categories && data.categories.length > 0) {
-            setCategories(data.categories);
-          } else {
-            setCategories([
-              { id: "cat-1", name: "Dresses", slug: "dresses", productsCount: 4 },
-              { id: "cat-2", name: "Ethnic Wear", slug: "ethnic-wear", productsCount: 3 },
-              { id: "cat-3", name: "Menswear", slug: "menswear", productsCount: 2 },
-              { id: "cat-4", name: "Accessories", slug: "accessories", productsCount: 1 },
-            ]);
-          }
+          setCategories(data.categories || []);
+        } else {
+          setCategories([]);
         }
 
         if (collRes && collRes.ok) {
           const data = await collRes.json();
-          if (data.collections && data.collections.length > 0) {
-            setCollections(data.collections);
+          setCollections(data.collections || []);
+        } else {
+          try {
+            const pubRes = await fetch("/api/collections");
+            if (pubRes.ok) {
+              const pubData = await pubRes.json();
+              setCollections(pubData.collections || []);
+            }
+          } catch {
+            setCollections([]);
           }
         }
 
         if (orderRes.ok) {
           const data = await orderRes.json();
-          setOrders(
-            data.orders && data.orders.length > 0
-              ? data.orders
-              : [
-                  {
-                    id: "ELN-2026-784920",
-                    totalAmount: 4799,
-                    status: "SHIPPED",
-                    paymentStatus: "PAID",
-                    paymentMethod: "ONLINE",
-                    createdAt: new Date().toISOString(),
-                    user: { name: "Radhika Kapoor", email: "radhika@example.com" },
-                  },
-                  {
-                    id: "ELN-2026-392014",
-                    totalAmount: 6498,
-                    status: "DELIVERED",
-                    paymentStatus: "PAID",
-                    paymentMethod: "COD",
-                    createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-                    user: { name: "Ananya Sharma", email: "ananya@example.com" },
-                  },
-                ]
-          );
+          setOrders(data.orders || []);
+        } else {
+          setOrders([]);
         }
 
         if (custRes.ok) {
           const data = await custRes.json();
-          setCustomers(
-            data.users && data.users.length > 0
-              ? data.users
-              : [
-                  {
-                    id: "user-1",
-                    name: "Victoria Sterling",
-                    email: "admin@elantraa.com",
-                    role: "ADMIN",
-                    createdAt: "2026-01-15T00:00:00.000Z",
-                    _count: { orders: 5, addresses: 2 },
-                  },
-                  {
-                    id: "user-2",
-                    name: "Ananya Sharma",
-                    email: "client@elantraa.com",
-                    role: "CUSTOMER",
-                    createdAt: "2026-03-20T00:00:00.000Z",
-                    _count: { orders: 3, addresses: 1 },
-                  },
-                ]
-          );
+          setCustomers(data.users || []);
+        } else {
+          setCustomers([]);
         }
       } catch {
-        setProducts(MOCK_PRODUCTS);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
     }
 
     loadAdminData();
-  }, []);
+  }, [session]);
 
   // Toggle Product Active Status
   const handleToggleActive = async (id: string, currentActive?: boolean) => {
@@ -1223,6 +1186,18 @@ export default function AdminDashboardPage() {
                 {/* Edit Form */}
                 <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
                   <form onSubmit={handleSaveHero} className="space-y-5 text-xs font-sans">
+                    <div>
+                      <label className="block font-semibold uppercase text-gray-700 mb-1">Top Announcement Banner Headline *</label>
+                      <input
+                        type="text"
+                        required
+                        value={heroForm.announcement}
+                        onChange={(e) => setHeroForm({ ...heroForm, announcement: e.target.value })}
+                        className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg focus:border-[#C9A648] outline-none font-medium text-[#171717]"
+                        placeholder="e.g. COMPLIMENTARY WORLDWIDE EXPRESS SHIPPING ON ORDERS ABOVE ₹5,000"
+                      />
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block font-semibold uppercase text-gray-700 mb-1">Badge Tagline *</label>

@@ -24,6 +24,7 @@ export async function GET() {
       hero = await prisma.heroBanner.create({
         data: {
           id: "default",
+          announcement: "COMPLIMENTARY WORLDWIDE EXPRESS SHIPPING ON ORDERS ABOVE ₹5,000",
           tagline: "AUTUMN / WINTER 2026 COLLECTION",
           title: "ELANTRAA",
           highlight: "& Timeless Elegance",
@@ -50,11 +51,12 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { tagline, title, highlight, description, buttonText, buttonLink, bgImage } = body;
+    const { announcement, tagline, title, highlight, description, buttonText, buttonLink, bgImage } = body;
 
     const updated = await prisma.heroBanner.upsert({
       where: { id: "default" },
       update: {
+        ...(announcement !== undefined && { announcement }),
         ...(tagline !== undefined && { tagline }),
         ...(title !== undefined && { title }),
         ...(highlight !== undefined && { highlight }),
@@ -65,6 +67,7 @@ export async function PATCH(req: NextRequest) {
       },
       create: {
         id: "default",
+        announcement: announcement || "COMPLIMENTARY WORLDWIDE EXPRESS SHIPPING ON ORDERS ABOVE ₹5,000",
         tagline: tagline || "AUTUMN / WINTER 2026 COLLECTION",
         title: title || "ELANTRAA",
         highlight: highlight || "& Timeless Elegance",

@@ -13,15 +13,55 @@ async function verifyAdmin() {
 }
 
 export async function GET() {
-  const isAdmin = await verifyAdmin();
-  if (!isAdmin) {
-    return NextResponse.json({ error: "Unauthorized. Admin access required." }, { status: 403 });
-  }
-
   try {
-    const collections = await prisma.collection.findMany({
+    let collections = await prisma.collection.findMany({
       orderBy: { createdAt: "desc" },
     });
+
+    if (collections.length === 0) {
+      await prisma.collection.createMany({
+        data: [
+          {
+            title: "Dresses & Evening Gowns",
+            subtitle: "Handcrafted Silk & Satin Silhouettes",
+            image: "/images/collections/dresses.png",
+            slug: "dresses",
+            itemCount: "12 PIECES",
+            isFeatured: true,
+          },
+          {
+            title: "Luxury Ethnic Wear",
+            subtitle: "Royal Embroidered Sarees & Lehengas",
+            image: "/images/collections/ethnic.png",
+            slug: "ethnic-wear",
+            itemCount: "15 PIECES",
+            isFeatured: true,
+          },
+          {
+            title: "Menswear Couture",
+            subtitle: "Bespoke Royal Sherwanis & Jackets",
+            image: "/images/collections/menswear.png",
+            slug: "menswear",
+            itemCount: "8 PIECES",
+            isFeatured: true,
+          },
+          {
+            title: "Accessories & Jewelry",
+            subtitle: "Fine Metallic Clutches & Artisan Pieces",
+            image: "/images/collections/accessories.png",
+            slug: "accessories",
+            itemCount: "20 PIECES",
+            isFeatured: true,
+          },
+        ],
+        skipDuplicates: true,
+      });
+
+      collections = await prisma.collection.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+    }
+
     return NextResponse.json({ collections });
   } catch (error) {
     console.error("GET /api/admin/collections error:", error);

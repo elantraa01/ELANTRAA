@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MOCK_PRODUCTS, Product } from "./mockData";
+import { Product } from "./mockData";
 import ProductCard from "./ProductCard";
 
 interface NewArrivalsProps {
@@ -11,8 +11,6 @@ interface NewArrivalsProps {
   onToggleWishlist: (product: Product) => void;
 }
 
-
-
 export default function NewArrivals({
   products,
   onQuickView,
@@ -20,7 +18,7 @@ export default function NewArrivals({
   onToggleWishlist,
 }: NewArrivalsProps) {
   const [activeTab, setActiveTab] = useState("All");
-  const sourceProducts = products && products.length > 0 ? products : MOCK_PRODUCTS;
+  const sourceProducts = products || [];
 
   // Extract unique category names from actual products dynamically
   const dynamicCategories = Array.from(

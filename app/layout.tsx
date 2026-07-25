@@ -57,7 +57,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-background text-foreground font-body antialiased min-h-screen relative">
+      <body className="bg-background text-foreground font-body antialiased min-h-screen relative overflow-x-hidden max-w-full w-full">
         <AuthProvider>
           <CartProvider>
             <SplashScreen />

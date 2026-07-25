@@ -7,7 +7,7 @@ import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import ProductCard from "@/components/home/ProductCard";
 import QuickViewModal from "@/components/home/QuickViewModal";
-import { Product, MOCK_PRODUCTS } from "@/components/home/mockData";
+import { Product } from "@/components/home/mockData";
 import { useCart } from "@/context/CartContext";
 
 const CATEGORY_META: Record<
@@ -74,31 +74,12 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
         const res = await fetch(`/api/products?category=${categorySlug}&sortBy=${sortBy}`);
         if (res.ok) {
           const data = await res.json();
-          if (data.products && data.products.length > 0) {
-            setProducts(data.products);
-          } else {
-            // Fallback filtering over MOCK_PRODUCTS for demo if DB is empty
-            let filtered = MOCK_PRODUCTS;
-            if (categorySlug === "women") {
-              filtered = MOCK_PRODUCTS.filter((p) =>
-                ["dresses", "ethnic", "sarees"].includes(p.category.toLowerCase())
-              );
-            } else if (categorySlug === "men") {
-              filtered = MOCK_PRODUCTS.filter(
-                (p) => p.category.toLowerCase() === "menswear"
-              );
-            } else if (categorySlug === "new-arrivals") {
-              filtered = MOCK_PRODUCTS.filter((p) => p.isNewArrival);
-            } else if (categorySlug === "sale") {
-              filtered = MOCK_PRODUCTS.filter((p) => p.discountPrice !== null);
-            }
-            setProducts(filtered);
-          }
+          setProducts(data.products || []);
         } else {
-          setProducts(MOCK_PRODUCTS);
+          setProducts([]);
         }
       } catch {
-        setProducts(MOCK_PRODUCTS);
+        setProducts([]);
       } finally {
         setLoading(false);
       }

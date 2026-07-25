@@ -192,13 +192,14 @@ model Collection {
 }
 
 model HeroBanner {
-  id          String   @id @default("default")
-  tagline     String   @default("AUTUMN / WINTER 2026 COLLECTION")
-  title       String   @default("ELANTRAA")
-  highlight   String   @default("& Timeless Elegance")
-  description String   @default("Immerse yourself in handcrafted silk gowns, tailored silhouettes, and intricate metallic embroidery designed for the discerning individual.")
-  buttonText  String   @default("Explore Collection")
-  buttonLink  String   @default("/shop")
-  bgImage     String   @default("/images/hero/hero_banner.png")
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default("default")
+  announcement String   @default("COMPLIMENTARY WORLDWIDE EXPRESS SHIPPING ON ORDERS ABOVE ₹5,000")
+  tagline      String   @default("AUTUMN / WINTER 2026 COLLECTION")
+  title        String   @default("ELANTRAA")
+  highlight    String   @default("& Timeless Elegance")
+  description  String   @default("Immerse yourself in handcrafted silk gowns, tailored silhouettes, and intricate metallic embroidery designed for the discerning individual.")
+  buttonText   String   @default("Explore Collection")
+  buttonLink   String   @default("/shop")
+  bgImage      String   @default("/images/hero/hero_banner.png")
+  updatedAt    DateTime @updatedAt
 }

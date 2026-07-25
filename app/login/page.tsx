@@ -1,16 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { useCart } from "@/context/CartContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const { mergeCartOnLogin } = useCart();
+
+  useEffect(() => {
+    if (session?.user) {
+      router.replace("/account");
+    }
+  }, [session, router]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

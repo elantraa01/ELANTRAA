@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
       const avgRating =
         p.reviews.length > 0
           ? p.reviews.reduce((acc, r) => acc + r.rating, 0) / p.reviews.length
-          : 4.8;
+          : 0;
 
       return {
         id: p.id,
@@ -91,7 +91,7 @@ export async function GET(req: NextRequest) {
         isNewArrival: p.isFeatured || p.createdAt > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
         isBestSeller: p.stock > 10,
         rating: Math.round(avgRating * 10) / 10,
-        reviewCount: p.reviews.length || 24,
+        reviewCount: p.reviews.length,
         createdAt: p.createdAt.toISOString(),
       };
     });

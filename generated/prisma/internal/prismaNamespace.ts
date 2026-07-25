@@ -1500,6 +1500,7 @@ export type CollectionScalarFieldEnum = (typeof CollectionScalarFieldEnum)[keyof
 
 export const HeroBannerScalarFieldEnum = {
   id: 'id',
+  announcement: 'announcement',
   tagline: 'tagline',
   title: 'title',
   highlight: 'highlight',

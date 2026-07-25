@@ -9,7 +9,7 @@ import BrandStory from "@/components/home/BrandStory";
 import Newsletter from "@/components/home/Newsletter";
 import Footer from "@/components/home/Footer";
 import QuickViewModal from "@/components/home/QuickViewModal";
-import { Product, MOCK_PRODUCTS } from "@/components/home/mockData";
+import { Product } from "@/components/home/mockData";
 import { useCart } from "@/context/CartContext";
 
 export default function Home() {
@@ -24,7 +24,7 @@ export default function Home() {
         const res = await fetch("/api/products");
         if (res.ok) {
           const data = await res.json();
-          if (data.products && data.products.length > 0) {
+          if (data.products) {
             setDbProducts(data.products);
           }
         }
@@ -56,10 +56,10 @@ export default function Home() {
     showNotification(`Saved ${product.name} to your wishlist.`);
   };
 
-  const productsList = dbProducts.length > 0 ? dbProducts : MOCK_PRODUCTS;
+  const productsList = dbProducts;
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-[#C9A648] selection:text-white">
+    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-[#C9A648] selection:text-white overflow-x-hidden w-full max-w-full">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-20 right-4 z-50 bg-[#171717] text-[#D4AF37] border border-[#C9A648]/40 px-5 py-3 rounded-lg shadow-2xl text-xs font-medium uppercase tracking-wider flex items-center space-x-2 animate-in slide-in-from-top-2 duration-300">

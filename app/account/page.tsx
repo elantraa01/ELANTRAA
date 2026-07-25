@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
@@ -8,7 +8,7 @@ import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import ProductCard from "@/components/home/ProductCard";
 import QuickViewModal from "@/components/home/QuickViewModal";
-import { MOCK_PRODUCTS, Product } from "@/components/home/mockData";
+import { Product } from "@/components/home/mockData";
 import { useCart } from "@/context/CartContext";
 
 interface SavedAddress {
@@ -40,20 +40,10 @@ export default function AccountPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Address Modal State
+  // Saved Addresses & Orders State
   const [showAddressModal, setShowAddressModal] = useState(false);
-  const [addresses, setAddresses] = useState<SavedAddress[]>([
-    {
-      id: "addr-1",
-      line1: "Penthouse 14B, Imperial Towers, Altamount Road",
-      line2: "Cumballa Hill",
-      city: "Mumbai",
-      state: "Maharashtra",
-      pincode: "400026",
-      country: "India",
-      isDefault: true,
-    },
-  ]);
+  const [addresses, setAddresses] = useState<SavedAddress[]>([]);
+  const [ordersList, setOrdersList] = useState<OrderHistoryItem[]>([]);
 
   const [newAddr, setNewAddr] = useState({
     line1: "",
@@ -65,30 +55,25 @@ export default function AccountPage() {
     isDefault: false,
   });
 
-  // Mock Orders List
-  const ordersList: OrderHistoryItem[] = [
-    {
-      id: "ELN-2026-784920",
-      date: "July 20, 2026",
-      totalAmount: 4799,
-      status: "SHIPPED",
-      itemsCount: 1,
-      sampleImage: "/images/collections/dresses.png",
-      itemsSummary: "Aurelia Satin Wrap Dress (Size: M, Color: Champagne)",
-    },
-    {
-      id: "ELN-2026-392014",
-      date: "June 14, 2026",
-      totalAmount: 6498,
-      status: "DELIVERED",
-      itemsCount: 2,
-      sampleImage: "/images/collections/ethnic.png",
-      itemsSummary: "Noor Embroidered Kurta Set + Ryder Textured Overshirt",
-    },
-  ];
+  useEffect(() => {
+    async function loadUserData() {
+      if (!session?.user) return;
+      try {
+        const res = await fetch("/api/user/orders");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.orders) setOrdersList(data.orders);
+          if (data.addresses) setAddresses(data.addresses);
+        }
+      } catch (err) {
+        console.warn("Failed to load user account data", err);
+      }
+    }
+    loadUserData();
+  }, [session]);
 
-  // Mock Wishlist Items
-  const wishlistProducts = MOCK_PRODUCTS.slice(0, 4);
+  // Wishlist Items
+  const wishlistProducts: Product[] = [];
 
   const showNotification = (msg: string) => {
     setToastMessage(msg);
@@ -271,40 +256,52 @@ export default function AccountPage() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {addresses.map((addr) => (
-                  <div
-                    key={addr.id}
-                    className="bg-[#FAF8F5] rounded-xl p-6 border border-gray-200 shadow-sm relative flex flex-col justify-between"
-                  >
-                    <div>
-                      {addr.isDefault && (
-                        <span className="absolute top-4 right-4 px-2 py-0.5 bg-[#C9A648] text-white text-[10px] font-bold uppercase rounded">
-                          DEFAULT ADDRESS
-                        </span>
-                      )}
-                      <p className="text-xs font-semibold text-gray-900 mb-1">{userName}</p>
-                      <p className="text-xs text-gray-600 font-light leading-relaxed">
-                        {addr.line1}
-                        {addr.line2 ? `, ${addr.line2}` : ""}
-                      </p>
-                      <p className="text-xs text-gray-600 font-light">
-                        {addr.city}, {addr.state} - {addr.pincode}
-                      </p>
-                      <p className="text-xs text-gray-600 font-light">{addr.country}</p>
-                    </div>
+              {addresses.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {addresses.map((addr) => (
+                    <div
+                      key={addr.id}
+                      className="bg-[#FAF8F5] rounded-xl p-6 border border-gray-200 shadow-sm relative flex flex-col justify-between"
+                    >
+                      <div>
+                        {addr.isDefault && (
+                          <span className="absolute top-4 right-4 px-2 py-0.5 bg-[#C9A648] text-white text-[10px] font-bold uppercase rounded">
+                            DEFAULT ADDRESS
+                          </span>
+                        )}
+                        <p className="text-xs font-semibold text-gray-900 mb-1">{userName}</p>
+                        <p className="text-xs text-gray-600 font-light leading-relaxed">
+                          {addr.line1}
+                          {addr.line2 ? `, ${addr.line2}` : ""}
+                        </p>
+                        <p className="text-xs text-gray-600 font-light">
+                          {addr.city}, {addr.state} - {addr.pincode}
+                        </p>
+                        <p className="text-xs text-gray-600 font-light">{addr.country}</p>
+                      </div>
 
-                    <div className="mt-4 pt-4 border-t border-gray-200 flex items-center space-x-4 text-xs">
-                      <button
-                        onClick={() => handleDeleteAddress(addr.id)}
-                        className="text-red-500 hover:underline font-medium"
-                      >
-                        Delete Address
-                      </button>
+                      <div className="mt-4 pt-4 border-t border-gray-200 flex items-center space-x-4 text-xs">
+                        <button
+                          onClick={() => handleDeleteAddress(addr.id)}
+                          className="text-red-500 hover:underline font-medium"
+                        >
+                          Delete Address
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-[#FAF8F5] rounded-xl p-8 text-center border border-gray-200 space-y-3">
+                  <p className="text-xs text-gray-500 italic">No saved delivery addresses found.</p>
+                  <button
+                    onClick={() => setShowAddressModal(true)}
+                    className="text-xs text-[#C9A648] font-bold uppercase tracking-widest hover:underline"
+                  >
+                    + Add your first address
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

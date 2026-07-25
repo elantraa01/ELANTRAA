@@ -65,15 +65,15 @@ export default function HeroBanner() {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-left w-full">
         <div className="max-w-2xl text-white">
           {/* Tagline Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md border border-[#D4AF37]/50 rounded-full mb-6">
-            <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
-            <span className="text-[11px] sm:text-xs tracking-[0.25em] text-[#F3E5AB] uppercase font-medium">
+          <div className="max-w-full inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md border border-[#D4AF37]/50 rounded-full mb-6 overflow-hidden">
+            <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse shrink-0" />
+            <span className="text-[10px] sm:text-xs tracking-[0.12em] sm:tracking-[0.25em] text-[#F3E5AB] uppercase font-medium truncate max-w-full">
               {hero.tagline}
             </span>
           </div>
 
           {/* Main Title */}
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-serif tracking-tight font-light leading-[1.1] mb-6 text-white">
+          <h1 className="text-3xl sm:text-6xl md:text-7xl font-serif tracking-tight font-light leading-[1.1] mb-6 text-white">
             {hero.title} <br />
             <span className="italic font-normal bg-gradient-to-r from-[#F3E5AB] via-[#D4AF37] to-[#AA771C] bg-clip-text text-transparent">
               {hero.highlight}

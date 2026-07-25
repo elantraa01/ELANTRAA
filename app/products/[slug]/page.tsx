@@ -9,7 +9,7 @@ import ProductInfo from "@/components/product/ProductInfo";
 import ProductReviews from "@/components/product/ProductReviews";
 import RelatedProducts from "@/components/product/RelatedProducts";
 import QuickViewModal from "@/components/home/QuickViewModal";
-import { MOCK_PRODUCTS, Product } from "@/components/home/mockData";
+import { Product } from "@/components/home/mockData";
 import { useCart } from "@/context/CartContext";
 
 export default function ProductDetailPage({
@@ -31,17 +31,10 @@ export default function ProductDetailPage({
           const data = await res.json();
           if (data.product) {
             setProduct(data.product);
-          } else {
-            const fallback = MOCK_PRODUCTS.find((p) => p.slug === params.slug) || MOCK_PRODUCTS[0];
-            setProduct(fallback);
           }
-        } else {
-          const fallback = MOCK_PRODUCTS.find((p) => p.slug === params.slug) || MOCK_PRODUCTS[0];
-          setProduct(fallback);
         }
-      } catch {
-        const fallback = MOCK_PRODUCTS.find((p) => p.slug === params.slug) || MOCK_PRODUCTS[0];
-        setProduct(fallback);
+      } catch (err) {
+        console.warn("Error loading product detail", err);
       } finally {
         setLoading(false);
       }
@@ -70,7 +63,35 @@ export default function ProductDetailPage({
     showNotification(`Saved ${p.name} to your wishlist.`);
   };
 
-  const activeProduct = product || MOCK_PRODUCTS[0];
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white text-gray-900 font-sans">
+        <Navbar />
+        <main className="max-w-7xl mx-auto px-4 py-32 text-center">
+          <p className="text-gray-500 animate-pulse text-sm uppercase tracking-widest">Loading Product Details...</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-white text-gray-900 font-sans">
+        <Navbar />
+        <main className="max-w-7xl mx-auto px-4 py-32 text-center space-y-4">
+          <h1 className="text-3xl font-serif">Product Not Found</h1>
+          <p className="text-gray-500 text-sm">The product you are looking for may have been removed or is currently unavailable.</p>
+          <a href="/shop" className="inline-block px-6 py-3 bg-[#171717] text-[#D4AF37] text-xs font-bold uppercase tracking-widest rounded">
+            Return to Shop
+          </a>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const activeProduct = product;
 
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-[#C9A648] selection:text-white">

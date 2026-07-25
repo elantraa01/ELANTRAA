@@ -26,6 +26,7 @@ export type AggregateHeroBanner = {
 
 export type HeroBannerMinAggregateOutputType = {
   id: string | null
+  announcement: string | null
   tagline: string | null
   title: string | null
   highlight: string | null
@@ -38,6 +39,7 @@ export type HeroBannerMinAggregateOutputType = {
 
 export type HeroBannerMaxAggregateOutputType = {
   id: string | null
+  announcement: string | null
   tagline: string | null
   title: string | null
   highlight: string | null
@@ -50,6 +52,7 @@ export type HeroBannerMaxAggregateOutputType = {
 
 export type HeroBannerCountAggregateOutputType = {
   id: number
+  announcement: number
   tagline: number
   title: number
   highlight: number
@@ -64,6 +67,7 @@ export type HeroBannerCountAggregateOutputType = {
 
 export type HeroBannerMinAggregateInputType = {
   id?: true
+  announcement?: true
   tagline?: true
   title?: true
   highlight?: true
@@ -76,6 +80,7 @@ export type HeroBannerMinAggregateInputType = {
 
 export type HeroBannerMaxAggregateInputType = {
   id?: true
+  announcement?: true
   tagline?: true
   title?: true
   highlight?: true
@@ -88,6 +93,7 @@ export type HeroBannerMaxAggregateInputType = {
 
 export type HeroBannerCountAggregateInputType = {
   id?: true
+  announcement?: true
   tagline?: true
   title?: true
   highlight?: true
@@ -173,6 +179,7 @@ export type HeroBannerGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inter
 
 export type HeroBannerGroupByOutputType = {
   id: string
+  announcement: string
   tagline: string
   title: string
   highlight: string
@@ -206,6 +213,7 @@ export type HeroBannerWhereInput = {
   OR?: Prisma.HeroBannerWhereInput[]
   NOT?: Prisma.HeroBannerWhereInput | Prisma.HeroBannerWhereInput[]
   id?: Prisma.StringFilter<"HeroBanner"> | string
+  announcement?: Prisma.StringFilter<"HeroBanner"> | string
   tagline?: Prisma.StringFilter<"HeroBanner"> | string
   title?: Prisma.StringFilter<"HeroBanner"> | string
   highlight?: Prisma.StringFilter<"HeroBanner"> | string
@@ -218,6 +226,7 @@ export type HeroBannerWhereInput = {
 
 export type HeroBannerOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  announcement?: Prisma.SortOrder
   tagline?: Prisma.SortOrder
   title?: Prisma.SortOrder
   highlight?: Prisma.SortOrder
@@ -233,6 +242,7 @@ export type HeroBannerWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.HeroBannerWhereInput | Prisma.HeroBannerWhereInput[]
   OR?: Prisma.HeroBannerWhereInput[]
   NOT?: Prisma.HeroBannerWhereInput | Prisma.HeroBannerWhereInput[]
+  announcement?: Prisma.StringFilter<"HeroBanner"> | string
   tagline?: Prisma.StringFilter<"HeroBanner"> | string
   title?: Prisma.StringFilter<"HeroBanner"> | string
   highlight?: Prisma.StringFilter<"HeroBanner"> | string
@@ -245,6 +255,7 @@ export type HeroBannerWhereUniqueInput = Prisma.AtLeast<{
 
 export type HeroBannerOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  announcement?: Prisma.SortOrder
   tagline?: Prisma.SortOrder
   title?: Prisma.SortOrder
   highlight?: Prisma.SortOrder
@@ -263,6 +274,7 @@ export type HeroBannerScalarWhereWithAggregatesInput = {
   OR?: Prisma.HeroBannerScalarWhereWithAggregatesInput[]
   NOT?: Prisma.HeroBannerScalarWhereWithAggregatesInput | Prisma.HeroBannerScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"HeroBanner"> | string
+  announcement?: Prisma.StringWithAggregatesFilter<"HeroBanner"> | string
   tagline?: Prisma.StringWithAggregatesFilter<"HeroBanner"> | string
   title?: Prisma.StringWithAggregatesFilter<"HeroBanner"> | string
   highlight?: Prisma.StringWithAggregatesFilter<"HeroBanner"> | string
@@ -275,6 +287,7 @@ export type HeroBannerScalarWhereWithAggregatesInput = {
 
 export type HeroBannerCreateInput = {
   id?: string
+  announcement?: string
   tagline?: string
   title?: string
   highlight?: string
@@ -287,6 +300,7 @@ export type HeroBannerCreateInput = {
 
 export type HeroBannerUncheckedCreateInput = {
   id?: string
+  announcement?: string
   tagline?: string
   title?: string
   highlight?: string
@@ -299,6 +313,7 @@ export type HeroBannerUncheckedCreateInput = {
 
 export type HeroBannerUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  announcement?: Prisma.StringFieldUpdateOperationsInput | string
   tagline?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   highlight?: Prisma.StringFieldUpdateOperationsInput | string
@@ -311,6 +326,7 @@ export type HeroBannerUpdateInput = {
 
 export type HeroBannerUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  announcement?: Prisma.StringFieldUpdateOperationsInput | string
   tagline?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   highlight?: Prisma.StringFieldUpdateOperationsInput | string
@@ -323,6 +339,7 @@ export type HeroBannerUncheckedUpdateInput = {
 
 export type HeroBannerCreateManyInput = {
   id?: string
+  announcement?: string
   tagline?: string
   title?: string
   highlight?: string
@@ -335,6 +352,7 @@ export type HeroBannerCreateManyInput = {
 
 export type HeroBannerUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  announcement?: Prisma.StringFieldUpdateOperationsInput | string
   tagline?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   highlight?: Prisma.StringFieldUpdateOperationsInput | string
@@ -347,6 +365,7 @@ export type HeroBannerUpdateManyMutationInput = {
 
 export type HeroBannerUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  announcement?: Prisma.StringFieldUpdateOperationsInput | string
   tagline?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   highlight?: Prisma.StringFieldUpdateOperationsInput | string
@@ -359,6 +378,7 @@ export type HeroBannerUncheckedUpdateManyInput = {
 
 export type HeroBannerCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  announcement?: Prisma.SortOrder
   tagline?: Prisma.SortOrder
   title?: Prisma.SortOrder
   highlight?: Prisma.SortOrder
@@ -371,6 +391,7 @@ export type HeroBannerCountOrderByAggregateInput = {
 
 export type HeroBannerMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  announcement?: Prisma.SortOrder
   tagline?: Prisma.SortOrder
   title?: Prisma.SortOrder
   highlight?: Prisma.SortOrder
@@ -383,6 +404,7 @@ export type HeroBannerMaxOrderByAggregateInput = {
 
 export type HeroBannerMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  announcement?: Prisma.SortOrder
   tagline?: Prisma.SortOrder
   title?: Prisma.SortOrder
   highlight?: Prisma.SortOrder
@@ -397,6 +419,7 @@ export type HeroBannerMinOrderByAggregateInput = {
 
 export type HeroBannerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  announcement?: boolean
   tagline?: boolean
   title?: boolean
   highlight?: boolean
@@ -409,6 +432,7 @@ export type HeroBannerSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
 
 export type HeroBannerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  announcement?: boolean
   tagline?: boolean
   title?: boolean
   highlight?: boolean
@@ -421,6 +445,7 @@ export type HeroBannerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
 
 export type HeroBannerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  announcement?: boolean
   tagline?: boolean
   title?: boolean
   highlight?: boolean
@@ -433,6 +458,7 @@ export type HeroBannerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
 
 export type HeroBannerSelectScalar = {
   id?: boolean
+  announcement?: boolean
   tagline?: boolean
   title?: boolean
   highlight?: boolean
@@ -443,13 +469,14 @@ export type HeroBannerSelectScalar = {
   updatedAt?: boolean
 }
 
-export type HeroBannerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tagline" | "title" | "highlight" | "description" | "buttonText" | "buttonLink" | "bgImage" | "updatedAt", ExtArgs["result"]["heroBanner"]>
+export type HeroBannerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "announcement" | "tagline" | "title" | "highlight" | "description" | "buttonText" | "buttonLink" | "bgImage" | "updatedAt", ExtArgs["result"]["heroBanner"]>
 
 export type $HeroBannerPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "HeroBanner"
   objects: {}
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
+    announcement: string
     tagline: string
     title: string
     highlight: string
@@ -882,6 +909,7 @@ export interface Prisma__HeroBannerClient<T, Null = never, ExtArgs extends runti
  */
 export interface HeroBannerFieldRefs {
   readonly id: Prisma.FieldRef<"HeroBanner", 'String'>
+  readonly announcement: Prisma.FieldRef<"HeroBanner", 'String'>
   readonly tagline: Prisma.FieldRef<"HeroBanner", 'String'>
   readonly title: Prisma.FieldRef<"HeroBanner", 'String'>
   readonly highlight: Prisma.FieldRef<"HeroBanner", 'String'>

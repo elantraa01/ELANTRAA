@@ -1,6 +1,7 @@
 "use client";
 
-import { MOCK_PRODUCTS, Product } from "@/components/home/mockData";
+import { useState, useEffect } from "react";
+import { Product } from "@/components/home/mockData";
 import ProductCard from "@/components/home/ProductCard";
 
 interface RelatedProductsProps {
@@ -18,14 +19,27 @@ export default function RelatedProducts({
   onAddToCart,
   onToggleWishlist,
 }: RelatedProductsProps) {
-  // Find products matching same category first, or fill with other featured products
-  const categoryMatches = MOCK_PRODUCTS.filter(
-    (p) => p.id !== currentProductId && p.category === category
-  );
-  const otherMatches = MOCK_PRODUCTS.filter(
-    (p) => p.id !== currentProductId && p.category !== category
-  );
-  const related = [...categoryMatches, ...otherMatches].slice(0, 4);
+  const [related, setRelated] = useState<Product[]>([]);
+
+  useEffect(() => {
+    async function loadRelated() {
+      try {
+        const res = await fetch(`/api/products?category=${encodeURIComponent(category)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.products) {
+            const filtered = (data.products as Product[]).filter((p) => p.id !== currentProductId).slice(0, 4);
+            setRelated(filtered);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to load related products", err);
+      }
+    }
+    if (category) loadRelated();
+  }, [currentProductId, category]);
+
+  if (related.length === 0) return null;
 
   return (
     <section className="py-16 sm:py-24 bg-white relative border-t border-gray-100">

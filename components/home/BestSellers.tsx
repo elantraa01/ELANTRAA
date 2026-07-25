@@ -1,6 +1,6 @@
 "use client";
 
-import { MOCK_PRODUCTS, Product } from "./mockData";
+import { Product } from "./mockData";
 import ProductCard from "./ProductCard";
 
 interface BestSellersProps {
@@ -16,7 +16,7 @@ export default function BestSellers({
   onAddToCart,
   onToggleWishlist,
 }: BestSellersProps) {
-  const bestSellers = products && products.length > 0 ? products : MOCK_PRODUCTS.filter((p) => p.isBestSeller);
+  const bestSellers = products || [];
 
   return (
     <section id="best-sellers" className="py-16 sm:py-24 bg-white relative">

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { useSession } from "next-auth/react";
 import { useCart } from "@/context/CartContext";
 
 interface NavbarProps {
@@ -18,6 +18,8 @@ export default function Navbar({
   onOpenCart,
   onOpenWishlist,
 }: NavbarProps) {
+  const { data: session } = useSession();
+  const accountHref = session?.user ? "/account" : "/login";
   const { cartCount: ctxCartCount } = useCart();
   const activeCartCount = customCartCount !== undefined ? customCartCount : ctxCartCount;
   const [isScrolled, setIsScrolled] = useState(false);
@@ -55,12 +57,31 @@ export default function Navbar({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const [announcementText, setAnnouncementText] = useState("COMPLIMENTARY WORLDWIDE EXPRESS SHIPPING ON ORDERS ABOVE ₹5,000");
+
+  useEffect(() => {
+    async function loadHeadline() {
+      try {
+        const res = await fetch("/api/hero");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.hero?.announcement) {
+            setAnnouncementText(data.hero.announcement);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to load navbar headline", err);
+      }
+    }
+    loadHeadline();
+  }, []);
+
   return (
     <>
       {/* Top Announcement Bar */}
       <div className="bg-[#171717] text-[#D4AF37] text-[11px] sm:text-xs py-2 px-4 text-center font-medium tracking-wider uppercase border-b border-[#C9A648]/20 flex items-center justify-between sm:justify-center relative z-40">
-        <span className="hidden sm:inline">✦ COMPLIMENTARY WORLDWIDE EXPRESS SHIPPING ON ORDERS ABOVE ₹5,000 ✦</span>
-        <span className="sm:hidden text-center w-full">EXPRESS SHIPPING ON ORDERS ABOVE ₹5,000</span>
+        <span className="hidden sm:inline">✦ {announcementText} ✦</span>
+        <span className="sm:hidden text-center w-full">{announcementText}</span>
         <span className="hidden md:inline-block absolute right-6 text-[10px] text-gray-400 font-sans">
           USE CODE: <strong className="text-[#C9A648]">ELANTRAAGOLD</strong>
         </span>
@@ -68,22 +89,21 @@ export default function Navbar({
 
       {/* Main Sticky Navigation Bar */}
       <header
-        className={`sticky top-0 z-40 w-full transition-all duration-300 ${
-          isScrolled
+        className={`sticky top-0 z-40 w-full transition-all duration-300 ${isScrolled
             ? "bg-white/95 backdrop-blur-md shadow-md py-3 border-b border-[#C9A648]/20"
             : "bg-white py-4 border-b border-gray-100"
-        }`}
+          }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Left: Mobile Menu Button */}
-          <div className="flex items-center lg:hidden">
+          <div className="flex items-center space-x-0.5 sm:space-x-1 lg:hidden shrink-0">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-gray-700 hover:text-[#C9A648] transition-colors focus:outline-none"
+              className="p-1.5 sm:p-2 text-gray-700 hover:text-[#C9A648] transition-colors focus:outline-none"
               aria-label="Toggle Navigation Menu"
             >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {mobileMenuOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 ) : (
@@ -95,10 +115,10 @@ export default function Navbar({
             {/* Mobile Search Trigger */}
             <button
               onClick={() => setSearchOpen(true)}
-              className="p-2 text-gray-700 hover:text-[#C9A648] transition-colors ml-1"
+              className="p-1.5 sm:p-2 text-gray-700 hover:text-[#C9A648] transition-colors"
               aria-label="Search Products"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
@@ -140,26 +160,17 @@ export default function Navbar({
             </Link>
           </nav>
 
-          {/* Center: Brand Logo */}
-          <div className="text-center flex-1 lg:flex-none">
-            <Link href="/" className="inline-flex items-center space-x-2 sm:space-x-3 group">
-              <div className="relative w-8 h-8 sm:w-10 sm:h-10 shrink-0">
-                <Image
-                  src="/images/logo/logo.png"
-                  alt="ELANTRAA Logo"
-                  fill
-                  className="object-contain"
-                  priority
-                />
-              </div>
-              <span className="text-2xl sm:text-3xl font-serif tracking-[0.25em] font-light text-gray-900 group-hover:text-[#C9A648] transition-colors">
+          {/* Center: Brand Name (Text Only) */}
+          <div className="text-center min-w-0 flex-1 lg:flex-none px-1">
+            <Link href="/" className="inline-block group">
+              <span className="text-xl sm:text-2xl lg:text-3xl font-serif tracking-[0.18em] sm:tracking-[0.25em] font-light text-gray-900 group-hover:text-[#C9A648] transition-colors truncate">
                 ELANTRAA
               </span>
             </Link>
           </div>
 
           {/* Right Utilities (Search, Account, Wishlist, Cart) */}
-          <div className="flex items-center space-x-4 sm:space-x-5 text-gray-700">
+          <div className="flex items-center space-x-2.5 sm:space-x-5 text-gray-700 shrink-0 pr-1">
             {/* Search (Desktop) */}
             <button
               onClick={() => setSearchOpen(true)}
@@ -172,7 +183,7 @@ export default function Navbar({
             </button>
 
             {/* Account */}
-            <Link href="/login" className="p-1 hover:text-[#C9A648] transition-colors" aria-label="Account">
+            <Link href={accountHref} className="p-1 hover:text-[#C9A648] transition-colors" aria-label="Account">
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
@@ -188,7 +199,7 @@ export default function Navbar({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
               </svg>
               {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1.5 w-4 h-4 bg-[#C9A648] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] px-1 bg-[#C9A648] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
                   {wishlistCount}
                 </span>
               )}
@@ -205,7 +216,7 @@ export default function Navbar({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
                 {activeCartCount > 0 && (
-                  <span className="absolute -top-1 -right-1.5 w-4 h-4 bg-[#171717] text-[#D4AF37] text-[10px] font-bold rounded-full flex items-center justify-center border border-[#C9A648]/40">
+                  <span className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 bg-[#171717] text-[#D4AF37] text-[10px] font-bold rounded-full flex items-center justify-center border border-[#C9A648]/40 shadow-sm leading-none">
                     {activeCartCount}
                   </span>
                 )}
@@ -220,7 +231,7 @@ export default function Navbar({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
                 {activeCartCount > 0 && (
-                  <span className="absolute -top-1 -right-1.5 w-4 h-4 bg-[#171717] text-[#D4AF37] text-[10px] font-bold rounded-full flex items-center justify-center border border-[#C9A648]/40">
+                  <span className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 bg-[#171717] text-[#D4AF37] text-[10px] font-bold rounded-full flex items-center justify-center border border-[#C9A648]/40 shadow-sm leading-none">
                     {activeCartCount}
                   </span>
                 )}
@@ -318,11 +329,11 @@ export default function Navbar({
             <div className="pt-4 border-t border-gray-100 space-y-3">
               <div className="flex items-center space-x-3 text-xs">
                 <Link
-                  href="/account"
+                  href={accountHref}
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex-1 py-2 px-3 bg-gray-100 text-gray-800 text-center font-medium rounded uppercase tracking-wider"
                 >
-                  My Account
+                  {session?.user ? "My Profile" : "Sign In"}
                 </Link>
                 <Link
                   href="/cart"
