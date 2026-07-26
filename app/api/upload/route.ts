@@ -14,11 +14,25 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Ensure uploads directory exists inside public folder
+    // Check if running in Netlify or serverless environment
+    const isServerless =
+      Boolean(process.env.NETLIFY) ||
+      Boolean(process.env.VERCEL) ||
+      process.env.NODE_ENV === "production";
+
+    if (isServerless) {
+      const base64Data = `data:${file.type || "image/png"};base64,${buffer.toString("base64")}`;
+      return NextResponse.json({
+        success: true,
+        url: base64Data,
+        fileName: file.name,
+      });
+    }
+
+    // Local development: Write file to public/uploads directory
     const uploadDir = path.join(process.cwd(), "public", "uploads");
     await mkdir(uploadDir, { recursive: true });
 
-    // Generate safe unique filename
     const cleanFileName = file.name
       .toLowerCase()
       .replace(/[^a-z0-9.]+/g, "-")
@@ -26,7 +40,6 @@ export async function POST(req: NextRequest) {
     const uniqueFileName = `${Date.now()}-${cleanFileName}`;
     const filePath = path.join(uploadDir, uniqueFileName);
 
-    // Write file to public/uploads directory
     await writeFile(filePath, buffer);
 
     const publicUrl = `/uploads/${uniqueFileName}`;
@@ -37,9 +50,8 @@ export async function POST(req: NextRequest) {
       fileName: uniqueFileName,
     });
   } catch (error) {
-    console.error("Local file upload error:", error);
+    console.error("File upload error:", error);
 
-    // Fallback base64 conversion if filesystem access fails in restricted environments
     try {
       const formData = await req.formData();
       const file = formData.get("file") as File | null;

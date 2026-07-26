@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Product } from "./mockData";
@@ -22,6 +23,9 @@ export default function ProductCard({
   const { toggleWishlist, isInWishlist } = useCart();
   const liked = isInWishlist(product.id);
 
+  const initialImg = product.images && product.images[0] ? product.images[0] : "/images/collections/dresses.png";
+  const [imgSrc, setImgSrc] = useState(initialImg);
+
   const handleWishlistClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -36,9 +40,10 @@ export default function ProductCard({
       {/* Product Image Box - Links to dedicated PDP */}
       <Link href={`/products/${product.slug}`} className="block relative w-full aspect-[3/4] bg-[#FAF8F5] overflow-hidden">
         <Image
-          src={product.images[0]}
+          src={imgSrc}
           alt={product.name}
           fill
+          onError={() => setImgSrc("/images/collections/dresses.png")}
           className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
         />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
 interface ProductGalleryProps {
@@ -14,7 +14,14 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
-  const activeImage = images[selectedImageIndex] || images[0];
+  const initialImg = images[selectedImageIndex] || images[0] || "/images/collections/dresses.png";
+  const [currentImage, setCurrentImage] = useState(initialImg);
+
+  useEffect(() => {
+    setCurrentImage(images[selectedImageIndex] || images[0] || "/images/collections/dresses.png");
+  }, [images, selectedImageIndex]);
+
+  const activeImage = currentImage;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
@@ -58,6 +65,7 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
             alt={productName}
             fill
             priority
+            onError={() => setCurrentImage("/images/collections/dresses.png")}
             className={`object-cover object-center transition-transform duration-300 ease-out ${
               isZoomed ? "scale-150" : "scale-100"
             }`}

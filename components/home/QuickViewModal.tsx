@@ -57,6 +57,7 @@ function QuickViewModalContent({
               src={activeImage}
               alt={product.name}
               fill
+              onError={() => setActiveImage("/images/collections/dresses.png")}
               className="object-cover object-center"
             />
           </div>
