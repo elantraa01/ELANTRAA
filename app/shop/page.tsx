@@ -18,10 +18,6 @@ const DEFAULT_FILTERS: FilterState = {
   maxPrice: 20000,
 };
 
-function normalizeStr(str: string): string {
-  return (str || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-}
-
 function getFilteredProducts(products: Product[], filters: FilterState): Product[] {
   if (!filters.category || filters.category === "All") {
     return products.filter((p) => (p.discountPrice || p.price) <= filters.maxPrice);
