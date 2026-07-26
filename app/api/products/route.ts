@@ -29,15 +29,39 @@ export async function GET(req: NextRequest) {
     }
 
     if (categorySlug && categorySlug !== "all") {
-      if (categorySlug === "new-arrivals") {
+      const cleanSlug = categorySlug.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-");
+      const cleanName = categorySlug.replace(/-/g, " ");
+
+      if (cleanSlug === "new-arrivals") {
         whereClause.isFeatured = true;
-      } else if (categorySlug === "sale") {
+      } else if (cleanSlug === "sale") {
         whereClause.discountPrice = { not: null };
+      } else if (cleanSlug === "ethnic" || cleanSlug === "ethnic-wear") {
+        whereClause.category = {
+          OR: [
+            { slug: { in: ["lehenga-choli", "saree", "anarkali-suits", "kurta-sets"] } },
+            { name: { contains: "Lehenga", mode: "insensitive" } },
+            { name: { contains: "Saree", mode: "insensitive" } },
+            { name: { contains: "Anarkali", mode: "insensitive" } },
+            { name: { contains: "Kurta", mode: "insensitive" } },
+          ],
+        };
+      } else if (cleanSlug === "menswear") {
+        whereClause.category = {
+          OR: [
+            { slug: "men" },
+            { parentCategory: { slug: "men" } },
+            { slug: "shirts" },
+            { slug: "kurta-sets" },
+          ],
+        };
       } else {
         whereClause.category = {
           OR: [
-            { slug: categorySlug },
-            { parentCategory: { slug: categorySlug } },
+            { slug: { equals: cleanSlug, mode: "insensitive" } },
+            { name: { contains: cleanName, mode: "insensitive" } },
+            { parentCategory: { slug: { equals: cleanSlug, mode: "insensitive" } } },
+            { parentCategory: { name: { contains: cleanName, mode: "insensitive" } } },
           ],
         };
       }
@@ -61,7 +85,11 @@ export async function GET(req: NextRequest) {
     const products = await prisma.product.findMany({
       where: whereClause,
       include: {
-        category: true,
+        category: {
+          include: {
+            parentCategory: true,
+          },
+        },
         reviews: true,
       },
       orderBy,
@@ -81,8 +109,10 @@ export async function GET(req: NextRequest) {
         description: p.description,
         price: Number(p.price),
         discountPrice: p.discountPrice ? Number(p.discountPrice) : null,
-        category: p.category.name,
-        categorySlug: p.category.slug,
+        category: p.category?.name || "Uncategorized",
+        categorySlug: p.category?.slug || "uncategorized",
+        parentCategory: p.category?.parentCategory?.name || null,
+        parentCategorySlug: p.category?.parentCategory?.slug || null,
         sizes: p.sizes,
         colors: p.colors,
         images: p.images.length > 0 ? p.images : ["/images/collections/dresses.png"],

@@ -13,9 +13,13 @@ const prisma = new PrismaClient({ adapter });
 const categories = [
   { name: "Women", slug: "women" },
   { name: "Men", slug: "men" },
+  { name: "Lehenga choli", slug: "lehenga-choli", parentSlug: "women" },
+  { name: "Saree", slug: "saree", parentSlug: "women" },
+  { name: "Anarkali Suits", slug: "anarkali-suits", parentSlug: "women" },
   { name: "Dresses", slug: "dresses", parentSlug: "women" },
   { name: "Tops", slug: "tops", parentSlug: "women" },
   { name: "Shirts", slug: "shirts", parentSlug: "men" },
+  { name: "Kurta Sets", slug: "kurta-sets", parentSlug: "men" },
   { name: "Outerwear", slug: "outerwear" },
   { name: "Accessories", slug: "accessories" },
 ];

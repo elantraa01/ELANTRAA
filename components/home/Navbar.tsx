@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useCart } from "@/context/CartContext";
 
@@ -27,9 +28,35 @@ export default function Navbar({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<{ id: string; name: string; slug: string; price: number; discountPrice: number | null; image: string; categoryName: string }[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [navCategories, setNavCategories] = useState<
     { id: string; name: string; slug: string; parentCategoryId?: string | null; subcategories?: { id: string; name: string; slug: string }[] }[]
   >([]);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery.trim())}`);
+        if (res.ok) {
+          const data = await res.json();
+          setSearchResults(data.products || []);
+        }
+      } catch (err) {
+        console.warn("Live search error", err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -546,6 +573,67 @@ export default function Navbar({
                 )
               )}
             </div>
+
+            {/* Live Search Results List */}
+            {searchQuery.trim() && (
+              <div className="mt-5 border-t border-gray-100 pt-4 max-h-72 overflow-y-auto divide-y divide-gray-100">
+                {isSearching ? (
+                  <div className="py-6 text-center text-xs text-gray-400 font-sans tracking-wider">
+                    Searching ELANTRAA Catalogue...
+                  </div>
+                ) : searchResults.length > 0 ? (
+                  searchResults.map((item) => (
+                    <Link
+                      key={item.id}
+                      href={`/products/${item.slug}`}
+                      onClick={() => {
+                        setSearchOpen(false);
+                        setSearchQuery("");
+                      }}
+                      className="py-2.5 flex items-center justify-between hover:bg-gray-50 px-2 rounded-lg transition-colors group"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          width={48}
+                          height={56}
+                          className="w-12 h-14 object-cover rounded bg-gray-100 border border-gray-200 shrink-0"
+                        />
+                        <div>
+                          <p className="text-xs sm:text-sm font-medium text-gray-900 group-hover:text-[#C9A648] transition-colors font-serif">
+                            {item.name}
+                          </p>
+                          <span className="text-[10px] text-gray-400 uppercase tracking-widest">
+                            {item.categoryName}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        {item.discountPrice ? (
+                          <div className="space-x-1.5">
+                            <span className="text-xs font-semibold text-[#C9A648]">
+                              ₹{item.discountPrice.toLocaleString("en-IN")}
+                            </span>
+                            <span className="text-[10px] text-gray-400 line-through">
+                              ₹{item.price.toLocaleString("en-IN")}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs font-semibold text-gray-900">
+                            ₹{item.price.toLocaleString("en-IN")}
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <div className="py-6 text-center text-xs text-gray-500 font-sans">
+                    No matching products found for &quot;{searchQuery}&quot;.
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

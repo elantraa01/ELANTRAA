@@ -8,6 +8,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       userId,
+      userEmail,
       shippingAddress,
       items,
       totalAmount,
@@ -37,27 +38,63 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Handle user lookup or create guest account in DB
+    // Robust user lookup: check by userId, userEmail, or shippingAddress.email
     let orderUserId = userId;
-    if (!orderUserId || orderUserId.startsWith("guest_") || orderUserId.startsWith("user_client_demo")) {
-      const guestEmail = shippingAddress.email || `guest_${Date.now()}@elantraa.com`;
-      try {
-        let user = await prisma.user.findUnique({ where: { email: guestEmail } });
-        if (!user) {
-          user = await prisma.user.create({
-            data: {
-              name: shippingAddress.fullName || "Guest Customer",
-              email: guestEmail,
-              passwordHash: "guest_checkout_nopass",
-              role: "CUSTOMER",
+    const targetEmail = userEmail || shippingAddress.email;
+
+    try {
+      let user = null;
+      if (orderUserId && !orderUserId.startsWith("guest_") && !orderUserId.startsWith("user_client_demo")) {
+        user = await prisma.user.findUnique({ where: { id: orderUserId } });
+      }
+
+      if (!user && targetEmail) {
+        user = await prisma.user.findUnique({ where: { email: targetEmail } });
+      }
+
+      if (!user && targetEmail) {
+        user = await prisma.user.create({
+          data: {
+            name: shippingAddress.fullName || "Valued Client",
+            email: targetEmail,
+            passwordHash: "guest_checkout_nopass",
+            role: "CUSTOMER",
+          },
+        });
+      }
+
+      if (user) {
+        orderUserId = user.id;
+
+        // Auto-save shipping address to user's Saved Addresses in database
+        if (shippingAddress.line1 && shippingAddress.city && shippingAddress.pincode) {
+          const existingAddr = await prisma.address.findFirst({
+            where: {
+              userId: user.id,
+              line1: shippingAddress.line1,
+              pincode: shippingAddress.pincode,
             },
           });
+
+          if (!existingAddr) {
+            const userAddressCount = await prisma.address.count({ where: { userId: user.id } });
+            await prisma.address.create({
+              data: {
+                userId: user.id,
+                line1: shippingAddress.line1,
+                line2: shippingAddress.line2 || null,
+                city: shippingAddress.city,
+                state: shippingAddress.state || "",
+                pincode: shippingAddress.pincode,
+                country: shippingAddress.country || "India",
+                isDefault: userAddressCount === 0,
+              },
+            });
+          }
         }
-        orderUserId = user.id;
-      } catch {
-        // Fallback user ID for demo if DB is offline
-        orderUserId = "user_client_demo";
       }
+    } catch (userErr) {
+      console.warn("User lookup / address creation warning in order API:", userErr);
     }
 
     // 1. Create Order in Database
@@ -65,7 +102,7 @@ export async function POST(req: NextRequest) {
     try {
       const dbOrder = await prisma.order.create({
         data: {
-          userId: orderUserId,
+          userId: orderUserId || "user_client_demo",
           totalAmount: totalAmount || 0,
           status: "CONFIRMED",
           paymentStatus: paymentMethod === "COD" ? "PENDING" : "PAID",

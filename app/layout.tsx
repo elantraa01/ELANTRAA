@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import SplashScreen from "@/components/SplashScreen";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import MobileBottomNav from "@/components/home/MobileBottomNav";
 import { CartProvider } from "@/context/CartContext";
 import AuthProvider from "@/components/AuthProvider";
 
@@ -57,12 +58,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-background text-foreground font-body antialiased min-h-screen relative overflow-x-hidden max-w-full w-full">
+      <body className="bg-background text-foreground font-body antialiased min-h-screen relative overflow-x-hidden max-w-full w-full pb-14 lg:pb-0">
         <AuthProvider>
           <CartProvider>
             <SplashScreen />
             {children}
             <WhatsAppButton />
+            <MobileBottomNav />
           </CartProvider>
         </AuthProvider>
       </body>

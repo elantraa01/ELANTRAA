@@ -6,7 +6,7 @@ import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import ProductGallery from "@/components/product/ProductGallery";
 import ProductInfo from "@/components/product/ProductInfo";
-import ProductReviews from "@/components/product/ProductReviews";
+import ReviewSection from "@/components/product/ReviewSection";
 import RelatedProducts from "@/components/product/RelatedProducts";
 import QuickViewModal from "@/components/home/QuickViewModal";
 import { Product } from "@/components/home/mockData";
@@ -154,11 +154,7 @@ export default function ProductDetailPage({
       </main>
 
       {/* Customer Reviews & Ratings Section */}
-      <ProductReviews
-        productId={activeProduct.id}
-        rating={activeProduct.rating}
-        reviewCount={activeProduct.reviewCount}
-      />
+      <ReviewSection productId={activeProduct.id} />
 
       {/* "You May Also Like" Related Products */}
       <RelatedProducts

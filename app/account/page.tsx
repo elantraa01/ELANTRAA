@@ -75,10 +75,18 @@ function AccountPageContent() {
     async function loadUserData() {
       if (!session?.user) return;
       try {
-        const res = await fetch("/api/user/orders");
-        if (res.ok) {
-          const data = await res.json();
+        const [ordersRes, addrRes] = await Promise.all([
+          fetch("/api/user/orders"),
+          fetch("/api/user/address"),
+        ]);
+
+        if (ordersRes.ok) {
+          const data = await ordersRes.json();
           if (data.orders) setOrdersList(data.orders);
+        }
+
+        if (addrRes.ok) {
+          const data = await addrRes.json();
           if (data.addresses) setAddresses(data.addresses);
         }
       } catch (err) {
@@ -93,30 +101,45 @@ function AccountPageContent() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handleAddAddress = (e: React.FormEvent) => {
+  const handleAddAddress = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAddr.line1 || !newAddr.city || !newAddr.pincode) return;
 
-    const created: SavedAddress = {
-      id: `addr-${Date.now()}`,
-      line1: newAddr.line1,
-      line2: newAddr.line2,
-      city: newAddr.city,
-      state: newAddr.state,
-      pincode: newAddr.pincode,
-      country: newAddr.country,
-      isDefault: newAddr.isDefault || addresses.length === 0,
-    };
+    try {
+      const res = await fetch("/api/user/address", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newAddr),
+      });
 
-    setAddresses([...addresses, created]);
-    setShowAddressModal(false);
-    setNewAddr({ line1: "", line2: "", city: "", state: "", pincode: "", country: "India", isDefault: false });
-    showNotification("New saved address added successfully.");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.address) {
+          setAddresses((prev) => [...prev, data.address]);
+          setShowAddressModal(false);
+          setNewAddr({ line1: "", line2: "", city: "", state: "", pincode: "", country: "India", isDefault: false });
+          showNotification("New saved address added successfully to your profile!");
+        }
+      } else {
+        showNotification("Failed to save address.");
+      }
+    } catch {
+      showNotification("Error saving address.");
+    }
   };
 
-  const handleDeleteAddress = (id: string) => {
-    setAddresses(addresses.filter((a) => a.id !== id));
-    showNotification("Address removed.");
+  const handleDeleteAddress = async (id: string) => {
+    try {
+      const res = await fetch(`/api/user/address?id=${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setAddresses((prev) => prev.filter((a) => a.id !== id));
+        showNotification("Address removed from profile.");
+      }
+    } catch {
+      showNotification("Failed to delete address.");
+    }
   };
 
   const userName = session?.user?.name || "Victoria Sterling";
@@ -203,52 +226,150 @@ function AccountPageContent() {
           {/* TAB 1: ORDER HISTORY */}
           {activeTab === "orders" && (
             <div className="space-y-6 animate-in fade-in duration-300">
-              <h3 className="text-lg font-serif font-semibold text-gray-900">Past Orders & Track Shipments</h3>
+              <h3 className="text-lg font-serif font-semibold text-gray-900">Past Orders & Live Shipments</h3>
               {ordersList.length > 0 ? (
-                <div className="space-y-4">
-                  {ordersList.map((order) => (
-                    <div
-                      key={order.id}
-                      className="bg-[#FAF8F5] rounded-xl p-6 border border-gray-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="relative w-16 h-20 rounded bg-white overflow-hidden border border-gray-200 shrink-0">
-                          <Image src={order.sampleImage} alt="" fill className="object-cover" />
-                        </div>
-                        <div>
-                          <div className="flex items-center space-x-2">
-                            <span className="font-serif font-bold text-gray-900">{order.id}</span>
-                            <span
-                              className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded ${
-                                order.status === "DELIVERED"
-                                  ? "bg-emerald-100 text-emerald-800"
-                                  : "bg-amber-100 text-amber-800"
-                              }`}
-                            >
-                              {order.status}
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1">{order.itemsSummary}</p>
-                          <p className="text-[11px] text-gray-400 mt-0.5">Placed on {order.date}</p>
-                        </div>
-                      </div>
+                <div className="space-y-6">
+                  {ordersList.map((order) => {
+                    const statusSteps = ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED"];
+                    const currentStepIndex = statusSteps.indexOf(order.status) !== -1 ? statusSteps.indexOf(order.status) : 1;
 
-                      <div className="sm:text-right w-full sm:w-auto flex justify-between sm:block pt-3 sm:pt-0 border-t sm:border-0 border-gray-200">
-                        <div>
-                          <p className="text-[10px] text-gray-400 uppercase tracking-widest">Total Amount</p>
-                          <p className="text-base font-semibold text-gray-900 font-sans">
-                            &#8377;{order.totalAmount.toLocaleString("en-IN")}
-                          </p>
+                    return (
+                      <div
+                        key={order.id}
+                        className="bg-[#FAF8F5] rounded-xl p-6 border border-gray-200 shadow-sm space-y-6"
+                      >
+                        {/* Header & Main Info */}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-200 pb-4">
+                          <div className="flex items-center space-x-4">
+                            <div className="relative w-14 h-16 rounded bg-white overflow-hidden border border-gray-200 shrink-0">
+                              <Image src={order.sampleImage} alt="" fill className="object-cover" />
+                            </div>
+                            <div>
+                              <div className="flex items-center space-x-2">
+                                <span className="font-serif font-bold text-gray-900">{order.id}</span>
+                                <span
+                                  className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded ${
+                                    order.status === "DELIVERED"
+                                      ? "bg-emerald-100 text-emerald-800"
+                                      : order.status === "SHIPPED"
+                                      ? "bg-blue-100 text-blue-800"
+                                      : "bg-amber-100 text-amber-800"
+                                  }`}
+                                >
+                                  {order.status}
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-600 mt-0.5">{order.itemsSummary}</p>
+                              <p className="text-[11px] text-gray-400">Placed on {order.date}</p>
+                            </div>
+                          </div>
+
+                          <div className="sm:text-right w-full sm:w-auto flex justify-between sm:block pt-2 sm:pt-0">
+                            <div>
+                              <p className="text-[10px] text-gray-400 uppercase tracking-widest">Total Amount</p>
+                              <p className="text-base font-semibold text-gray-900 font-sans">
+                                &#8377;{order.totalAmount.toLocaleString("en-IN")}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => {
+                                const printWin = window.open("", "_blank");
+                                if (printWin) {
+                                  printWin.document.write(`
+                                    <html>
+                                      <head>
+                                        <title>Invoice ${order.id}</title>
+                                        <style>
+                                          body { font-family: sans-serif; padding: 40px; color: #171717; }
+                                          .header { text-align: center; border-bottom: 2px solid #C9A648; padding-bottom: 20px; }
+                                          .title { font-size: 24px; font-weight: bold; letter-spacing: 2px; }
+                                          .details { margin: 30px 0; }
+                                          .table { w-full; width: 100%; border-collapse: collapse; margin-top: 20px; }
+                                          .table th, .table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+                                          .table th { background: #f9f9f9; }
+                                        </style>
+                                      </head>
+                                      <body>
+                                        <div className="header">
+                                          <div className="title">ELANTRAA LUXURY COUTURE</div>
+                                          <p>TAX INVOICE / ORDER RECEIPT</p>
+                                        </div>
+                                        <div className="details">
+                                          <p><strong>Order ID:</strong> ${order.id}</p>
+                                          <p><strong>Date:</strong> ${order.date}</p>
+                                          <p><strong>Status:</strong> ${order.status}</p>
+                                          <p><strong>Customer Email:</strong> ${session?.user?.email}</p>
+                                        </div>
+                                        <table className="table">
+                                          <thead>
+                                            <tr>
+                                              <th>Description</th>
+                                              <th>Status</th>
+                                              <th>Total Paid</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            <tr>
+                                              <td>${order.itemsSummary}</td>
+                                              <td>${order.status}</td>
+                                              <td>₹${order.totalAmount.toLocaleString("en-IN")}</td>
+                                            </tr>
+                                          </tbody>
+                                        </table>
+                                        <script>window.print();</script>
+                                      </body>
+                                    </html>
+                                  `);
+                                  printWin.document.close();
+                                }
+                              }}
+                              className="mt-2 inline-flex items-center space-x-1 text-xs text-[#C9A648] hover:underline font-semibold uppercase tracking-wider"
+                            >
+                              <span>🖨 Print Tax Invoice</span>
+                            </button>
+                          </div>
                         </div>
-                        <button
-                          onClick={() => showNotification(`Tracking info sent for ${order.id}`)}
-                          className="mt-2 text-xs text-[#C9A648] hover:underline uppercase font-medium"
-                        >
-                          Track Package &rarr;
-                        </button>
+
+                        {/* Order Tracking Progress Bar Timeline */}
+                        <div className="pt-2">
+                          <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">
+                            Shipment Progress Timeline:
+                          </p>
+                          <div className="relative flex items-center justify-between">
+                            <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-gray-200 z-0 rounded-full" />
+                            <div
+                              className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-[#C9A648] z-0 rounded-full transition-all duration-500"
+                              style={{ width: `${(currentStepIndex / (statusSteps.length - 1)) * 100}%` }}
+                            />
+
+                            {statusSteps.map((step, idx) => {
+                              const isCompleted = idx <= currentStepIndex;
+                              return (
+                                <div key={step} className="relative z-10 flex flex-col items-center">
+                                  <div
+                                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                                      isCompleted
+                                        ? "bg-[#171717] text-[#D4AF37] border-2 border-[#C9A648]"
+                                        : "bg-white text-gray-400 border-2 border-gray-300"
+                                    }`}
+                                  >
+                                    {isCompleted ? "✓" : idx + 1}
+                                  </div>
+                                  <span
+                                    className={`text-[10px] uppercase font-semibold mt-1.5 ${
+                                      isCompleted ? "text-gray-900 font-bold" : "text-gray-400"
+                                    }`}
+                                  >
+                                    {step}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-xs text-gray-500 italic">No past orders found.</p>

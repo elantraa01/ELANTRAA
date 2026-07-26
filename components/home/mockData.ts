@@ -7,6 +7,8 @@ export interface Product {
   discountPrice?: number | null;
   category: string;
   categorySlug: string;
+  parentCategory?: string | null;
+  parentCategorySlug?: string | null;
   sizes: string[];
   colors: string[];
   images: string[];

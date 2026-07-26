@@ -10,42 +10,75 @@ import ShopHeader from "@/components/shop/ShopHeader";
 import { Product } from "@/components/home/mockData";
 import { useCart } from "@/context/CartContext";
 
+import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense } from "react";
+
 const DEFAULT_FILTERS: FilterState = {
   category: "All",
-  sizes: [],
-  colors: [],
-  maxPrice: 6000,
-  minRating: 0,
+  maxPrice: 20000,
 };
 
+function normalizeStr(str: string): string {
+  return (str || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
 function getFilteredProducts(products: Product[], filters: FilterState): Product[] {
+  if (!filters.category || filters.category === "All") {
+    return products.filter((p) => (p.discountPrice || p.price) <= filters.maxPrice);
+  }
+
+  const selectedCat = filters.category.trim();
+  const selLower = selectedCat.toLowerCase();
+
   return products.filter((product) => {
-    if (
-      filters.category !== "All" &&
-      product.category.toLowerCase() !== filters.category.toLowerCase()
-    ) {
-      return false;
-    }
+    // Price check
     const effectivePrice = product.discountPrice || product.price;
     if (effectivePrice > filters.maxPrice) {
       return false;
     }
-    if (filters.minRating > 0 && product.rating < filters.minRating) {
-      return false;
-    }
+
+    const prodCategory = (product.category || "").trim();
+    const prodCategorySlug = (product.categorySlug || "").trim();
+    const parentCategory = (product.parentCategory || "").trim();
+    const parentCategorySlug = (product.parentCategorySlug || "").trim();
+
+    const catLower = prodCategory.toLowerCase();
+    const slugLower = prodCategorySlug.toLowerCase();
+    const parentLower = parentCategory.toLowerCase();
+    const parentSlugLower = parentCategorySlug.toLowerCase();
+
+    // 1. Exact case-insensitive match with Category Name or Category Slug
     if (
-      filters.sizes.length > 0 &&
-      !product.sizes.some((s) => filters.sizes.includes(s))
+      catLower === selLower ||
+      slugLower === selLower.replace(/[^a-z0-9]+/g, "-") ||
+      parentLower === selLower ||
+      parentSlugLower === selLower.replace(/[^a-z0-9]+/g, "-")
     ) {
-      return false;
+      return true;
     }
-    if (
-      filters.colors.length > 0 &&
-      !product.colors.some((c) => filters.colors.includes(c))
-    ) {
-      return false;
+
+    // 2. Specific check for "Women"
+    if (selLower === "women") {
+      const isWomenParent = parentLower === "women" || parentSlugLower === "women";
+      const isWomenCategory = catLower === "women" || slugLower === "women";
+      const isWomenApparel =
+        ["dresses", "dress", "tops", "top", "saree", "sarees", "lehenga", "lehengacholi", "anarkali", "skirt", "blouse", "accessories"].includes(slugLower) ||
+        ["dresses", "dresses & evening gowns", "tops", "saree", "lehenga choli", "anarkali suits", "accessories"].includes(catLower);
+      return isWomenParent || isWomenCategory || isWomenApparel;
     }
-    return true;
+
+    // 3. Specific check for "Men"
+    if (selLower === "men") {
+      const isMenParent = parentLower === "men" || parentSlugLower === "men";
+      const isMenCategory = catLower === "men" || slugLower === "men";
+      const isMenApparel =
+        ["shirts", "shirt", "kurtasets", "kurta-sets", "kurta", "chinos", "outerwear", "menswear"].includes(slugLower) ||
+        ["shirts", "kurta sets", "chinos", "outerwear", "menswear couture"].includes(catLower);
+      return isMenParent || isMenCategory || isMenApparel;
+    }
+
+    // 4. Fallback substring match for other specific categories
+    return catLower.includes(selLower) || selLower.includes(catLower) || slugLower.includes(selLower) || selLower.includes(slugLower);
   });
 }
 
@@ -69,7 +102,11 @@ function getSortedProducts(products: Product[], sortBy: string): Product[] {
   );
 }
 
-export default function ShopPage() {
+function ShopContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const catQuery = searchParams.get("category");
+
   const { addItem } = useCart();
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [dbCategories, setDbCategories] = useState<string[]>([]);
@@ -80,16 +117,14 @@ export default function ShopPage() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Read URL query parameter for category (e.g. /shop?category=Dresses)
+  // Sync category filter from URL parameter whenever URL searchParams change
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const catParam = params.get("category");
-      if (catParam) {
-        setFilters((prev) => ({ ...prev, category: catParam }));
-      }
+    if (catQuery) {
+      setFilters((prev) => ({ ...prev, category: decodeURIComponent(catQuery) }));
+    } else {
+      setFilters((prev) => ({ ...prev, category: "All" }));
     }
-  }, []);
+  }, [catQuery]);
 
   // Fetch real PostgreSQL products and categories via API
   useEffect(() => {
@@ -139,6 +174,23 @@ export default function ShopPage() {
     showNotification(`Saved ${product.name} to your wishlist.`);
   };
 
+  const handleFilterChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+    const params = new URLSearchParams(window.location.search);
+    if (newFilters.category && newFilters.category !== "All") {
+      params.set("category", newFilters.category);
+    } else {
+      params.delete("category");
+    }
+    const queryString = params.toString();
+    router.push(`/shop${queryString ? `?${queryString}` : ""}`, { scroll: false });
+  };
+
+  const handleResetFilters = () => {
+    setFilters(DEFAULT_FILTERS);
+    router.push("/shop", { scroll: false });
+  };
+
   const filteredProducts = useMemo(() => {
     return getFilteredProducts(allProducts, filters);
   }, [allProducts, filters]);
@@ -150,16 +202,9 @@ export default function ShopPage() {
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (filters.category !== "All") count++;
-    if (filters.sizes.length > 0) count += filters.sizes.length;
-    if (filters.colors.length > 0) count += filters.colors.length;
-    if (filters.maxPrice < 6000) count++;
-    if (filters.minRating > 0) count++;
+    if (filters.maxPrice < 20000) count++;
     return count;
   }, [filters]);
-
-  const handleResetFilters = () => {
-    setFilters(DEFAULT_FILTERS);
-  };
 
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-[#C9A648] selection:text-white">
@@ -192,7 +237,7 @@ export default function ShopPage() {
           <div className="hidden lg:block lg:col-span-1">
             <FilterSidebar
               filters={filters}
-              onFilterChange={setFilters}
+              onFilterChange={handleFilterChange}
               onResetFilters={handleResetFilters}
               totalProductsCount={allProducts.length}
               matchingProductsCount={finalProducts.length}
@@ -229,7 +274,7 @@ export default function ShopPage() {
                   No products match your active filters
                 </h3>
                 <p className="text-xs text-gray-500 mb-4">
-                  Try clearing your size, color, or price range selections.
+                  Try clearing your price range selections or selecting another category.
                 </p>
                 <button
                   onClick={handleResetFilters}
@@ -246,7 +291,7 @@ export default function ShopPage() {
       {/* Mobile Collapsible Filter Drawer */}
       <FilterSidebar
         filters={filters}
-        onFilterChange={setFilters}
+        onFilterChange={handleFilterChange}
         onResetFilters={handleResetFilters}
         totalProductsCount={allProducts.length}
         matchingProductsCount={finalProducts.length}
@@ -264,5 +309,13 @@ export default function ShopPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+      <ShopContent />
+    </Suspense>
   );
 }

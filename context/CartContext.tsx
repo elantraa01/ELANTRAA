@@ -58,7 +58,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [promoCode, setPromoCode] = useState("");
-  const [promoDiscount, setPromoDiscount] = useState(0);
   const [guestId, setGuestId] = useState("");
 
   const activeUserRef = useRef<string | null | undefined>(undefined);
@@ -92,7 +91,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const savedPromo = localStorage.getItem(PROMO_CODE_KEY);
     if (savedPromo) {
       setPromoCode(savedPromo);
-      setPromoDiscount(savedPromo === "ELANTRAAGOLD" ? 500 : 0);
     }
   }, []);
 
@@ -112,23 +110,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to parse cart", e);
         setItems([]);
       }
-    } else if (!userEmail) {
-      const defaultDemoItems: CartItemType[] = [
-        {
-          id: "demo-item-1",
-          productId: "prod-1",
-          name: "Aurelia Satin Wrap Dress",
-          slug: "aurelia-satin-wrap-dress",
-          price: 5499,
-          discountPrice: 4799,
-          image: "/images/collections/dresses.png",
-          size: "M",
-          color: "Champagne",
-          quantity: 1,
-        },
-      ];
-      setItems(defaultDemoItems);
-      localStorage.setItem(cartKey, JSON.stringify(defaultDemoItems));
     } else {
       setItems([]);
     }
@@ -223,25 +204,48 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(key);
   };
 
+  const subtotal = useMemo(
+    () =>
+      items.reduce(
+        (acc, item) => acc + (item.discountPrice || item.price) * item.quantity,
+        0
+      ),
+    [items]
+  );
+
+  const promoDiscount = useMemo(() => {
+    if (!promoCode) return 0;
+    const clean = promoCode.trim().toUpperCase();
+    if (clean === "ELANTRAAGOLD") return Math.round((subtotal * 10) / 100) || 500;
+    if (clean === "FESTIVE15") return Math.round((subtotal * 15) / 100) || 750;
+    if (clean === "WELCOME10") return 500;
+    if (clean === "ELANTRAA10") return 300;
+    return 0;
+  }, [promoCode, subtotal]);
+
   const applyPromoCode = (code: string) => {
     const clean = code.trim().toUpperCase();
+    let msg = "";
+
     if (clean === "ELANTRAAGOLD") {
-      setPromoCode(clean);
-      setPromoDiscount(500);
-      localStorage.setItem(PROMO_CODE_KEY, clean);
-      return { success: true, message: "Promo code ELANTRAAGOLD applied! ₹500 discount added." };
+      msg = "Promo code ELANTRAAGOLD applied! 10% discount added.";
+    } else if (clean === "WELCOME10") {
+      msg = "Promo code WELCOME10 applied! ₹500 discount added.";
+    } else if (clean === "FESTIVE15") {
+      msg = "Promo code FESTIVE15 applied! 15% festive discount added.";
     } else if (clean === "ELANTRAA10") {
-      setPromoCode(clean);
-      setPromoDiscount(300);
-      localStorage.setItem(PROMO_CODE_KEY, clean);
-      return { success: true, message: "Promo code ELANTRAA10 applied! ₹300 discount added." };
+      msg = "Promo code ELANTRAA10 applied! ₹300 discount added.";
+    } else {
+      return { success: false, message: "Invalid code. Try ELANTRAAGOLD, WELCOME10, or FESTIVE15." };
     }
-    return { success: false, message: "Invalid promo code. Try ELANTRAAGOLD or ELANTRAA10." };
+
+    setPromoCode(clean);
+    localStorage.setItem(PROMO_CODE_KEY, clean);
+    return { success: true, message: msg };
   };
 
   const removePromoCode = () => {
     setPromoCode("");
-    setPromoDiscount(0);
     localStorage.removeItem(PROMO_CODE_KEY);
   };
 
@@ -284,15 +288,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const cartCount = useMemo(
     () => items.reduce((acc, item) => acc + item.quantity, 0),
-    [items]
-  );
-
-  const subtotal = useMemo(
-    () =>
-      items.reduce(
-        (acc, item) => acc + (item.discountPrice || item.price) * item.quantity,
-        0
-      ),
     [items]
   );
 

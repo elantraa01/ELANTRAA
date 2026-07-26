@@ -4,15 +4,30 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { useCart } from "@/context/CartContext";
 
+interface SavedAddressItem {
+  id: string;
+  line1: string;
+  line2?: string;
+  city: string;
+  state: string;
+  pincode: string;
+  country: string;
+  isDefault: boolean;
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const { items, subtotal, discount, shipping, total, promoCode, clearCart } = useCart();
 
   const [loading, setLoading] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddressItem[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("");
 
   // Form State
   const [formData, setFormData] = useState({
@@ -28,6 +43,59 @@ export default function CheckoutPage() {
     paymentMethod: "ONLINE",
     saveAddress: true,
   });
+
+  // Pre-fill user details and fetch saved addresses if logged in
+  useEffect(() => {
+    if (session?.user) {
+      setFormData((prev) => ({
+        ...prev,
+        email: prev.email || session.user?.email || "",
+        fullName: prev.fullName || session.user?.name || "",
+      }));
+
+      const fetchUserAddresses = async () => {
+        try {
+          const res = await fetch("/api/user/address");
+          if (res.ok) {
+            const data = await res.json();
+            if (data.addresses && data.addresses.length > 0) {
+              setSavedAddresses(data.addresses);
+              const defaultAddr = data.addresses.find((a: SavedAddressItem) => a.isDefault) || data.addresses[0];
+              if (defaultAddr) {
+                setSelectedAddressId(defaultAddr.id);
+                setFormData((prev) => ({
+                  ...prev,
+                  line1: defaultAddr.line1 || "",
+                  line2: defaultAddr.line2 || "",
+                  city: defaultAddr.city || "",
+                  state: defaultAddr.state || "",
+                  pincode: defaultAddr.pincode || "",
+                  country: defaultAddr.country || "India",
+                }));
+              }
+            }
+          }
+        } catch (err) {
+          console.warn("Failed to fetch user addresses in checkout", err);
+        }
+      };
+
+      fetchUserAddresses();
+    }
+  }, [session]);
+
+  const handleSelectSavedAddress = (addr: SavedAddressItem) => {
+    setSelectedAddressId(addr.id);
+    setFormData((prev) => ({
+      ...prev,
+      line1: addr.line1 || "",
+      line2: addr.line2 || "",
+      city: addr.city || "",
+      state: addr.state || "",
+      pincode: addr.pincode || "",
+      country: addr.country || "India",
+    }));
+  };
 
   // Dynamically load Razorpay SDK script
   useEffect(() => {
@@ -57,9 +125,11 @@ export default function CheckoutPage() {
     setLoading(true);
 
     const orderPayload = {
+      userId: (session?.user as { id?: string })?.id,
+      userEmail: session?.user?.email,
       shippingAddress: {
-        email: formData.email,
-        fullName: formData.fullName,
+        email: formData.email || session?.user?.email,
+        fullName: formData.fullName || session?.user?.name,
         phone: formData.phone,
         line1: formData.line1,
         line2: formData.line2,
@@ -239,6 +309,50 @@ export default function CheckoutPage() {
           <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
             {/* Left Column: Shipping Address Form */}
             <div className="lg:col-span-7 space-y-8">
+              {/* Saved Address Picker if available */}
+              {savedAddresses.length > 0 && (
+                <div className="bg-[#FAF8F5] p-6 rounded-xl border border-[#C9A648]/40 space-y-4">
+                  <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+                    <h3 className="text-sm font-serif font-semibold uppercase tracking-wider text-gray-900 flex items-center gap-2">
+                      <span>&#128205;</span> Select Saved Address
+                    </h3>
+                    <span className="text-[11px] text-[#C9A648] font-medium uppercase tracking-wider">
+                      Auto-fills form below
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {savedAddresses.map((addr) => {
+                      const isSelected = selectedAddressId === addr.id;
+                      return (
+                        <div
+                          key={addr.id}
+                          onClick={() => handleSelectSavedAddress(addr)}
+                          className={`p-3.5 rounded-lg border cursor-pointer transition-all ${
+                            isSelected
+                              ? "bg-white border-[#C9A648] shadow-md ring-1 ring-[#C9A648]"
+                              : "bg-white/70 border-gray-200 hover:border-gray-400"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-semibold text-gray-900 truncate">
+                              {addr.line1}
+                            </span>
+                            {addr.isDefault && (
+                              <span className="text-[9px] bg-[#C9A648]/20 text-[#967727] px-1.5 py-0.5 rounded font-bold uppercase">
+                                Default
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-gray-600 truncate">
+                            {addr.city}, {addr.state} - {addr.pincode}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Contact Information */}
               <div className="bg-[#FAF8F5] p-6 rounded-xl border border-gray-200 space-y-4">
                 <div className="flex items-center justify-between border-b border-gray-200 pb-3">

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Product } from "@/components/home/mockData";
 import { useCart } from "@/context/CartContext";
+import SizeGuideModal from "./SizeGuideModal";
 
 interface ProductInfoProps {
   product: Product;
@@ -338,6 +339,9 @@ export default function ProductInfo({
           <span>+ Add To Bag</span>
         </button>
       </div>
+
+      {/* Interactive Size Guide Modal */}
+      <SizeGuideModal isOpen={showSizeGuide} onClose={() => setShowSizeGuide(false)} />
     </div>
   );
 }
