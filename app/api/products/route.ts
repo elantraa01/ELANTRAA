@@ -29,8 +29,8 @@ export async function GET(req: NextRequest) {
     }
 
     if (categorySlug && categorySlug !== "all") {
-      const cleanSlug = categorySlug.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-");
-      const cleanName = categorySlug.replace(/-/g, " ");
+      const cleanSlug = categorySlug.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const cleanName = cleanSlug.replace(/-/g, " ");
 
       if (cleanSlug === "new-arrivals") {
         whereClause.isFeatured = true;
@@ -59,9 +59,9 @@ export async function GET(req: NextRequest) {
         whereClause.category = {
           OR: [
             { slug: { equals: cleanSlug, mode: "insensitive" } },
-            { name: { contains: cleanName, mode: "insensitive" } },
+            { name: { equals: cleanName, mode: "insensitive" } },
             { parentCategory: { slug: { equals: cleanSlug, mode: "insensitive" } } },
-            { parentCategory: { name: { contains: cleanName, mode: "insensitive" } } },
+            { parentCategory: { name: { equals: cleanName, mode: "insensitive" } } },
           ],
         };
       }

@@ -25,6 +25,8 @@ function getFilteredProducts(products: Product[], filters: FilterState): Product
 
   const selectedCat = filters.category.trim();
   const selLower = selectedCat.toLowerCase();
+  const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const selectedSlug = normalize(selectedCat);
 
   return products.filter((product) => {
     // Price check
@@ -42,13 +44,17 @@ function getFilteredProducts(products: Product[], filters: FilterState): Product
     const slugLower = prodCategorySlug.toLowerCase();
     const parentLower = parentCategory.toLowerCase();
     const parentSlugLower = parentCategorySlug.toLowerCase();
+    const catSlugFromName = normalize(prodCategory);
+    const parentSlugFromName = normalize(parentCategory);
 
     // 1. Exact case-insensitive match with Category Name or Category Slug
     if (
       catLower === selLower ||
-      slugLower === selLower.replace(/[^a-z0-9]+/g, "-") ||
+      slugLower === selectedSlug ||
+      catSlugFromName === selectedSlug ||
       parentLower === selLower ||
-      parentSlugLower === selLower.replace(/[^a-z0-9]+/g, "-")
+      parentSlugLower === selectedSlug ||
+      parentSlugFromName === selectedSlug
     ) {
       return true;
     }
@@ -73,8 +79,9 @@ function getFilteredProducts(products: Product[], filters: FilterState): Product
       return isMenParent || isMenCategory || isMenApparel;
     }
 
-    // 4. Fallback substring match for other specific categories
-    return catLower.includes(selLower) || selLower.includes(catLower) || slugLower.includes(selLower) || selLower.includes(slugLower);
+    // 4. Fallback for other specific categories. Keep this exact so "Men Dress"
+    // does not match "Women Dress".
+    return catSlugFromName === selectedSlug || slugLower === selectedSlug;
   });
 }
 

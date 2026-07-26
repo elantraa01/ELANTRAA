@@ -1,15 +1,10 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "mock_client_id",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "mock_client_secret",
-    }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -33,19 +28,8 @@ export const authOptions: NextAuthOptions = {
           console.warn("DB user lookup warning:", err);
         }
 
-        // Demo User Fallback if DB user doesn't exist yet
-        if (!user && (email === "client@elantraa.com" || email === "admin@elantraa.com")) {
-          const isDemoAdmin = email === "admin@elantraa.com";
-          return {
-            id: isDemoAdmin ? "user_admin_demo" : "user_client_demo",
-            name: isDemoAdmin ? "Victoria Sterling (Admin)" : "Ananya Sharma",
-            email: credentials.email,
-            role: isDemoAdmin ? "ADMIN" : "CUSTOMER",
-          };
-        }
-
         if (!user || !user.passwordHash) {
-          throw new Error("No account found with this email.");
+          throw new Error("No account found with this email. Please create an account first.");
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.passwordHash);

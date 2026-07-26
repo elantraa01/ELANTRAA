@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import ProductCard from "@/components/home/ProductCard";
@@ -35,7 +36,8 @@ interface OrderHistoryItem {
 }
 
 function AccountPageContent() {
-  const { data: session } = useSession();
+  const router = useRouter();
+  const { data: session, status } = useSession();
   const searchParams = useSearchParams();
   const { addItem, wishlistItems } = useCart();
 
@@ -60,6 +62,12 @@ function AccountPageContent() {
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [addresses, setAddresses] = useState<SavedAddress[]>([]);
   const [ordersList, setOrdersList] = useState<OrderHistoryItem[]>([]);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/login");
+    }
+  }, [status, router]);
 
   const [newAddr, setNewAddr] = useState({
     line1: "",
@@ -142,8 +150,16 @@ function AccountPageContent() {
     }
   };
 
-  const userName = session?.user?.name || "Victoria Sterling";
-  const userEmail = session?.user?.email || "client@elantraa.com";
+  if (status === "loading" || !session?.user) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center font-sans text-xs uppercase tracking-widest text-gray-500">
+        Loading ELANTRAA Account...
+      </div>
+    );
+  }
+
+  const userName = session.user.name || "ELANTRAA Customer";
+  const userEmail = session.user.email || "";
   const userRole = (session?.user as { role?: string })?.role || "CUSTOMER";
 
   return (

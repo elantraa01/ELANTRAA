@@ -128,6 +128,12 @@ export default function AdminDashboardPage() {
 
   // Fetch Data from Admin API routes
   useEffect(() => {
+    if (authStatus === "loading") return;
+    if (!session || userRole !== "ADMIN") {
+      setLoading(false);
+      return;
+    }
+
     async function loadAdminData() {
       setLoading(true);
       try {
@@ -206,7 +212,7 @@ export default function AdminDashboardPage() {
     }
 
     loadAdminData();
-  }, [session]);
+  }, [authStatus, session, userRole]);
 
   // Toggle Product Active Status
   const handleToggleActive = async (id: string, currentActive?: boolean) => {
@@ -681,7 +687,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  if (session && userRole !== "ADMIN") {
+  if (!session || userRole !== "ADMIN") {
     return (
       <div className="min-h-screen bg-[#FAF8F5] flex flex-col justify-between">
         <Navbar />
@@ -691,21 +697,29 @@ export default function AdminDashboardPage() {
           </div>
           <h2 className="text-2xl font-serif text-gray-900 font-semibold">Access Restricted</h2>
           <p className="text-xs text-gray-600 leading-relaxed font-light">
-            You are logged in as <span className="font-semibold text-gray-900">{session.user?.email}</span>. Only authenticated Administrators have permission to access the ELANTRAA Control Panel.
+            {session ? (
+              <>
+                You are logged in as <span className="font-semibold text-gray-900">{session.user?.email}</span>. Only authenticated Administrators have permission to access the ELANTRAA Control Panel.
+              </>
+            ) : (
+              "Please sign in with an administrator account to access the ELANTRAA Control Panel."
+            )}
           </p>
           <div className="pt-2 flex flex-col gap-3">
             <Link
-              href="/"
+              href={session ? "/" : "/login"}
               className="w-full py-3 bg-[#171717] text-[#D4AF37] text-xs font-medium uppercase tracking-widest rounded hover:bg-[#C9A648] hover:text-white transition-colors"
             >
-              Back to Client Home
+              {session ? "Back to Client Home" : "Go to Login"}
             </Link>
-            <button
-              onClick={handleSignOut}
-              className="w-full py-2.5 text-xs text-gray-500 hover:text-gray-900 underline font-medium"
-            >
-              Sign in with another account
-            </button>
+            {session && (
+              <button
+                onClick={handleSignOut}
+                className="w-full py-2.5 text-xs text-gray-500 hover:text-gray-900 underline font-medium"
+              >
+                Sign in with another account
+              </button>
+            )}
           </div>
         </div>
         <Footer />

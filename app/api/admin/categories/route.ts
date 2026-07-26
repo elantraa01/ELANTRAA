@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { requireAdmin } from "@/lib/adminAuth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   try {
     const categories = await prisma.category.findMany({
       include: {
@@ -34,13 +36,10 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    const userRole = (session?.user as { role?: string })?.role;
-    if (session && userRole !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized. Admin role required." }, { status: 403 });
-    }
+  const authError = await requireAdmin();
+  if (authError) return authError;
 
+  try {
     const body = await req.json();
     const { name, slug, parentCategoryId } = body;
 
@@ -89,13 +88,10 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    const userRole = (session?.user as { role?: string })?.role;
-    if (session && userRole !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized. Admin role required." }, { status: 403 });
-    }
+  const authError = await requireAdmin();
+  if (authError) return authError;
 
+  try {
     const body = await req.json();
     const { id, name, slug, parentCategoryId } = body;
 
@@ -143,13 +139,10 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    const userRole = (session?.user as { role?: string })?.role;
-    if (session && userRole !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized. Admin role required." }, { status: 403 });
-    }
+  const authError = await requireAdmin();
+  if (authError) return authError;
 
+  try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 

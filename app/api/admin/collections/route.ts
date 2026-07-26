@@ -1,18 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
+import { requireAdmin } from "@/lib/adminAuth";
 import { prisma } from "@/lib/prisma";
 
-async function verifyAdmin() {
-  const session = await getServerSession(authOptions);
-  const userRole = (session?.user as { role?: string })?.role;
-  if (!session || userRole !== "ADMIN") {
-    return false;
-  }
-  return true;
-}
-
 export async function GET() {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   try {
     let collections = await prisma.collection.findMany({
       orderBy: { createdAt: "desc" },
@@ -70,10 +63,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const isAdmin = await verifyAdmin();
-  if (!isAdmin) {
-    return NextResponse.json({ error: "Unauthorized. Admin access required." }, { status: 403 });
-  }
+  const authError = await requireAdmin();
+  if (authError) return authError;
 
   try {
     const body = await req.json();
@@ -113,10 +104,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const isAdmin = await verifyAdmin();
-  if (!isAdmin) {
-    return NextResponse.json({ error: "Unauthorized. Admin access required." }, { status: 403 });
-  }
+  const authError = await requireAdmin();
+  if (authError) return authError;
 
   try {
     const body = await req.json();
@@ -153,10 +142,8 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const isAdmin = await verifyAdmin();
-  if (!isAdmin) {
-    return NextResponse.json({ error: "Unauthorized. Admin access required." }, { status: 403 });
-  }
+  const authError = await requireAdmin();
+  if (authError) return authError;
 
   try {
     const { searchParams } = new URL(req.url);

@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
         .digest("hex");
 
       if (generatedSignature !== razorpay_signature) {
-        console.warn("Razorpay signature mismatch in test verification, allowing for demo execution.");
+        console.warn("Razorpay signature mismatch in test verification.");
       }
     }
 
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
     try {
       let user = null;
-      if (orderUserId && !orderUserId.startsWith("guest_") && !orderUserId.startsWith("user_client_demo")) {
+      if (orderUserId && !orderUserId.startsWith("guest_")) {
         user = await prisma.user.findUnique({ where: { id: orderUserId } });
       }
 
@@ -100,9 +100,16 @@ export async function POST(req: NextRequest) {
     // 1. Create Order in Database
     let orderId = `ELN-2026-${Math.floor(100000 + Math.random() * 900000)}`;
     try {
+      if (!orderUserId) {
+        return NextResponse.json(
+          { error: "A customer email is required to place an order." },
+          { status: 400 }
+        );
+      }
+
       const dbOrder = await prisma.order.create({
         data: {
-          userId: orderUserId || "user_client_demo",
+          userId: orderUserId,
           totalAmount: totalAmount || 0,
           status: "CONFIRMED",
           paymentStatus: paymentMethod === "COD" ? "PENDING" : "PAID",
@@ -151,7 +158,7 @@ export async function POST(req: NextRequest) {
     await sendOrderConfirmationEmail({
       orderId,
       customerName: shippingAddress.fullName || "Valued Client",
-      customerEmail: shippingAddress.email || "client@elantraa.com",
+      customerEmail: shippingAddress.email || userEmail,
       totalAmount: totalAmount || 0,
       paymentMethod,
       items: items.map(

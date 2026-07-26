@@ -42,10 +42,9 @@ Your development server is running locally at **`http://localhost:3000`**.
 - [x] **Order Confirmation**: Receipt page (`/checkout/success?orderId=...`) with shipping delivery timeline.
 
 #### F. Authentication & User Account (`/login`, `/signup`, `/account`)
-- [x] **NextAuth.js Auth**: Credentials email/password login + Google OAuth options.
-- [x] **1-Click Demo Logins**:
-  - Click **"Client Demo"** to log in as a customer.
-  - Click **"Admin Demo"** to log in as an administrator.
+- [x] **NextAuth.js Auth**: Credentials email/password login backed by registered database users.
+- [x] **User Registration Required**: Customers must create an account at `/signup` before using `/login`.
+- [x] **Single Admin Account**: `npm run db:seed` creates the configured `ADMIN_EMAIL` account with the `ADMIN` role.
 - [x] **Account Dashboard**:
   - **Order History Tab**: Past orders list with delivery status badges (*SHIPPED, DELIVERED*).
   - **Saved Addresses Tab**: Address cards with *Add New Address* form modal.
@@ -77,8 +76,8 @@ Execute the migration command in your terminal to create the database schema:
 npx prisma migrate dev --name init
 ```
 
-### Step 3: Seed Dummy Products & Categories
-Populate your database with 10 dummy fashion products and category trees:
+### Step 3: Seed Admin, Products & Categories
+Populate your database with the single configured admin account, 10 fashion products, and category trees:
 
 ```bash
 npm run db:seed
@@ -101,9 +100,10 @@ NEXT_PUBLIC_WHATSAPP_NUMBER="919015342951"
 NEXTAUTH_SECRET="elantraa_luxury_haute_couture_secret_key_2026"
 NEXTAUTH_URL="http://localhost:3000"
 
-# Google OAuth (Optional)
-GOOGLE_CLIENT_ID="your_google_client_id"
-GOOGLE_CLIENT_SECRET="your_google_client_secret"
+# Admin Account Seed
+ADMIN_EMAIL="admin@elantraa.com"
+ADMIN_PASSWORD="ChangeMeAdmin123!"
+ADMIN_NAME="ELANTRAA Admin"
 
 # Razorpay Payment Gateway (Test Mode)
 RAZORPAY_KEY_ID="rzp_test_elantraa_key_123"
@@ -129,7 +129,7 @@ EMAIL_FROM="ELANTRAA Concierge <elantraa.01@gmail.com>"
 | `npm run start` | Starts Next.js production server |
 | `npx tsc --noEmit` | Checks for TypeScript errors across the codebase |
 | `npx prisma studio` | Opens interactive Prisma web GUI database manager |
-| `npm run db:seed` | Runs seed script to insert dummy products into PostgreSQL |
+| `npm run db:seed` | Runs seed script to create the admin account and insert products into PostgreSQL |
 
 ---
 

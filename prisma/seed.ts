@@ -4,6 +4,7 @@ dotenv.config({ path: ".env" });
 
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, Prisma } from "../generated/prisma/client";
+import bcrypt from "bcryptjs";
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
@@ -158,6 +159,26 @@ const products = [
 ];
 
 async function main() {
+  const adminEmail = (process.env.ADMIN_EMAIL || "admin@elantraa.com").trim().toLowerCase();
+  const adminPassword = process.env.ADMIN_PASSWORD || "ChangeMeAdmin123!";
+  const adminName = process.env.ADMIN_NAME || "ELANTRAA Admin";
+  const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
+
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {
+      name: adminName,
+      passwordHash: adminPasswordHash,
+      role: "ADMIN",
+    },
+    create: {
+      name: adminName,
+      email: adminEmail,
+      passwordHash: adminPasswordHash,
+      role: "ADMIN",
+    },
+  });
+
   const categoryBySlug = new Map<string, { id: string }>();
 
   for (const category of categories.filter((item) => !item.parentSlug)) {
