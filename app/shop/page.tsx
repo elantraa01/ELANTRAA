@@ -109,6 +109,7 @@ function ShopContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const catQuery = searchParams.get("category");
+  const productSearch = (searchParams.get("search") || "").trim();
 
   const { addItem } = useCart();
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
@@ -194,9 +195,24 @@ function ShopContent() {
     router.push("/shop", { scroll: false });
   };
 
+  const searchFilteredProducts = useMemo(() => {
+    if (!productSearch) return allProducts;
+
+    const query = productSearch.toLowerCase();
+    return allProducts.filter((product) => {
+      return (
+        product.name.toLowerCase().includes(query) ||
+        product.description.toLowerCase().includes(query) ||
+        (product.category || "").toLowerCase().includes(query) ||
+        (product.categorySlug || "").toLowerCase().includes(query) ||
+        (product.parentCategory || "").toLowerCase().includes(query)
+      );
+    });
+  }, [allProducts, productSearch]);
+
   const filteredProducts = useMemo(() => {
-    return getFilteredProducts(allProducts, filters);
-  }, [allProducts, filters]);
+    return getFilteredProducts(searchFilteredProducts, filters);
+  }, [searchFilteredProducts, filters]);
 
   const finalProducts = useMemo(() => {
     return getSortedProducts(filteredProducts, sortBy);
@@ -206,8 +222,9 @@ function ShopContent() {
     let count = 0;
     if (filters.category !== "All") count++;
     if (filters.maxPrice < 20000) count++;
+    if (productSearch) count++;
     return count;
-  }, [filters]);
+  }, [filters, productSearch]);
 
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-[#C9A648] selection:text-white">
@@ -234,6 +251,29 @@ function ShopContent() {
 
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {productSearch && (
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-200 pb-4">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.25em] text-[#C9A648] font-semibold">
+                Search Results
+              </p>
+              <h2 className="text-xl font-serif text-gray-900">
+                {finalProducts.length} result{finalProducts.length === 1 ? "" : "s"} for &quot;{productSearch}&quot;
+              </h2>
+            </div>
+            <button
+              onClick={() => {
+                const params = new URLSearchParams(window.location.search);
+                params.delete("search");
+                router.push(`/shop${params.toString() ? `?${params.toString()}` : ""}`, { scroll: false });
+              }}
+              className="self-start sm:self-auto px-4 py-2 bg-[#171717] text-[#D4AF37] text-xs font-medium uppercase tracking-widest rounded"
+            >
+              Clear Search
+            </button>
+          </div>
+        )}
+
         {/* Grid Layout: Desktop Sidebar + Product Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
           {/* Desktop Filter Sidebar */}

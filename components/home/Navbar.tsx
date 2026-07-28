@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 
 interface NavbarProps {
@@ -19,6 +20,7 @@ export default function Navbar({
   onOpenCart,
   onOpenWishlist,
 }: NavbarProps) {
+  const router = useRouter();
   const { data: session } = useSession();
   const accountHref = session?.user ? "/account" : "/login";
   const { cartCount: ctxCartCount, wishlistCount: ctxWishlistCount } = useCart();
@@ -107,6 +109,15 @@ export default function Navbar({
   }, []);
 
   const [mobileActiveTab, setMobileActiveTab] = useState<"menu" | "categories">("menu");
+
+  const handleSearchSubmit = () => {
+    const query = searchQuery.trim();
+    if (!query) return;
+
+    setSearchOpen(false);
+    setSearchQuery("");
+    router.push(`/shop?search=${encodeURIComponent(query)}`);
+  };
 
   return (
     <>
@@ -549,11 +560,17 @@ export default function Navbar({
                 placeholder="Search dresses, kurtas, shirts, silk co-ords..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSearchSubmit();
+                  }
+                }}
                 className="w-full text-lg border-b-2 border-[#C9A648] py-2 px-1 focus:outline-none bg-transparent placeholder-gray-400 font-serif"
                 autoFocus
               />
               <button
-                onClick={() => setSearchOpen(false)}
+                onClick={handleSearchSubmit}
                 className="ml-3 px-5 py-2 bg-[#171717] text-[#D4AF37] text-xs uppercase tracking-widest rounded hover:bg-[#C9A648] hover:text-white transition-colors"
               >
                 Search
