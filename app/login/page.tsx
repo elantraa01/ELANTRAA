@@ -12,12 +12,18 @@ export default function LoginPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const { mergeCartOnLogin } = useCart();
+  const [callbackUrl, setCallbackUrl] = useState("/account");
 
   useEffect(() => {
     if (session?.user) {
-      router.replace("/account");
+      router.replace(callbackUrl);
     }
-  }, [session, router]);
+  }, [session, router, callbackUrl]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setCallbackUrl(params.get("callbackUrl") || "/account");
+  }, []);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,13 +46,18 @@ export default function LoginPage() {
         setErrorMessage(res.error || "Invalid email or password.");
       } else if (res?.ok) {
         await mergeCartOnLogin(email);
-        router.push("/account");
+        router.push(callbackUrl);
       }
     } catch {
       setErrorMessage("An unexpected authentication error occurred.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleLogin = async () => {
+    setErrorMessage(null);
+    await signIn("google", { callbackUrl });
   };
 
   return (
@@ -131,6 +142,20 @@ export default function LoginPage() {
                 {loading ? "Authenticating..." : "Sign In"}
               </button>
             </form>
+
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-gray-200" />
+              <span className="text-[10px] uppercase tracking-widest text-gray-400">or</span>
+              <div className="h-px flex-1 bg-gray-200" />
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="w-full py-3.5 bg-white text-gray-900 border border-gray-300 hover:border-[#C9A648] uppercase tracking-[0.16em] font-medium text-xs rounded-md shadow-sm transition-colors"
+            >
+              Continue with Google
+            </button>
           </div>
 
           <p className="text-center text-xs text-gray-600 mt-6">

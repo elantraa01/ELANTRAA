@@ -140,3 +140,47 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to update wishlist in DB" }, { status: 500 });
   }
 }
+
+export async function PUT(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    const userId = (session?.user as { id?: string })?.id;
+    const userEmail = session?.user?.email;
+
+    if (!userId && !userEmail) {
+      return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: userId ? { id: userId } : { email: userEmail! },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const { productId } = await req.json();
+    if (!productId) {
+      return NextResponse.json({ error: "productId is required" }, { status: 400 });
+    }
+
+    await prisma.wishlist.upsert({
+      where: {
+        userId_productId: {
+          userId: user.id,
+          productId,
+        },
+      },
+      update: {},
+      create: {
+        userId: user.id,
+        productId,
+      },
+    });
+
+    return GET();
+  } catch (error) {
+    console.error("PUT /api/wishlist Error:", error);
+    return NextResponse.json({ error: "Failed to save wishlist item" }, { status: 500 });
+  }
+}

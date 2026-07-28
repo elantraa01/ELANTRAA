@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    const sessionUserId = (session?.user as { id?: string })?.id;
+    const sessionEmail = session?.user?.email;
+
+    if (!sessionUserId && !sessionEmail) {
+      return NextResponse.json({ error: "Please log in before placing an order." }, { status: 401 });
+    }
+
     const body = await req.json();
     const {
       userId,
@@ -39,8 +49,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Robust user lookup: check by userId, userEmail, or shippingAddress.email
-    let orderUserId = userId;
-    const targetEmail = userEmail || shippingAddress.email;
+    let orderUserId = sessionUserId || userId;
+    const targetEmail = sessionEmail || userEmail || shippingAddress.email;
 
     try {
       let user = null;
@@ -50,17 +60,6 @@ export async function POST(req: NextRequest) {
 
       if (!user && targetEmail) {
         user = await prisma.user.findUnique({ where: { email: targetEmail } });
-      }
-
-      if (!user && targetEmail) {
-        user = await prisma.user.create({
-          data: {
-            name: shippingAddress.fullName || "Valued Client",
-            email: targetEmail,
-            passwordHash: "guest_checkout_nopass",
-            role: "CUSTOMER",
-          },
-        });
       }
 
       if (user) {

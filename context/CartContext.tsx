@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useMemo, useRef } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Product } from "@/components/home/mockData";
 
@@ -36,118 +36,169 @@ interface CartContextType {
   removePromoCode: () => void;
   mergeCartOnLogin: (userId: string) => Promise<void>;
   guestId: string;
-  // Wishlist
   wishlistItems: Product[];
   wishlistCount: number;
   toggleWishlist: (product: Product) => void;
   isInWishlist: (productId: string) => boolean;
 }
 
+type DbCartItem = {
+  id: string;
+  productId: string;
+  size?: string | null;
+  color?: string | null;
+  quantity: number;
+  product: {
+    name: string;
+    slug: string;
+    price: string | number;
+    discountPrice?: string | number | null;
+    images: string[];
+  };
+};
+
+type DbCart = {
+  items?: DbCartItem[];
+} | null;
+
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const GUEST_CART_KEY = "elantraa_guest_cart";
 const GUEST_ID_KEY = "elantraa_guest_id";
 const PROMO_CODE_KEY = "elantraa_promo_code";
-const WISHLIST_KEY = "elantraa_wishlist";
+const GUEST_WISHLIST_KEY = "elantraa_guest_wishlist";
+
+function mapDbCart(cart: DbCart): CartItemType[] {
+  return (cart?.items || []).map((item) => ({
+    id: item.id,
+    productId: item.productId,
+    name: item.product.name,
+    slug: item.product.slug,
+    price: Number(item.product.price),
+    discountPrice: item.product.discountPrice == null ? null : Number(item.product.discountPrice),
+    image: item.product.images?.[0] || "/images/collections/dresses.png",
+    size: item.size || "M",
+    color: item.color || "Default",
+    quantity: item.quantity,
+  }));
+}
+
+function createLocalCartItem(
+  product: Product,
+  size: string,
+  color: string,
+  quantity: number
+): CartItemType {
+  return {
+    id: `cart_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    productId: product.id,
+    name: product.name,
+    slug: product.slug,
+    price: product.price,
+    discountPrice: product.discountPrice,
+    image: product.images[0] || "/images/collections/dresses.png",
+    size,
+    color,
+    quantity,
+  };
+}
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
-  const userEmail = session?.user?.email;
+  const isLoggedIn = status === "authenticated" && !!session?.user?.email;
 
   const [items, setItems] = useState<CartItemType[]>([]);
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [promoCode, setPromoCode] = useState("");
   const [guestId, setGuestId] = useState("");
-
-  const activeUserRef = useRef<string | null | undefined>(undefined);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  const getCartKeyForEmail = (email?: string | null) => {
-    if (email) {
-      const cleanEmail = email.replace(/[^a-zA-Z0-9]/g, "_");
-      return `elantraa_user_cart_${cleanEmail}`;
-    }
-    return GUEST_CART_KEY;
-  };
+  const loadServerCart = useCallback(async () => {
+    const res = await fetch("/api/cart", { cache: "no-store" });
+    if (!res.ok) return;
+    const data = await res.json();
+    setItems(mapDbCart(data.cart));
+  }, []);
 
-  const getWishlistKeyForEmail = (email?: string | null) => {
-    if (email) {
-      const cleanEmail = email.replace(/[^a-zA-Z0-9]/g, "_");
-      return `elantraa_user_wishlist_${cleanEmail}`;
-    }
-    return WISHLIST_KEY;
-  };
+  const loadServerWishlist = useCallback(async () => {
+    const res = await fetch("/api/wishlist", { cache: "no-store" });
+    if (!res.ok) return;
+    const data = await res.json();
+    setWishlistItems(data.wishlist || []);
+  }, []);
 
-  // 1. Initialize Guest ID and Promo Code on mount
+  const mergeCartOnLogin = useCallback(
+    async (_userId: string) => {
+      const guestCartItems = JSON.parse(localStorage.getItem(GUEST_CART_KEY) || "[]");
+      const response = await fetch("/api/cart/merge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ guestCartItems, guestId }),
+      });
+
+      if (response.ok) {
+        localStorage.removeItem(GUEST_CART_KEY);
+        const data = await response.json();
+        setItems(mapDbCart(data.cart));
+      }
+    },
+    [guestId]
+  );
+
   useEffect(() => {
     let gid = localStorage.getItem(GUEST_ID_KEY);
     if (!gid) {
-      gid = `guest_${Math.random().toString(36).substring(2, 11)}_${Date.now()}`;
+      gid = `guest_${Math.random().toString(36).slice(2, 11)}_${Date.now()}`;
       localStorage.setItem(GUEST_ID_KEY, gid);
     }
     setGuestId(gid);
 
     const savedPromo = localStorage.getItem(PROMO_CODE_KEY);
-    if (savedPromo) {
-      setPromoCode(savedPromo);
-    }
+    if (savedPromo) setPromoCode(savedPromo);
+
+    setIsHydrated(true);
   }, []);
 
-  // 2. Hydrate Cart and Wishlist whenever session/user changes
   useEffect(() => {
-    if (status === "loading") return;
+    if (!isHydrated || status === "loading") return;
 
-    const cartKey = getCartKeyForEmail(userEmail);
-    const wishlistKey = getWishlistKeyForEmail(userEmail);
-
-    // Load User or Guest Cart
-    const savedCart = localStorage.getItem(cartKey);
-    if (savedCart) {
-      try {
-        setItems(JSON.parse(savedCart));
-      } catch (e) {
-        console.error("Failed to parse cart", e);
-        setItems([]);
-      }
-    } else {
-      setItems([]);
+    if (!isLoggedIn) {
+      setItems(JSON.parse(localStorage.getItem(GUEST_CART_KEY) || "[]"));
+      setWishlistItems(JSON.parse(localStorage.getItem(GUEST_WISHLIST_KEY) || "[]"));
+      return;
     }
 
-    // Load User or Guest Wishlist
-    const savedWishlist = localStorage.getItem(wishlistKey);
-    if (savedWishlist) {
-      try {
-        setWishlistItems(JSON.parse(savedWishlist));
-      } catch (e) {
-        console.error("Failed to parse wishlist", e);
-        setWishlistItems([]);
+    async function loadUserData() {
+      await mergeCartOnLogin(session?.user?.email || "");
+
+      const guestWishlist = JSON.parse(localStorage.getItem(GUEST_WISHLIST_KEY) || "[]") as Product[];
+      if (guestWishlist.length > 0) {
+        for (const product of guestWishlist) {
+          await fetch("/api/wishlist", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productId: product.id }),
+          });
+        }
+        localStorage.removeItem(GUEST_WISHLIST_KEY);
       }
-    } else {
-      setWishlistItems([]);
+
+      await Promise.all([loadServerCart(), loadServerWishlist()]);
     }
 
-    activeUserRef.current = userEmail || null;
-    setIsHydrated(true);
-  }, [userEmail, status]);
+    loadUserData();
+  }, [isHydrated, isLoggedIn, loadServerCart, loadServerWishlist, mergeCartOnLogin, session?.user?.email, status]);
 
-  // 3. Save Cart changes to active user profile key
   useEffect(() => {
-    if (!isHydrated) return;
-    if (activeUserRef.current !== (userEmail || null)) return;
+    if (!isHydrated || isLoggedIn) return;
+    localStorage.setItem(GUEST_CART_KEY, JSON.stringify(items));
+  }, [items, isHydrated, isLoggedIn]);
 
-    const cartKey = getCartKeyForEmail(userEmail);
-    localStorage.setItem(cartKey, JSON.stringify(items));
-  }, [items, isHydrated, userEmail]);
-
-  // 4. Save Wishlist changes to active user profile key
   useEffect(() => {
-    if (!isHydrated) return;
-    if (activeUserRef.current !== (userEmail || null)) return;
-
-    const wishlistKey = getWishlistKeyForEmail(userEmail);
-    localStorage.setItem(wishlistKey, JSON.stringify(wishlistItems));
-  }, [wishlistItems, isHydrated, userEmail]);
+    if (!isHydrated || isLoggedIn) return;
+    localStorage.setItem(GUEST_WISHLIST_KEY, JSON.stringify(wishlistItems));
+  }, [wishlistItems, isHydrated, isLoggedIn]);
 
   const addItem = (
     product: Product,
@@ -157,31 +208,33 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   ) => {
     setItems((prevItems) => {
       const existingIndex = prevItems.findIndex(
-        (item) =>
-          item.productId === product.id && item.size === size && item.color === color
+        (item) => item.productId === product.id && item.size === size && item.color === color
       );
 
       if (existingIndex > -1) {
         const next = [...prevItems];
-        next[existingIndex].quantity += quantity;
+        next[existingIndex] = {
+          ...next[existingIndex],
+          quantity: next[existingIndex].quantity + quantity,
+        };
         return next;
       }
 
-      const newItem: CartItemType = {
-        id: `cart_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-        productId: product.id,
-        name: product.name,
-        slug: product.slug,
-        price: product.price,
-        discountPrice: product.discountPrice,
-        image: product.images[0] || "/images/collections/dresses.png",
-        size,
-        color,
-        quantity,
-      };
-
-      return [...prevItems, newItem];
+      return [...prevItems, createLocalCartItem(product, size, color, quantity)];
     });
+
+    if (isLoggedIn) {
+      fetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: product.id, size, color, quantity }),
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data?.cart) setItems(mapDbCart(data.cart));
+        })
+        .catch((error) => console.error("Failed to save cart item", error));
+    }
   };
 
   const updateQuantity = (itemId: string, newQuantity: number) => {
@@ -189,27 +242,41 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       removeItem(itemId);
       return;
     }
-    setItems((prev) =>
-      prev.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item))
-    );
+
+    setItems((prev) => prev.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)));
+
+    if (isLoggedIn) {
+      fetch("/api/cart", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId, quantity: newQuantity }),
+      }).catch((error) => console.error("Failed to update cart quantity", error));
+    }
   };
 
   const removeItem = (itemId: string) => {
     setItems((prev) => prev.filter((item) => item.id !== itemId));
+
+    if (isLoggedIn) {
+      fetch(`/api/cart?itemId=${encodeURIComponent(itemId)}`, {
+        method: "DELETE",
+      }).catch((error) => console.error("Failed to remove cart item", error));
+    }
   };
 
   const clearCart = () => {
     setItems([]);
-    const key = getCartKeyForEmail(userEmail);
-    localStorage.removeItem(key);
+    localStorage.removeItem(GUEST_CART_KEY);
+
+    if (isLoggedIn) {
+      fetch("/api/cart?all=true", { method: "DELETE" }).catch((error) =>
+        console.error("Failed to clear cart", error)
+      );
+    }
   };
 
   const subtotal = useMemo(
-    () =>
-      items.reduce(
-        (acc, item) => acc + (item.discountPrice || item.price) * item.quantity,
-        0
-      ),
+    () => items.reduce((acc, item) => acc + (item.discountPrice || item.price) * item.quantity, 0),
     [items]
   );
 
@@ -230,11 +297,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (clean === "ELANTRAAGOLD") {
       msg = "Promo code ELANTRAAGOLD applied! 10% discount added.";
     } else if (clean === "WELCOME10") {
-      msg = "Promo code WELCOME10 applied! ₹500 discount added.";
+      msg = "Promo code WELCOME10 applied! Rs.500 discount added.";
     } else if (clean === "FESTIVE15") {
       msg = "Promo code FESTIVE15 applied! 15% festive discount added.";
     } else if (clean === "ELANTRAA10") {
-      msg = "Promo code ELANTRAA10 applied! ₹300 discount added.";
+      msg = "Promo code ELANTRAA10 applied! Rs.300 discount added.";
     } else {
       return { success: false, message: "Invalid code. Try ELANTRAAGOLD, WELCOME10, or FESTIVE15." };
     }
@@ -249,48 +316,29 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(PROMO_CODE_KEY);
   };
 
-  const mergeCartOnLogin = async (userId: string) => {
-    try {
-      const response = await fetch("/api/cart/merge", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, guestCartItems: items, guestId }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.mergedItems) {
-          setItems(data.mergedItems);
-        }
-      }
-    } catch (e) {
-      console.error("Failed to merge guest cart on login", e);
-    }
-  };
-
   const toggleWishlist = (product: Product) => {
     setWishlistItems((prev) => {
       const exists = prev.some((item) => item.id === product.id);
-      let updated: Product[];
-      if (exists) {
-        updated = prev.filter((item) => item.id !== product.id);
-      } else {
-        updated = [...prev, product];
-      }
-      return updated;
+      return exists ? prev.filter((item) => item.id !== product.id) : [...prev, product];
     });
+
+    if (isLoggedIn) {
+      fetch("/api/wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: product.id }),
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data?.wishlist) setWishlistItems(data.wishlist);
+        })
+        .catch((error) => console.error("Failed to update wishlist", error));
+    }
   };
 
-  const isInWishlist = (productId: string) => {
-    return wishlistItems.some((item) => item.id === productId);
-  };
-
+  const isInWishlist = (productId: string) => wishlistItems.some((item) => item.id === productId);
   const wishlistCount = wishlistItems.length;
-
-  const cartCount = useMemo(
-    () => items.reduce((acc, item) => acc + item.quantity, 0),
-    [items]
-  );
-
+  const cartCount = useMemo(() => items.reduce((acc, item) => acc + item.quantity, 0), [items]);
   const shipping = subtotal > 5000 || subtotal === 0 ? 0 : 250;
   const discount = promoDiscount;
   const total = Math.max(0, subtotal - discount + shipping);

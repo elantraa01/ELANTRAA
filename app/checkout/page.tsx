@@ -22,7 +22,7 @@ interface SavedAddressItem {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { items, subtotal, discount, shipping, total, promoCode, clearCart } = useCart();
 
   const [loading, setLoading] = useState(false);
@@ -121,6 +121,10 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0) return;
+    if (status !== "authenticated" || !session?.user) {
+      router.push("/login?callbackUrl=/checkout");
+      return;
+    }
 
     setLoading(true);
 
@@ -274,6 +278,44 @@ export default function CheckoutPage() {
     );
   }
 
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-white text-gray-900 font-sans flex flex-col justify-between">
+        <Navbar />
+        <div className="max-w-xl mx-auto px-4 py-20 text-center">
+          <p className="text-xs text-gray-500 uppercase tracking-widest">Checking your account...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (status !== "authenticated") {
+    return (
+      <div className="min-h-screen bg-white text-gray-900 font-sans flex flex-col justify-between">
+        <Navbar />
+        <div className="max-w-xl mx-auto px-4 py-20 text-center">
+          <span className="text-[11px] tracking-[0.3em] text-[#C9A648] uppercase font-semibold">
+            Login Required
+          </span>
+          <h2 className="text-2xl font-serif font-semibold text-gray-900 mt-2 mb-2">
+            Please Sign In Before Payment
+          </h2>
+          <p className="text-xs text-gray-500 font-light mb-6">
+            Your cart is ready. Sign in first so your order, address, cart, and wishlist stay saved to your account.
+          </p>
+          <Link
+            href="/login?callbackUrl=/checkout"
+            className="inline-block px-8 py-3 bg-[#171717] text-[#D4AF37] text-xs font-medium uppercase tracking-widest rounded"
+          >
+            Sign In To Continue
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-[#C9A648] selection:text-white flex flex-col justify-between">
       <div>
@@ -360,7 +402,7 @@ export default function CheckoutPage() {
                     1. Contact Information
                   </h3>
                   <span className="text-[11px] text-[#C9A648] font-medium">
-                    Guest Checkout Allowed
+                    Signed In Checkout
                   </span>
                 </div>
 

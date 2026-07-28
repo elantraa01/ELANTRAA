@@ -14,19 +14,8 @@ export interface HeroData {
   bgImage: string;
 }
 
-const DEFAULT_HERO: HeroData = {
-  tagline: "AUTUMN / WINTER 2026 COLLECTION",
-  title: "ELANTRAA",
-  highlight: "& Timeless Elegance",
-  description:
-    "Immerse yourself in handcrafted silk gowns, tailored silhouettes, and intricate metallic embroidery designed for the discerning individual.",
-  buttonText: "Explore Collection",
-  buttonLink: "/shop",
-  bgImage: "/images/hero/hero_banner.png",
-};
-
 export default function HeroBanner() {
-  const [hero, setHero] = useState<HeroData>(DEFAULT_HERO);
+  const [hero, setHero] = useState<HeroData | null>(null);
 
   useEffect(() => {
     async function loadHero() {
@@ -34,7 +23,7 @@ export default function HeroBanner() {
         const res = await fetch("/api/hero");
         if (res.ok) {
           const data = await res.json();
-          if (data.hero) {
+          if (data.hero?.bgImage) {
             setHero(data.hero);
           }
         }
@@ -48,21 +37,24 @@ export default function HeroBanner() {
   return (
     <section className="relative w-full min-h-[85vh] sm:min-h-[90vh] flex items-center justify-center bg-[#FAF8F5] overflow-hidden border-b border-[#C9A648]/20">
       {/* Background Image Overlay */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src={hero.bgImage || "/images/hero/hero_banner.png"}
-          alt="ELANTRAA Luxury Fashion Banner"
-          fill
-          priority
-          className="object-cover object-center opacity-90 transition-transform duration-1000 scale-100 hover:scale-105"
-          sizes="100vw"
-        />
-        {/* Soft Luxury Gradient Overlay for readable crisp gold text */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent sm:from-black/70 sm:via-black/50" />
-      </div>
+      {hero && (
+        <div className="absolute inset-0 z-0">
+          <Image
+            src={hero.bgImage}
+            alt="ELANTRAA Luxury Fashion Banner"
+            fill
+            priority
+            className="object-cover object-center opacity-90 transition-transform duration-1000 scale-100 hover:scale-105"
+            sizes="100vw"
+          />
+          {/* Soft Luxury Gradient Overlay for readable crisp gold text */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent sm:from-black/70 sm:via-black/50" />
+        </div>
+      )}
 
       {/* Hero Content Box */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-left w-full">
+      {hero && (
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-left w-full">
         <div className="max-w-2xl text-white">
           {/* Tagline Badge */}
           <div className="max-w-full inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md border border-[#D4AF37]/50 rounded-full mb-6 overflow-hidden">
@@ -88,10 +80,10 @@ export default function HeroBanner() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
             <Link
-              href={hero.buttonLink || "/shop"}
+              href={hero.buttonLink}
               className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-[#D4AF37] via-[#C9A648] to-[#AA771C] text-white font-medium text-xs sm:text-sm tracking-[0.2em] uppercase rounded shadow-lg hover:shadow-[#C9A648]/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group"
             >
-              <span>{hero.buttonText || "Explore Collection"}</span>
+              <span>{hero.buttonText}</span>
               <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
@@ -122,6 +114,7 @@ export default function HeroBanner() {
           </div>
         </div>
       </div>
+      )}
     </section>
   );
 }
