@@ -1382,7 +1382,7 @@ export default function AdminDashboardPage() {
                           type="text"
                           value={heroForm.bgVideo}
                           onChange={(e) => setHeroForm({ ...heroForm, bgVideo: e.target.value })}
-                          placeholder="e.g. /videos/hero.mp4 or https://.../video.mp4"
+                          placeholder="e.g. https://assets.mixkit.co/videos/preview/mixkit-fashion-model-in-a-gold-dress-41556-large.mp4"
                           className="flex-1 px-3.5 py-2.5 border border-gray-300 rounded-lg focus:border-[#C9A648] outline-none font-mono text-[11px]"
                         />
                         <label className="px-4 py-2.5 bg-gray-100 text-gray-800 rounded-lg font-semibold uppercase text-[10px] hover:bg-gray-200 cursor-pointer flex items-center shrink-0 border border-gray-300">
@@ -1393,6 +1393,10 @@ export default function AdminDashboardPage() {
                             onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (!file) return;
+                              if (file.size > 4.5 * 1024 * 1024) {
+                                alert(`Video size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds Netlify's 4.5MB upload limit. Click one of the 'Sample Luxury Videos' below or paste a CDN video URL.`);
+                                return;
+                              }
                               setUploadingImage(true);
                               try {
                                 const formData = new FormData();
@@ -1406,7 +1410,7 @@ export default function AdminDashboardPage() {
                                   alert(data.error || "Failed to upload video.");
                                 }
                               } catch {
-                                alert("Failed to upload video. Please paste a video URL directly instead.");
+                                alert("Failed to upload video. Please paste a video URL directly or use a preset below.");
                               } finally {
                                 setUploadingImage(false);
                               }
@@ -1416,7 +1420,27 @@ export default function AdminDashboardPage() {
                           />
                         </label>
                       </div>
-                      <p className="text-[10px] text-gray-400 mt-1">Supports .mp4, .webm, and .mov formats. When set, the hero background will auto-play as a muted video loop.</p>
+                      
+                      {/* Preset Sample Videos */}
+                      <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                        <span className="text-[10px] text-gray-500 font-semibold uppercase">Or Quick Presets:</span>
+                        <button
+                          type="button"
+                          onClick={() => setHeroForm((prev) => ({ ...prev, bgVideo: "https://assets.mixkit.co/videos/preview/mixkit-fashion-model-in-a-gold-dress-41556-large.mp4" }))}
+                          className="px-2.5 py-1 bg-[#FAF8F5] border border-[#C9A648]/40 hover:border-[#C9A648] rounded text-[10px] text-gray-700 font-medium transition-colors"
+                        >
+                          ✨ Gold Dress Model Loop
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setHeroForm((prev) => ({ ...prev, bgVideo: "https://assets.mixkit.co/videos/preview/mixkit-woman-modeling-a-silk-dress-41553-large.mp4" }))}
+                          className="px-2.5 py-1 bg-[#FAF8F5] border border-[#C9A648]/40 hover:border-[#C9A648] rounded text-[10px] text-gray-700 font-medium transition-colors"
+                        >
+                          ✨ Silk Gown Loop
+                        </button>
+                      </div>
+
+                      <p className="text-[10px] text-gray-400 mt-1.5">Supports .mp4, .webm, and .mov formats. When set, the hero background auto-plays as a muted video loop.</p>
                     </div>
 
                     <button
