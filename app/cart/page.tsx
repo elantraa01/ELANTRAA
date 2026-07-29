@@ -111,8 +111,7 @@ export default function CartPage() {
 
                             <div className="text-xs text-gray-500 space-y-0.5 mt-1 font-light">
                               <p>
-                                Size: <strong className="font-semibold text-gray-700">{item.size}</strong> | Color:{" "}
-                                <strong className="font-semibold text-gray-700">{item.color}</strong>
+                                Size: <strong className="font-semibold text-gray-700">{item.size}</strong>
                               </p>
                               <p className="text-gray-900 font-medium">
                                 &#8377;{unitPrice.toLocaleString("en-IN")}

@@ -63,7 +63,7 @@ export default function Navbar({
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const res = await fetch("/api/categories");
+        const res = await fetch("/api/categories", { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           if (data.categories && data.categories.length > 0) {
@@ -204,11 +204,17 @@ export default function Navbar({
             </Link>
           </nav>
 
-          {/* Center: Brand Name (Text Only) */}
+          {/* Center: Brand Logo */}
           <div className="text-center min-w-0 flex-1 lg:flex-none px-1">
-            <Link href="/" className="inline-block group">
-              <span className="text-xl sm:text-2xl lg:text-3xl font-serif tracking-[0.18em] sm:tracking-[0.25em] font-light text-gray-900 group-hover:text-[#C9A648] transition-colors truncate">
-                ELANTRAA
+            <Link href="/" className="inline-flex items-center justify-center group" aria-label="ELANTRAA Home">
+              <span className="relative block w-44 h-12 sm:w-56 sm:h-14 lg:w-64 lg:h-16 overflow-hidden">
+                <Image
+                  src="/images/logo/logo.png"
+                  alt="ELANTRAA"
+                  fill
+                  className="object-cover object-center"
+                  priority
+                />
               </span>
             </Link>
           </div>
@@ -361,20 +367,16 @@ export default function Navbar({
                   >
                     New Arrival
                   </Link>
-                  <Link
-                    href="/shop?category=Lehenga%20choli"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-5 py-3.5 text-xs sm:text-sm font-medium tracking-wider text-gray-800 hover:bg-gray-50 transition-colors"
-                  >
-                    Lehenga choli
-                  </Link>
-                  <Link
-                    href="/shop?category=Saree"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-5 py-3.5 text-xs sm:text-sm font-medium tracking-wider text-gray-800 hover:bg-gray-50 transition-colors"
-                  >
-                    saree
-                  </Link>
+                  {navCategories.slice(0, 4).map((cat) => (
+                    <Link
+                      key={cat.id}
+                      href={`/shop?category=${encodeURIComponent(cat.name)}`}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-5 py-3.5 text-xs sm:text-sm font-medium tracking-wider text-gray-800 hover:bg-gray-50 transition-colors"
+                    >
+                      {cat.name}
+                    </Link>
+                  ))}
                   <Link
                     href="/shop?featured=true"
                     onClick={() => setMobileMenuOpen(false)}

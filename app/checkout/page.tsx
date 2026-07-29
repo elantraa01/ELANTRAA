@@ -621,7 +621,7 @@ export default function CheckoutPage() {
                       <div>
                         <p className="font-semibold text-gray-900 line-clamp-1">{item.name}</p>
                         <p className="text-[11px] text-gray-500">
-                          Qty: {item.quantity} • {item.size} • {item.color}
+                          Qty: {item.quantity} • Size: {item.size}
                         </p>
                       </div>
                     </div>

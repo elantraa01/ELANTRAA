@@ -37,7 +37,7 @@ export default function SplashScreen() {
         }`}
       >
         {/* Brand Logo Image */}
-        <div className="relative mb-4 w-20 h-20 sm:w-24 sm:h-24">
+        <div className="relative w-32 h-32 sm:w-40 sm:h-40">
           <Image
             src="/images/logo/logo.png"
             alt="ELANTRAA Logo"
@@ -46,11 +46,6 @@ export default function SplashScreen() {
             priority
           />
         </div>
-
-        {/* Brand Name */}
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif tracking-[0.25em] font-light bg-gradient-to-r from-[#AA771C] via-[#D4AF37] to-[#AA771C] bg-clip-text text-transparent uppercase">
-          ELANTRAA
-        </h1>
       </div>
     </div>
   );

@@ -20,13 +20,12 @@ function QuickViewModalContent({
   onAddToCart: (product: Product, selectedSize: string, selectedColor: string, quantity: number) => void;
 }) {
   const [selectedSize, setSelectedSize] = useState(product.sizes[0] || "M");
-  const [selectedColor, setSelectedColor] = useState(product.colors[0] || "Default");
+  const selectedColor = "Default";
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(product.images[0]);
 
   useEffect(() => {
     setSelectedSize(product.sizes[0] || "M");
-    setSelectedColor(product.colors[0] || "Default");
     setQuantity(1);
     setActiveImage(product.images[0]);
   }, [product]);
@@ -110,28 +109,6 @@ function QuickViewModalContent({
             <p className="text-sm text-gray-600 font-light leading-relaxed mb-6">
               {product.description}
             </p>
-
-            {/* Color Selector */}
-            <div className="mb-4">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">
-                Color: <span className="text-[#C9A648]">{selectedColor}</span>
-              </label>
-              <div className="flex gap-2">
-                {product.colors.map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    className={`px-3 py-1.5 text-xs rounded border transition-all ${
-                      selectedColor === color
-                        ? "border-[#C9A648] bg-[#C9A648]/10 text-[#C9A648] font-semibold"
-                        : "border-gray-200 text-gray-700 hover:border-gray-400"
-                    }`}
-                  >
-                    {color}
-                  </button>
-                ))}
-              </div>
-            </div>
 
             {/* Size Selector */}
             <div className="mb-6">

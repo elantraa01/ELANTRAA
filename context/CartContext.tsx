@@ -203,7 +203,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const addItem = (
     product: Product,
     size: string = product.sizes[0] || "M",
-    color: string = product.colors[0] || "Default",
+    color: string = "Default",
     quantity: number = 1
   ) => {
     setItems((prevItems) => {

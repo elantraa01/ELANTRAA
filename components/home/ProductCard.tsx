@@ -154,31 +154,6 @@ export default function ProductCard({
               </span>
             )}
           </div>
-
-          {/* Colors Dots */}
-          <div className="flex items-center space-x-1">
-            {product.colors.slice(0, 3).map((color, idx) => (
-              <span
-                key={idx}
-                title={color}
-                className="w-2.5 h-2.5 rounded-full border border-gray-300"
-                style={{
-                  backgroundColor:
-                    color.toLowerCase() === "champagne"
-                      ? "#F7E7CE"
-                      : color.toLowerCase() === "gold"
-                      ? "#D4AF37"
-                      : color.toLowerCase() === "ivory" || color.toLowerCase() === "white"
-                      ? "#FAFAFA"
-                      : color.toLowerCase() === "olive"
-                      ? "#556B2F"
-                      : color.toLowerCase() === "sage"
-                      ? "#9CAF88"
-                      : "#222222",
-                }}
-              />
-            ))}
-          </div>
         </div>
       </div>
     </div>

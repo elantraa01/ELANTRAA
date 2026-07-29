@@ -20,7 +20,7 @@ export default function ProductInfo({
   const isWishlisted = isInWishlist(product.id);
 
   const [selectedSize, setSelectedSize] = useState(product.sizes[0] || "M");
-  const [selectedColor, setSelectedColor] = useState(product.colors[0] || "Default");
+  const selectedColor = "Default";
   const [quantity, setQuantity] = useState(1);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
 
@@ -84,49 +84,6 @@ export default function ProductInfo({
         <p className="text-sm text-gray-600 font-light leading-relaxed mb-6 font-sans">
           {product.description}
         </p>
-
-        {/* Color Variant Selector */}
-        <div className="mb-6">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-gray-800 mb-2">
-            Color: <span className="text-[#C9A648] font-bold">{selectedColor}</span>
-          </label>
-          <div className="flex flex-wrap gap-2.5">
-            {product.colors.map((color) => {
-              const isSelected = selectedColor === color;
-              return (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => setSelectedColor(color)}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-md border text-xs font-medium transition-all ${
-                    isSelected
-                      ? "border-[#C9A648] bg-[#C9A648]/10 text-[#C9A648] ring-1 ring-[#C9A648]"
-                      : "border-gray-200 text-gray-700 hover:border-gray-400"
-                  }`}
-                >
-                  <span
-                    className="w-3.5 h-3.5 rounded-full border border-gray-300 shadow-inner"
-                    style={{
-                      backgroundColor:
-                        color.toLowerCase() === "champagne"
-                          ? "#F7E7CE"
-                          : color.toLowerCase() === "gold"
-                          ? "#D4AF37"
-                          : color.toLowerCase() === "ivory" || color.toLowerCase() === "white"
-                          ? "#FAFAFA"
-                          : color.toLowerCase() === "olive"
-                          ? "#556B2F"
-                          : color.toLowerCase() === "sage"
-                          ? "#9CAF88"
-                          : "#222222",
-                    }}
-                  />
-                  <span>{color}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
 
         {/* Size Selector */}
         <div className="mb-6">
@@ -326,7 +283,7 @@ export default function ProductInfo({
             &#8377;{(effectivePrice * quantity).toLocaleString("en-IN")}
           </span>
           <span className="text-[10px] text-[#C9A648] uppercase tracking-wider font-semibold">
-            Size: {selectedSize} • {selectedColor}
+            Size: {selectedSize}
           </span>
         </div>
         <button

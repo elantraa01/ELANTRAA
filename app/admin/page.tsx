@@ -94,6 +94,7 @@ export default function AdminDashboardPage() {
     price: 4999,
     discountPrice: "",
     categoryName: "Dresses",
+    sizes: "XS, S, M, L, XL",
     stock: 20,
     description: "Handcrafted luxury silhouette.",
     coverImage: "/images/collections/dresses.png",
@@ -125,6 +126,12 @@ export default function AdminDashboardPage() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
+
+  const parseSizes = (value: string) =>
+    value
+      .split(",")
+      .map((size) => size.trim())
+      .filter(Boolean);
 
   // Fetch Data from Admin API routes
   useEffect(() => {
@@ -367,6 +374,7 @@ export default function AdminDashboardPage() {
             price: Number(productForm.price),
             discountPrice: productForm.discountPrice ? Number(productForm.discountPrice) : null,
             categoryName: productForm.categoryName,
+            sizes: parseSizes(productForm.sizes),
             stock: Number(productForm.stock),
             images: finalImages,
             description: productForm.description,
@@ -389,6 +397,7 @@ export default function AdminDashboardPage() {
                     name: productForm.name,
                     price: Number(productForm.price),
                     discountPrice: productForm.discountPrice ? Number(productForm.discountPrice) : null,
+                    sizes: parseSizes(productForm.sizes),
                     stock: Number(productForm.stock),
                     images: finalImages,
                   }
@@ -405,6 +414,7 @@ export default function AdminDashboardPage() {
                   name: productForm.name,
                   price: Number(productForm.price),
                   discountPrice: productForm.discountPrice ? Number(productForm.discountPrice) : null,
+                  sizes: parseSizes(productForm.sizes),
                   stock: Number(productForm.stock),
                   images: finalImages,
                 }
@@ -425,6 +435,8 @@ export default function AdminDashboardPage() {
             price: productForm.price,
             discountPrice: productForm.discountPrice,
             categoryName: productForm.categoryName,
+            sizes: parseSizes(productForm.sizes),
+            colors: [],
             stock: productForm.stock,
             images: finalImages,
             description: productForm.description,
@@ -445,8 +457,8 @@ export default function AdminDashboardPage() {
               discountPrice: productForm.discountPrice ? Number(productForm.discountPrice) : null,
               category: productForm.categoryName,
               categorySlug: productForm.categoryName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-              sizes: ["XS", "S", "M", "L", "XL"],
-              colors: ["Champagne", "Ivory", "Gold"],
+              sizes: parseSizes(productForm.sizes),
+              colors: [],
               images: finalImages,
               stock: Number(productForm.stock),
               isFeatured: true,
@@ -467,8 +479,8 @@ export default function AdminDashboardPage() {
           discountPrice: productForm.discountPrice ? Number(productForm.discountPrice) : null,
           category: productForm.categoryName,
           categorySlug: productForm.categoryName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-          sizes: ["XS", "S", "M", "L", "XL"],
-          colors: ["Champagne", "Ivory", "Gold"],
+          sizes: parseSizes(productForm.sizes),
+          colors: [],
           images: finalImages,
           stock: Number(productForm.stock),
           isFeatured: true,
@@ -826,6 +838,7 @@ export default function AdminDashboardPage() {
                       price: 4999,
                       discountPrice: "",
                       categoryName: categories.length > 0 ? categories[0].name : "Dresses",
+                      sizes: "XS, S, M, L, XL",
                       stock: 20,
                       description: "Handcrafted luxury silhouette.",
                       coverImage: "/images/collections/dresses.png",
@@ -937,6 +950,7 @@ export default function AdminDashboardPage() {
                                 price: p.price,
                                 discountPrice: p.discountPrice ? String(p.discountPrice) : "",
                                 categoryName: typeof p.category === "string" ? p.category : (p.category as { name?: string })?.name || "Dresses",
+                                sizes: p.sizes && p.sizes.length > 0 ? p.sizes.join(", ") : "XS, S, M, L, XL",
                                 stock: p.stock,
                                 description: p.description,
                                 coverImage: p.images[0] || "/images/collections/dresses.png",
@@ -1582,6 +1596,21 @@ export default function AdminDashboardPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded focus:border-[#C9A648] outline-none"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold uppercase text-gray-700 mb-1">Available Sizes</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="XS, S, M, L, XL"
+                  value={productForm.sizes}
+                  onChange={(e) => setProductForm({ ...productForm, sizes: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:border-[#C9A648] outline-none"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">
+                  Separate sizes with commas. These options appear on product pages and quick view.
+                </p>
               </div>
 
               {/* COVER IMAGE MANAGEMENT & LOCAL DEVICE UPLOAD SECTION */}
