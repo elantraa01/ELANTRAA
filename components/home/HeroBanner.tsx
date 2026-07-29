@@ -12,6 +12,7 @@ export interface HeroData {
   buttonText: string;
   buttonLink: string;
   bgImage: string;
+  bgVideo?: string;
 }
 
 export default function HeroBanner() {
@@ -23,7 +24,7 @@ export default function HeroBanner() {
         const res = await fetch("/api/hero");
         if (res.ok) {
           const data = await res.json();
-          if (data.hero?.bgImage) {
+          if (data.hero?.bgImage || data.hero?.bgVideo) {
             setHero(data.hero);
           }
         }
@@ -34,19 +35,42 @@ export default function HeroBanner() {
     loadHero();
   }, []);
 
+  const isVideoBg = Boolean(
+    hero?.bgVideo ||
+      (hero?.bgImage && (
+        hero.bgImage.endsWith(".mp4") ||
+        hero.bgImage.endsWith(".webm") ||
+        hero.bgImage.endsWith(".mov") ||
+        hero.bgImage.startsWith("data:video/")
+      ))
+  );
+
   return (
     <section className="relative w-full min-h-[85vh] sm:min-h-[90vh] flex items-center justify-center bg-[#FAF8F5] overflow-hidden border-b border-[#C9A648]/20">
-      {/* Background Image Overlay */}
+      {/* Background Media Overlay (Video or Image) */}
       {hero && (
         <div className="absolute inset-0 z-0">
-          <Image
-            src={hero.bgImage}
-            alt="ELANTRAA Luxury Fashion Banner"
-            fill
-            priority
-            className="object-cover object-center opacity-90 transition-transform duration-1000 scale-100 hover:scale-105"
-            sizes="100vw"
-          />
+          {isVideoBg ? (
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              poster={hero.bgImage}
+              className="w-full h-full object-cover object-center opacity-90 transition-transform duration-1000 scale-100"
+            >
+              <source src={hero.bgVideo || hero.bgImage} />
+            </video>
+          ) : (
+            <Image
+              src={hero.bgImage}
+              alt="ELANTRAA Luxury Fashion Banner"
+              fill
+              priority
+              className="object-cover object-center opacity-90 transition-transform duration-1000 scale-100 hover:scale-105"
+              sizes="100vw"
+            />
+          )}
           {/* Soft Luxury Gradient Overlay for readable crisp gold text */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent sm:from-black/70 sm:via-black/50" />
         </div>

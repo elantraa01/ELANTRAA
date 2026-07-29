@@ -11,10 +11,10 @@ const connectionString =
 
 const adapter = new PrismaPg({ connectionString });
 
+// Re-instantiate Prisma client with updated schema models
 export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    adapter,
-  });
+  process.env.NODE_ENV === "development"
+    ? new PrismaClient({ adapter })
+    : (globalForPrisma.prisma ??= new PrismaClient({ adapter }));
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;

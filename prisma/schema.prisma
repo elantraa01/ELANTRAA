@@ -201,5 +201,6 @@ model HeroBanner {
   buttonText   String   @default("Explore Collection")
   buttonLink   String   @default("/shop")
   bgImage      String   @default("/images/hero/hero_banner.png")
+  bgVideo      String?
   updatedAt    DateTime @updatedAt
 }

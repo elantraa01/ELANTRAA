@@ -84,6 +84,7 @@ export default function AdminDashboardPage() {
     buttonText: "Explore Collection",
     buttonLink: "/shop",
     bgImage: "/images/hero/hero_banner.png",
+    bgVideo: "",
   });
 
   // Product Modal Form State
@@ -172,6 +173,7 @@ export default function AdminDashboardPage() {
               buttonText: data.hero.buttonText || "Explore Collection",
               buttonLink: data.hero.buttonLink || "/shop",
               bgImage: data.hero.bgImage || "/images/hero/hero_banner.png",
+              bgVideo: data.hero.bgVideo || "",
             });
           }
         }
@@ -1185,12 +1187,24 @@ export default function AdminDashboardPage() {
                 <div className="lg:col-span-1 space-y-3">
                   <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 block">Live Preview Card</span>
                   <div className="relative rounded-2xl overflow-hidden shadow-xl border border-[#C9A648]/40 h-[420px] bg-black flex flex-col justify-end p-6">
-                    <Image
-                      src={heroForm.bgImage || "/images/hero/hero_banner.png"}
-                      alt="Hero Background Preview"
-                      fill
-                      className="object-cover opacity-80"
-                    />
+                    {heroForm.bgVideo ? (
+                      <video
+                        src={heroForm.bgVideo}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        poster={heroForm.bgImage}
+                        className="absolute inset-0 w-full h-full object-cover opacity-80"
+                      />
+                    ) : (
+                      <Image
+                        src={heroForm.bgImage || "/images/hero/hero_banner.png"}
+                        alt="Hero Background Preview"
+                        fill
+                        className="object-cover opacity-80"
+                      />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
                     
                     <div className="relative z-10 text-white space-y-3">
@@ -1303,7 +1317,7 @@ export default function AdminDashboardPage() {
 
                     {/* Hero Background Image Upload */}
                     <div>
-                      <label className="block font-semibold uppercase text-gray-700 mb-1">Hero Cover Background Image URL *</label>
+                      <label className="block font-semibold uppercase text-gray-700 mb-1">Hero Cover Background Image URL (Fallback Poster) *</label>
                       <div className="flex gap-2">
                         <input
                           type="text"
@@ -1343,6 +1357,62 @@ export default function AdminDashboardPage() {
                           />
                         </label>
                       </div>
+                    </div>
+
+                    {/* Hero Background Video Upload */}
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="block font-semibold uppercase text-gray-700">Hero Cover Background Video URL (Optional Loop)</label>
+                        {heroForm.bgVideo && (
+                          <button
+                            type="button"
+                            onClick={() => setHeroForm((prev) => ({ ...prev, bgVideo: "" }))}
+                            className="text-[10px] text-red-600 font-semibold hover:underline"
+                          >
+                            Remove Video
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={heroForm.bgVideo}
+                          onChange={(e) => setHeroForm({ ...heroForm, bgVideo: e.target.value })}
+                          placeholder="e.g. /videos/hero.mp4 or https://.../video.mp4"
+                          className="flex-1 px-3.5 py-2.5 border border-gray-300 rounded-lg focus:border-[#C9A648] outline-none font-mono text-[11px]"
+                        />
+                        <label className="px-4 py-2.5 bg-gray-100 text-gray-800 rounded-lg font-semibold uppercase text-[10px] hover:bg-gray-200 cursor-pointer flex items-center shrink-0 border border-gray-300">
+                          <span>🎥 Upload Video File</span>
+                          <input
+                            type="file"
+                            accept="video/mp4,video/webm,video/quicktime,video/*"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              setUploadingImage(true);
+                              try {
+                                const formData = new FormData();
+                                formData.append("file", file);
+                                const res = await fetch("/api/upload", { method: "POST", body: formData });
+                                const data = await res.json();
+                                if (res.ok && data.url) {
+                                  setHeroForm((prev) => ({ ...prev, bgVideo: data.url }));
+                                  showNotification("Hero background video uploaded successfully!");
+                                } else {
+                                  alert(data.error || "Failed to upload video.");
+                                }
+                              } catch {
+                                showNotification("Failed to upload video.");
+                              } finally {
+                                setUploadingImage(false);
+                              }
+                            }}
+                            className="hidden"
+                            disabled={uploadingImage}
+                          />
+                        </label>
+                      </div>
+                      <p className="text-[10px] text-gray-400 mt-1">Supports .mp4, .webm, and .mov formats. When set, the hero background will auto-play as a muted video loop.</p>
                     </div>
 
                     <button

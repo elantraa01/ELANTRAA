@@ -34,6 +34,7 @@ export type HeroBannerMinAggregateOutputType = {
   buttonText: string | null
   buttonLink: string | null
   bgImage: string | null
+  bgVideo: string | null
   updatedAt: Date | null
 }
 
@@ -47,6 +48,7 @@ export type HeroBannerMaxAggregateOutputType = {
   buttonText: string | null
   buttonLink: string | null
   bgImage: string | null
+  bgVideo: string | null
   updatedAt: Date | null
 }
 
@@ -60,6 +62,7 @@ export type HeroBannerCountAggregateOutputType = {
   buttonText: number
   buttonLink: number
   bgImage: number
+  bgVideo: number
   updatedAt: number
   _all: number
 }
@@ -75,6 +78,7 @@ export type HeroBannerMinAggregateInputType = {
   buttonText?: true
   buttonLink?: true
   bgImage?: true
+  bgVideo?: true
   updatedAt?: true
 }
 
@@ -88,6 +92,7 @@ export type HeroBannerMaxAggregateInputType = {
   buttonText?: true
   buttonLink?: true
   bgImage?: true
+  bgVideo?: true
   updatedAt?: true
 }
 
@@ -101,6 +106,7 @@ export type HeroBannerCountAggregateInputType = {
   buttonText?: true
   buttonLink?: true
   bgImage?: true
+  bgVideo?: true
   updatedAt?: true
   _all?: true
 }
@@ -187,6 +193,7 @@ export type HeroBannerGroupByOutputType = {
   buttonText: string
   buttonLink: string
   bgImage: string
+  bgVideo: string | null
   updatedAt: Date
   _count: HeroBannerCountAggregateOutputType | null
   _min: HeroBannerMinAggregateOutputType | null
@@ -221,6 +228,7 @@ export type HeroBannerWhereInput = {
   buttonText?: Prisma.StringFilter<"HeroBanner"> | string
   buttonLink?: Prisma.StringFilter<"HeroBanner"> | string
   bgImage?: Prisma.StringFilter<"HeroBanner"> | string
+  bgVideo?: Prisma.StringNullableFilter<"HeroBanner"> | string | null
   updatedAt?: Prisma.DateTimeFilter<"HeroBanner"> | Date | string
 }
 
@@ -234,6 +242,7 @@ export type HeroBannerOrderByWithRelationInput = {
   buttonText?: Prisma.SortOrder
   buttonLink?: Prisma.SortOrder
   bgImage?: Prisma.SortOrder
+  bgVideo?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -250,6 +259,7 @@ export type HeroBannerWhereUniqueInput = Prisma.AtLeast<{
   buttonText?: Prisma.StringFilter<"HeroBanner"> | string
   buttonLink?: Prisma.StringFilter<"HeroBanner"> | string
   bgImage?: Prisma.StringFilter<"HeroBanner"> | string
+  bgVideo?: Prisma.StringNullableFilter<"HeroBanner"> | string | null
   updatedAt?: Prisma.DateTimeFilter<"HeroBanner"> | Date | string
 }, "id">
 
@@ -263,6 +273,7 @@ export type HeroBannerOrderByWithAggregationInput = {
   buttonText?: Prisma.SortOrder
   buttonLink?: Prisma.SortOrder
   bgImage?: Prisma.SortOrder
+  bgVideo?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.HeroBannerCountOrderByAggregateInput
   _max?: Prisma.HeroBannerMaxOrderByAggregateInput
@@ -282,6 +293,7 @@ export type HeroBannerScalarWhereWithAggregatesInput = {
   buttonText?: Prisma.StringWithAggregatesFilter<"HeroBanner"> | string
   buttonLink?: Prisma.StringWithAggregatesFilter<"HeroBanner"> | string
   bgImage?: Prisma.StringWithAggregatesFilter<"HeroBanner"> | string
+  bgVideo?: Prisma.StringNullableWithAggregatesFilter<"HeroBanner"> | string | null
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"HeroBanner"> | Date | string
 }
 
@@ -295,6 +307,7 @@ export type HeroBannerCreateInput = {
   buttonText?: string
   buttonLink?: string
   bgImage?: string
+  bgVideo?: string | null
   updatedAt?: Date | string
 }
 
@@ -308,6 +321,7 @@ export type HeroBannerUncheckedCreateInput = {
   buttonText?: string
   buttonLink?: string
   bgImage?: string
+  bgVideo?: string | null
   updatedAt?: Date | string
 }
 
@@ -321,6 +335,7 @@ export type HeroBannerUpdateInput = {
   buttonText?: Prisma.StringFieldUpdateOperationsInput | string
   buttonLink?: Prisma.StringFieldUpdateOperationsInput | string
   bgImage?: Prisma.StringFieldUpdateOperationsInput | string
+  bgVideo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -334,6 +349,7 @@ export type HeroBannerUncheckedUpdateInput = {
   buttonText?: Prisma.StringFieldUpdateOperationsInput | string
   buttonLink?: Prisma.StringFieldUpdateOperationsInput | string
   bgImage?: Prisma.StringFieldUpdateOperationsInput | string
+  bgVideo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -347,6 +363,7 @@ export type HeroBannerCreateManyInput = {
   buttonText?: string
   buttonLink?: string
   bgImage?: string
+  bgVideo?: string | null
   updatedAt?: Date | string
 }
 
@@ -360,6 +377,7 @@ export type HeroBannerUpdateManyMutationInput = {
   buttonText?: Prisma.StringFieldUpdateOperationsInput | string
   buttonLink?: Prisma.StringFieldUpdateOperationsInput | string
   bgImage?: Prisma.StringFieldUpdateOperationsInput | string
+  bgVideo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -373,6 +391,7 @@ export type HeroBannerUncheckedUpdateManyInput = {
   buttonText?: Prisma.StringFieldUpdateOperationsInput | string
   buttonLink?: Prisma.StringFieldUpdateOperationsInput | string
   bgImage?: Prisma.StringFieldUpdateOperationsInput | string
+  bgVideo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -386,6 +405,7 @@ export type HeroBannerCountOrderByAggregateInput = {
   buttonText?: Prisma.SortOrder
   buttonLink?: Prisma.SortOrder
   bgImage?: Prisma.SortOrder
+  bgVideo?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -399,6 +419,7 @@ export type HeroBannerMaxOrderByAggregateInput = {
   buttonText?: Prisma.SortOrder
   buttonLink?: Prisma.SortOrder
   bgImage?: Prisma.SortOrder
+  bgVideo?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -412,6 +433,7 @@ export type HeroBannerMinOrderByAggregateInput = {
   buttonText?: Prisma.SortOrder
   buttonLink?: Prisma.SortOrder
   bgImage?: Prisma.SortOrder
+  bgVideo?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -427,6 +449,7 @@ export type HeroBannerSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   buttonText?: boolean
   buttonLink?: boolean
   bgImage?: boolean
+  bgVideo?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["heroBanner"]>
 
@@ -440,6 +463,7 @@ export type HeroBannerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   buttonText?: boolean
   buttonLink?: boolean
   bgImage?: boolean
+  bgVideo?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["heroBanner"]>
 
@@ -453,6 +477,7 @@ export type HeroBannerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   buttonText?: boolean
   buttonLink?: boolean
   bgImage?: boolean
+  bgVideo?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["heroBanner"]>
 
@@ -466,10 +491,11 @@ export type HeroBannerSelectScalar = {
   buttonText?: boolean
   buttonLink?: boolean
   bgImage?: boolean
+  bgVideo?: boolean
   updatedAt?: boolean
 }
 
-export type HeroBannerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "announcement" | "tagline" | "title" | "highlight" | "description" | "buttonText" | "buttonLink" | "bgImage" | "updatedAt", ExtArgs["result"]["heroBanner"]>
+export type HeroBannerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "announcement" | "tagline" | "title" | "highlight" | "description" | "buttonText" | "buttonLink" | "bgImage" | "bgVideo" | "updatedAt", ExtArgs["result"]["heroBanner"]>
 
 export type $HeroBannerPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "HeroBanner"
@@ -484,6 +510,7 @@ export type $HeroBannerPayload<ExtArgs extends runtime.Types.Extensions.Internal
     buttonText: string
     buttonLink: string
     bgImage: string
+    bgVideo: string | null
     updatedAt: Date
   }, ExtArgs["result"]["heroBanner"]>
   composites: {}
@@ -917,6 +944,7 @@ export interface HeroBannerFieldRefs {
   readonly buttonText: Prisma.FieldRef<"HeroBanner", 'String'>
   readonly buttonLink: Prisma.FieldRef<"HeroBanner", 'String'>
   readonly bgImage: Prisma.FieldRef<"HeroBanner", 'String'>
+  readonly bgVideo: Prisma.FieldRef<"HeroBanner", 'String'>
   readonly updatedAt: Prisma.FieldRef<"HeroBanner", 'DateTime'>
 }
     

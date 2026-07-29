@@ -37,7 +37,7 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { announcement, tagline, title, highlight, description, buttonText, buttonLink, bgImage } = body;
+    const { announcement, tagline, title, highlight, description, buttonText, buttonLink, bgImage, bgVideo } = body;
 
     const updated = await prisma.heroBanner.upsert({
       where: { id: "default" },
@@ -50,6 +50,7 @@ export async function PATCH(req: NextRequest) {
         ...(buttonText !== undefined && { buttonText }),
         ...(buttonLink !== undefined && { buttonLink }),
         ...(bgImage !== undefined && { bgImage }),
+        ...(bgVideo !== undefined && { bgVideo: bgVideo || null }),
       },
       create: {
         id: "default",
@@ -63,12 +64,14 @@ export async function PATCH(req: NextRequest) {
         buttonText: buttonText || "Explore Collection",
         buttonLink: buttonLink || "/shop",
         bgImage: bgImage || "/images/hero/hero_banner.png",
+        bgVideo: bgVideo || null,
       },
     });
 
     return NextResponse.json({ hero: updated });
   } catch (error) {
     console.error("PATCH /api/admin/hero error:", error);
-    return NextResponse.json({ error: "Failed to update hero banner" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : "Failed to update hero banner";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
