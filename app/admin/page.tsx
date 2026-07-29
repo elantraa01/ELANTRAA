@@ -1334,6 +1334,10 @@ export default function AdminDashboardPage() {
                             onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (!file) return;
+                              if (file.size > 4.5 * 1024 * 1024) {
+                                alert(`File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds Netlify's 4.5MB serverless upload limit. Please paste an image URL directly into the field.`);
+                                return;
+                              }
                               setUploadingImage(true);
                               try {
                                 const formData = new FormData();
@@ -1402,7 +1406,7 @@ export default function AdminDashboardPage() {
                                   alert(data.error || "Failed to upload video.");
                                 }
                               } catch {
-                                showNotification("Failed to upload video.");
+                                alert("Failed to upload video. Please paste a video URL directly instead.");
                               } finally {
                                 setUploadingImage(false);
                               }
