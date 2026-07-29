@@ -207,7 +207,7 @@ export default function Navbar({
           {/* Center: Brand Logo */}
           <div className="text-center min-w-0 flex-1 lg:flex-none px-1">
             <Link href="/" className="inline-flex items-center justify-center group" aria-label="ELANTRAA Home">
-              <span className="relative block w-44 h-12 sm:w-56 sm:h-14 lg:w-64 lg:h-16 overflow-hidden">
+              <span className="relative block w-52 h-14 sm:w-64 sm:h-16 lg:w-72 lg:h-20 overflow-hidden">
                 <Image
                   src="/images/logo/logo.png"
                   alt="ELANTRAA"

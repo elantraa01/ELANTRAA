@@ -1426,17 +1426,10 @@ export default function AdminDashboardPage() {
                         <span className="text-[10px] text-gray-500 font-semibold uppercase">Or Quick Presets:</span>
                         <button
                           type="button"
-                          onClick={() => setHeroForm((prev) => ({ ...prev, bgVideo: "https://assets.mixkit.co/videos/preview/mixkit-fashion-model-in-a-gold-dress-41556-large.mp4" }))}
-                          className="px-2.5 py-1 bg-[#FAF8F5] border border-[#C9A648]/40 hover:border-[#C9A648] rounded text-[10px] text-gray-700 font-medium transition-colors"
+                          onClick={() => setHeroForm((prev) => ({ ...prev, bgVideo: "/videos/hero.mp4" }))}
+                          className="px-2.5 py-1 bg-[#FAF8F5] border border-[#C9A648]/60 hover:bg-[#C9A648] hover:text-white rounded text-[10px] text-gray-800 font-semibold transition-colors shadow-sm"
                         >
-                          ✨ Gold Dress Model Loop
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setHeroForm((prev) => ({ ...prev, bgVideo: "https://assets.mixkit.co/videos/preview/mixkit-woman-modeling-a-silk-dress-41553-large.mp4" }))}
-                          className="px-2.5 py-1 bg-[#FAF8F5] border border-[#C9A648]/40 hover:border-[#C9A648] rounded text-[10px] text-gray-700 font-medium transition-colors"
-                        >
-                          ✨ Silk Gown Loop
+                          ✨ Built-in HD Sample Video (/videos/hero.mp4)
                         </button>
                       </div>
 

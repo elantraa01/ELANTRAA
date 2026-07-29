@@ -37,12 +37,12 @@ export default function SplashScreen() {
         }`}
       >
         {/* Brand Logo Image */}
-        <div className="relative w-32 h-32 sm:w-40 sm:h-40">
+        <div className="relative w-56 h-56 sm:w-72 sm:h-72 md:w-96 md:h-96">
           <Image
             src="/images/logo/logo.png"
             alt="ELANTRAA Logo"
             fill
-            className="object-contain"
+            className="object-contain drop-shadow-md"
             priority
           />
         </div>
