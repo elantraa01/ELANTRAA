@@ -20,11 +20,32 @@ export async function GET() {
             addresses: true,
           },
         },
+        orders: {
+          select: {
+            id: true,
+            totalAmount: true,
+            status: true,
+            paymentStatus: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "desc" },
+        },
+        addresses: true,
       },
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ users });
+    const formatted = users.map((user) => ({
+      ...user,
+      orders: user.orders.map((order) => ({
+        ...order,
+        totalAmount: Number(order.totalAmount),
+        createdAt: order.createdAt.toISOString(),
+      })),
+      createdAt: user.createdAt.toISOString(),
+    }));
+
+    return NextResponse.json({ users: formatted });
   } catch (error) {
     console.error("Admin Customers GET Error:", error);
     return NextResponse.json({ error: "Failed to fetch customers" }, { status: 500 });

@@ -8,8 +8,27 @@ export async function GET() {
 
   try {
     const products = await prisma.product.findMany({
-      include: {
-        category: true,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        sku: true,
+        description: true,
+        price: true,
+        discountPrice: true,
+        sizes: true,
+        colors: true,
+        images: true,
+        stock: true,
+        isFeatured: true,
+        isActive: true,
+        createdAt: true,
+        category: {
+          select: {
+            name: true,
+            slug: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -18,6 +37,7 @@ export async function GET() {
       id: p.id,
       name: p.name,
       slug: p.slug,
+      sku: p.sku || "",
       description: p.description,
       price: Number(p.price),
       discountPrice: p.discountPrice ? Number(p.discountPrice) : null,
@@ -34,6 +54,60 @@ export async function GET() {
 
     return NextResponse.json({ products: formattedProducts });
   } catch (error) {
+    if (isMissingColumnError(error)) {
+      try {
+        const products = await prisma.product.findMany({
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            description: true,
+            price: true,
+            discountPrice: true,
+            sizes: true,
+            colors: true,
+            images: true,
+            stock: true,
+            isFeatured: true,
+            isActive: true,
+            createdAt: true,
+            category: {
+              select: {
+                name: true,
+                slug: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        });
+
+        const formattedProducts = products.map((p) => ({
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          sku: "",
+          description: p.description,
+          price: Number(p.price),
+          discountPrice: p.discountPrice ? Number(p.discountPrice) : null,
+          category: p.category.name,
+          categorySlug: p.category.slug,
+          sizes: p.sizes,
+          colors: p.colors,
+          images: p.images.length > 0 ? p.images : ["/images/collections/dresses.png"],
+          stock: p.stock,
+          isFeatured: p.isFeatured,
+          isActive: p.isActive,
+          createdAt: p.createdAt.toISOString(),
+        }));
+
+        return NextResponse.json({
+          products: formattedProducts,
+          warning: "Admin migration is pending. SKU values will appear after running the database migration.",
+        });
+      } catch (fallbackError) {
+        console.error("Admin Products fallback GET Error:", fallbackError);
+      }
+    }
     console.error("Admin Products GET Error:", error);
     return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
   }
@@ -51,6 +125,7 @@ export async function POST(req: NextRequest) {
       description,
       price,
       discountPrice,
+      sku,
       categoryId,
       categoryName = "Dresses",
       sizes = ["XS", "S", "M", "L", "XL"],
@@ -61,8 +136,8 @@ export async function POST(req: NextRequest) {
       isActive = true,
     } = body;
 
-    if (!name || !price) {
-      return NextResponse.json({ error: "Name and price are required" }, { status: 400 });
+    if (!name || price === undefined || price === null) {
+      return NextResponse.json({ error: "Product name and price are required" }, { status: 400 });
     }
 
     const cleanSlug =
@@ -115,8 +190,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const newProduct = await prisma.product.create({
-      data: {
+    const createData = {
         name,
         slug: cleanSlug,
         description: description || "Bespoke luxury silhouette.",
@@ -129,16 +203,34 @@ export async function POST(req: NextRequest) {
         stock: Number(stock),
         isFeatured: Boolean(isFeatured),
         isActive: Boolean(isActive),
-      },
-      include: {
-        category: true,
-      },
-    });
+      };
+
+    let newProduct;
+    try {
+      newProduct = await prisma.product.create({
+        data: {
+          ...createData,
+          sku: sku?.trim() || null,
+        },
+        include: {
+          category: { select: { name: true, slug: true } },
+        },
+      });
+    } catch (createError) {
+      if (!isMissingColumnError(createError)) throw createError;
+      newProduct = await prisma.product.create({
+        data: createData,
+        include: {
+          category: { select: { name: true, slug: true } },
+        },
+      });
+    }
 
     const formattedProduct = {
       id: newProduct.id,
       name: newProduct.name,
       slug: newProduct.slug,
+      sku: newProduct.sku || "",
       description: newProduct.description,
       price: Number(newProduct.price),
       discountPrice: newProduct.discountPrice ? Number(newProduct.discountPrice) : null,
@@ -166,7 +258,7 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { id, isFeatured, isActive, stock, name, price, discountPrice, images, description, sizes, colors, categoryId, categoryName } = body;
+    const { id, isFeatured, isActive, stock, name, price, discountPrice, images, description, sizes, colors, categoryId, categoryName, sku } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
@@ -177,6 +269,7 @@ export async function PATCH(req: NextRequest) {
     if (typeof isActive === "boolean") updateData.isActive = isActive;
     if (typeof stock === "number" || typeof stock === "string") updateData.stock = Number(stock);
     if (name) updateData.name = name;
+    if (sku !== undefined) updateData.sku = sku?.trim() || null;
     if (price !== undefined && price !== null) updateData.price = Number(price);
     if (discountPrice !== undefined) updateData.discountPrice = discountPrice ? Number(discountPrice) : null;
     if (Array.isArray(images) && images.length > 0) updateData.images = images;
@@ -219,18 +312,32 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    const updated = await prisma.product.update({
-      where: { id },
-      data: updateData,
-      include: {
-        category: true,
-      },
-    });
+    let updated;
+    try {
+      updated = await prisma.product.update({
+        where: { id },
+        data: updateData,
+        include: {
+          category: { select: { name: true, slug: true } },
+        },
+      });
+    } catch (updateError) {
+      if (!isMissingColumnError(updateError) || !("sku" in updateData)) throw updateError;
+      delete updateData.sku;
+      updated = await prisma.product.update({
+        where: { id },
+        data: updateData,
+        include: {
+          category: { select: { name: true, slug: true } },
+        },
+      });
+    }
 
     const formattedProduct = {
       id: updated.id,
       name: updated.name,
       slug: updated.slug,
+      sku: updated.sku || "",
       description: updated.description,
       price: Number(updated.price),
       discountPrice: updated.discountPrice ? Number(updated.discountPrice) : null,
@@ -273,4 +380,13 @@ export async function DELETE(req: NextRequest) {
     console.error("Admin Product DELETE Error:", error);
     return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
   }
+}
+
+function isMissingColumnError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2022"
+  );
 }

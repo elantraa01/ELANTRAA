@@ -15,6 +15,7 @@ enum UserRole {
 enum OrderStatus {
   PENDING
   CONFIRMED
+  PACKED
   SHIPPED
   DELIVERED
   CANCELLED
@@ -60,6 +61,8 @@ model Category {
   id               String     @id @default(cuid())
   name             String
   slug             String     @unique
+  image            String?
+  isActive         Boolean    @default(true)
   parentCategoryId String?
   parentCategory   Category?  @relation("CategoryHierarchy", fields: [parentCategoryId], references: [id], onDelete: SetNull)
   subcategories    Category[] @relation("CategoryHierarchy")
@@ -72,6 +75,7 @@ model Product {
   id            String      @id @default(cuid())
   name          String
   slug          String      @unique
+  sku           String?
   description   String
   price         Decimal     @db.Decimal(10, 2)
   discountPrice Decimal?    @db.Decimal(10, 2)
@@ -203,4 +207,15 @@ model HeroBanner {
   bgImage      String   @default("/images/hero/hero_banner.png")
   bgVideo      String?
   updatedAt    DateTime @updatedAt
+}
+
+model StoreSetting {
+  id             String   @id @default("default")
+  storeName      String   @default("ELANTRAA")
+  storeLogo      String   @default("/images/logo/logo.png")
+  contactEmail   String   @default("elantraa.01@gmail.com")
+  currency       String   @default("INR")
+  shippingCharge Decimal  @default(0) @db.Decimal(10, 2)
+  taxPercentage  Decimal  @default(0) @db.Decimal(5, 2)
+  updatedAt      DateTime @updatedAt
 }

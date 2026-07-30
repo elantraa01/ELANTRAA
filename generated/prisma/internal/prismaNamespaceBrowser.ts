@@ -62,7 +62,8 @@ export const ModelName = {
   Wishlist: 'Wishlist',
   Review: 'Review',
   Collection: 'Collection',
-  HeroBanner: 'HeroBanner'
+  HeroBanner: 'HeroBanner',
+  StoreSetting: 'StoreSetting'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -112,6 +113,8 @@ export const CategoryScalarFieldEnum = {
   id: 'id',
   name: 'name',
   slug: 'slug',
+  image: 'image',
+  isActive: 'isActive',
   parentCategoryId: 'parentCategoryId'
 } as const
 
@@ -122,6 +125,7 @@ export const ProductScalarFieldEnum = {
   id: 'id',
   name: 'name',
   slug: 'slug',
+  sku: 'sku',
   description: 'description',
   price: 'price',
   discountPrice: 'discountPrice',
@@ -239,6 +243,20 @@ export const HeroBannerScalarFieldEnum = {
 } as const
 
 export type HeroBannerScalarFieldEnum = (typeof HeroBannerScalarFieldEnum)[keyof typeof HeroBannerScalarFieldEnum]
+
+
+export const StoreSettingScalarFieldEnum = {
+  id: 'id',
+  storeName: 'storeName',
+  storeLogo: 'storeLogo',
+  contactEmail: 'contactEmail',
+  currency: 'currency',
+  shippingCharge: 'shippingCharge',
+  taxPercentage: 'taxPercentage',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StoreSettingScalarFieldEnum = (typeof StoreSettingScalarFieldEnum)[keyof typeof StoreSettingScalarFieldEnum]
 
 
 export const SortOrder = {

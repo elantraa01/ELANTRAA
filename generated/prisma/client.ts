@@ -101,3 +101,8 @@ export type Collection = Prisma.CollectionModel
  * 
  */
 export type HeroBanner = Prisma.HeroBannerModel
+/**
+ * Model StoreSetting
+ * 
+ */
+export type StoreSetting = Prisma.StoreSettingModel

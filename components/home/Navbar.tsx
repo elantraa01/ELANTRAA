@@ -122,7 +122,7 @@ export default function Navbar({
   return (
     <>
       {/* Top Announcement Bar */}
-      <div className="bg-[#171717] text-[#D4AF37] text-[11px] sm:text-xs py-2 px-4 text-center font-medium tracking-wider uppercase border-b border-[#C9A648]/20 flex items-center justify-between sm:justify-center relative z-40">
+      <div className="bg-[#171717] text-[#D4AF37] text-[10px] sm:text-xs py-1.5 sm:py-2 px-3 sm:px-4 text-center font-medium tracking-wider uppercase border-b border-[#C9A648]/20 flex items-center justify-between sm:justify-center relative z-40">
         <span className="hidden sm:inline">✦ {announcementText} ✦</span>
         <span className="sm:hidden text-center w-full">{announcementText}</span>
         <span className="hidden md:inline-block absolute right-6 text-[10px] text-gray-400 font-sans">
@@ -134,13 +134,13 @@ export default function Navbar({
       <header
         className={`sticky top-0 z-40 w-full transition-all duration-300 ${
           isScrolled
-            ? "bg-white/95 backdrop-blur-md shadow-md py-3 border-b border-[#C9A648]/20"
-            : "bg-white py-4 border-b border-gray-100"
+            ? "bg-white/95 backdrop-blur-md shadow-md py-2 sm:py-3 border-b border-[#C9A648]/20"
+            : "bg-white py-2.5 sm:py-4 border-b border-gray-100"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-1.5 sm:gap-3">
           {/* Left: Mobile Menu Button */}
-          <div className="flex items-center space-x-0.5 sm:space-x-1 lg:hidden shrink-0">
+          <div className="flex items-center gap-1 lg:hidden shrink-0">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -205,9 +205,9 @@ export default function Navbar({
           </nav>
 
           {/* Center: Brand Logo */}
-          <div className="text-center min-w-0 flex-1 lg:flex-none px-1">
+          <div className="text-center min-w-0 flex-1 lg:flex-none px-0.5 sm:px-1">
             <Link href="/" className="inline-flex items-center justify-center group" aria-label="ELANTRAA Home">
-              <span className="relative block w-52 h-14 sm:w-64 sm:h-16 lg:w-72 lg:h-20 overflow-hidden">
+              <span className="relative block w-[168px] h-11 min-[380px]:w-44 min-[380px]:h-12 sm:w-64 sm:h-16 lg:w-72 lg:h-20 overflow-hidden">
                 <Image
                   src="/images/logo/logo.png"
                   alt="ELANTRAA"
@@ -220,7 +220,7 @@ export default function Navbar({
           </div>
 
           {/* Right Utilities (Search, Account, Wishlist, Cart) */}
-          <div className="flex items-center space-x-2.5 sm:space-x-5 text-gray-700 shrink-0 pr-1">
+          <div className="flex items-center gap-2 sm:gap-5 text-gray-700 shrink-0 pr-0.5 sm:pr-1">
             {/* Search (Desktop) */}
             <button
               onClick={() => setSearchOpen(true)}
@@ -233,7 +233,7 @@ export default function Navbar({
             </button>
 
             {/* Account */}
-            <Link href={accountHref} className="p-1 hover:text-[#C9A648] transition-colors" aria-label="Account">
+            <Link href={accountHref} className="hidden sm:inline-block p-1 hover:text-[#C9A648] transition-colors" aria-label="Account">
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>

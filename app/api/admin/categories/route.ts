@@ -24,6 +24,8 @@ export async function GET() {
       id: cat.id,
       name: cat.name,
       slug: cat.slug,
+      image: cat.image || "",
+      isActive: cat.isActive,
       parentCategoryId: cat.parentCategoryId,
       parentCategoryName: cat.parentCategory?.name || null,
       subcategoriesCount: cat.subcategories.length,
@@ -32,6 +34,43 @@ export async function GET() {
 
     return NextResponse.json({ categories: formatted });
   } catch (error) {
+    if (isMissingColumnError(error)) {
+      try {
+        const categories = await prisma.category.findMany({
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            parentCategoryId: true,
+            parentCategory: { select: { name: true } },
+            subcategories: { select: { id: true } },
+            _count: {
+              select: { products: true },
+            },
+          },
+          orderBy: { name: "asc" },
+        });
+
+        const formatted = categories.map((cat) => ({
+          id: cat.id,
+          name: cat.name,
+          slug: cat.slug,
+          image: "",
+          isActive: true,
+          parentCategoryId: cat.parentCategoryId,
+          parentCategoryName: cat.parentCategory?.name || null,
+          subcategoriesCount: cat.subcategories.length,
+          productsCount: cat._count.products,
+        }));
+
+        return NextResponse.json({
+          categories: formatted,
+          warning: "Admin migration is pending. Category image/status values will appear after running the database migration.",
+        });
+      } catch (fallbackError) {
+        console.error("Admin Categories fallback GET Error:", fallbackError);
+      }
+    }
     console.error("Admin Categories GET Error:", error);
     return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 });
   }
@@ -43,7 +82,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { name, slug, parentCategoryId } = body;
+    const { name, slug, parentCategoryId, image, isActive = true } = body;
 
     if (!name || !name.trim()) {
       return NextResponse.json({ error: "Category name is required" }, { status: 400 });
@@ -59,17 +98,35 @@ export async function POST(req: NextRequest) {
     const existing = await prisma.category.findUnique({ where: { slug: cleanSlug } });
     const finalSlug = existing ? `${cleanSlug}-${Date.now().toString().slice(-4)}` : cleanSlug;
 
-    const newCategory = await prisma.category.create({
-      data: {
+    const createData = {
         name: cleanName,
         slug: finalSlug,
         parentCategoryId: parentCategoryId || null,
-      },
-      include: {
-        parentCategory: true,
-        _count: { select: { products: true } },
-      },
-    });
+      };
+
+    let newCategory;
+    try {
+      newCategory = await prisma.category.create({
+        data: {
+          ...createData,
+          image: image?.trim() || null,
+          isActive: Boolean(isActive),
+        },
+        include: {
+          parentCategory: { select: { name: true } },
+          _count: { select: { products: true } },
+        },
+      });
+    } catch (createError) {
+      if (!isMissingColumnError(createError)) throw createError;
+      newCategory = await prisma.category.create({
+        data: createData,
+        include: {
+          parentCategory: { select: { name: true } },
+          _count: { select: { products: true } },
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,
@@ -77,6 +134,8 @@ export async function POST(req: NextRequest) {
         id: newCategory.id,
         name: newCategory.name,
         slug: newCategory.slug,
+        image: "image" in newCategory ? newCategory.image || "" : "",
+        isActive: "isActive" in newCategory ? newCategory.isActive : true,
         parentCategoryId: newCategory.parentCategoryId,
         parentCategoryName: newCategory.parentCategory?.name || null,
         subcategoriesCount: 0,
@@ -95,7 +154,7 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { id, name, slug, parentCategoryId } = body;
+    const { id, name, slug, parentCategoryId, image, isActive } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Category ID is required" }, { status: 400 });
@@ -111,16 +170,38 @@ export async function PATCH(req: NextRequest) {
     if (parentCategoryId !== undefined) {
       updateData.parentCategoryId = parentCategoryId || null;
     }
+    if (image !== undefined) {
+      updateData.image = image?.trim() || null;
+    }
+    if (typeof isActive === "boolean") {
+      updateData.isActive = isActive;
+    }
 
-    const updated = await prisma.category.update({
-      where: { id },
-      data: updateData,
-      include: {
-        parentCategory: true,
-        subcategories: true,
-        _count: { select: { products: true } },
-      },
-    });
+    let updated;
+    try {
+      updated = await prisma.category.update({
+        where: { id },
+        data: updateData,
+        include: {
+          parentCategory: { select: { name: true } },
+          subcategories: { select: { id: true } },
+          _count: { select: { products: true } },
+        },
+      });
+    } catch (updateError) {
+      if (!isMissingColumnError(updateError)) throw updateError;
+      delete updateData.image;
+      delete updateData.isActive;
+      updated = await prisma.category.update({
+        where: { id },
+        data: updateData,
+        include: {
+          parentCategory: { select: { name: true } },
+          subcategories: { select: { id: true } },
+          _count: { select: { products: true } },
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,
@@ -128,6 +209,8 @@ export async function PATCH(req: NextRequest) {
         id: updated.id,
         name: updated.name,
         slug: updated.slug,
+        image: "image" in updated ? updated.image || "" : "",
+        isActive: "isActive" in updated ? updated.isActive : true,
         parentCategoryId: updated.parentCategoryId,
         parentCategoryName: updated.parentCategory?.name || null,
         subcategoriesCount: updated.subcategories.length,
@@ -170,4 +253,13 @@ export async function DELETE(req: NextRequest) {
     console.error("Admin Category DELETE Error:", error);
     return NextResponse.json({ error: "Failed to delete category" }, { status: 500 });
   }
+}
+
+function isMissingColumnError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2022"
+  );
 }
