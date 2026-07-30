@@ -22,6 +22,7 @@ export async function GET() {
         stock: true,
         isFeatured: true,
         isActive: true,
+        isReturnable: true,
         createdAt: true,
         category: {
           select: {
@@ -49,6 +50,7 @@ export async function GET() {
       stock: p.stock,
       isFeatured: p.isFeatured,
       isActive: p.isActive,
+      isReturnable: p.isReturnable !== false,
       createdAt: p.createdAt.toISOString(),
     }));
 
@@ -134,6 +136,7 @@ export async function POST(req: NextRequest) {
       stock = 25,
       isFeatured = true,
       isActive = true,
+      isReturnable = true,
     } = body;
 
     if (!name || price === undefined || price === null) {
@@ -203,6 +206,7 @@ export async function POST(req: NextRequest) {
         stock: Number(stock),
         isFeatured: Boolean(isFeatured),
         isActive: Boolean(isActive),
+        isReturnable: Boolean(isReturnable),
       };
 
     let newProduct;
@@ -242,6 +246,7 @@ export async function POST(req: NextRequest) {
       stock: newProduct.stock,
       isFeatured: newProduct.isFeatured,
       isActive: newProduct.isActive,
+      isReturnable: newProduct.isReturnable !== false,
       createdAt: newProduct.createdAt.toISOString(),
     };
 
@@ -258,7 +263,7 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { id, isFeatured, isActive, stock, name, price, discountPrice, images, description, sizes, colors, categoryId, categoryName, sku } = body;
+    const { id, isFeatured, isActive, isReturnable, stock, name, price, discountPrice, images, description, sizes, colors, categoryId, categoryName, sku } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
@@ -267,6 +272,7 @@ export async function PATCH(req: NextRequest) {
     const updateData: Record<string, unknown> = {};
     if (typeof isFeatured === "boolean") updateData.isFeatured = isFeatured;
     if (typeof isActive === "boolean") updateData.isActive = isActive;
+    if (typeof isReturnable === "boolean") updateData.isReturnable = isReturnable;
     if (typeof stock === "number" || typeof stock === "string") updateData.stock = Number(stock);
     if (name) updateData.name = name;
     if (sku !== undefined) updateData.sku = sku?.trim() || null;
@@ -349,6 +355,7 @@ export async function PATCH(req: NextRequest) {
       stock: updated.stock,
       isFeatured: updated.isFeatured,
       isActive: updated.isActive,
+      isReturnable: updated.isReturnable !== false,
       createdAt: updated.createdAt.toISOString(),
     };
 

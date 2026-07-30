@@ -15,6 +15,7 @@ export interface Product {
   stock: number;
   isFeatured: boolean;
   isActive?: boolean;
+  isReturnable?: boolean;
   isNewArrival?: boolean;
   isBestSeller?: boolean;
   rating: number;

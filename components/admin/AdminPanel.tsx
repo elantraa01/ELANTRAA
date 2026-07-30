@@ -24,6 +24,7 @@ type Product = {
   stock: number;
   isActive?: boolean;
   isFeatured?: boolean;
+  isReturnable?: boolean;
   createdAt?: string;
 };
 
@@ -103,6 +104,7 @@ const emptyProduct = {
   stock: "0",
   images: [""],
   isActive: true,
+  isReturnable: true,
 };
 
 const emptyCategory = {
@@ -281,6 +283,7 @@ export default function AdminPanel() {
             stock: String(product.stock),
             images: product.images.length ? product.images : [""],
             isActive: product.isActive !== false,
+            isReturnable: product.isReturnable !== false,
           }
         : { ...emptyProduct, categoryName: categories[0]?.name || "" }
     );
@@ -304,6 +307,7 @@ export default function AdminPanel() {
       stock: Number(productForm.stock || 0),
       images: productForm.images.map((img) => img.trim()).filter(Boolean),
       isActive: productForm.isActive,
+      isReturnable: productForm.isReturnable,
       sizes: ["XS", "S", "M", "L", "XL"],
       colors: [],
     };
@@ -537,7 +541,7 @@ export default function AdminPanel() {
                     </Select>
                   </Toolbar>
                   <DataTable
-                    headers={["Product", "SKU", "Category", "Price", "Stock", "Status", ""]}
+                    headers={["Product", "SKU", "Category", "Price", "Stock", "Returns", "Status", ""]}
                     empty="No products match your filters."
                     rows={visibleProducts.map((product) => [
                       <ProductCell key="product" product={product} />,
@@ -545,6 +549,7 @@ export default function AdminPanel() {
                       product.category,
                       formatMoney(product.discountPrice || product.price, settings.currency),
                       product.stock,
+                      <StatusBadge key="returns" value={product.isReturnable === false ? "Non-Returnable" : "Returnable"} />,
                       <StatusBadge key="status" value={product.isActive === false ? "Draft" : "Active"} />,
                       <RowActions key="actions" onEdit={() => openProduct(product)} onDelete={() => deleteProduct(product)} />,
                     ])}
@@ -671,10 +676,16 @@ export default function AdminPanel() {
               Description
               <textarea required rows={4} value={productForm.description} onChange={(e) => setProductForm({ ...productForm, description: e.target.value })} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#C9A648]" />
             </label>
-            <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
-              <input type="checkbox" checked={productForm.isActive} onChange={(e) => setProductForm({ ...productForm, isActive: e.target.checked })} className="h-4 w-4 accent-[#C9A648]" />
-              Active product
-            </label>
+            <div className="flex flex-wrap gap-6 sm:col-span-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer">
+                <input type="checkbox" checked={productForm.isActive} onChange={(e) => setProductForm({ ...productForm, isActive: e.target.checked })} className="h-4 w-4 accent-[#C9A648]" />
+                Active product
+              </label>
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer">
+                <input type="checkbox" checked={productForm.isReturnable} onChange={(e) => setProductForm({ ...productForm, isReturnable: e.target.checked })} className="h-4 w-4 accent-[#C9A648]" />
+                Returns & Exchange Available
+              </label>
+            </div>
             <div className="sm:col-span-2 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-slate-700">Product Images</span>

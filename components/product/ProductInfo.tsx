@@ -81,6 +81,23 @@ export default function ProductInfo({
           )}
         </div>
 
+        {/* Return Policy Badge */}
+        <div className="mb-5">
+          {product.isReturnable !== false ? (
+            <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-full">
+              <svg className="w-3.5 h-3.5 fill-current text-emerald-600" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              <span>7-Day Return & Exchange Available</span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold rounded-full">
+              <span>🚫</span>
+              <span>Non-Returnable Item (Final Sale)</span>
+            </div>
+          )}
+        </div>
+
         <p className="text-sm text-gray-600 font-light leading-relaxed mb-6 font-sans">
           {product.description}
         </p>
@@ -236,7 +253,11 @@ export default function ProductInfo({
           {activeTab === "shipping" && (
             <div className="mt-3 space-y-2 text-xs text-gray-600 font-light animate-in fade-in duration-200">
               <p>✦ <strong>Express Delivery:</strong> 2-4 business days across India & worldwide.</p>
-              <p>✦ <strong>Hassle-Free Returns:</strong> 15-day complimentary return & exchange window.</p>
+              {product.isReturnable !== false ? (
+                <p>✦ <strong>Hassle-Free Returns:</strong> 7-day complimentary return & exchange window available on this product.</p>
+              ) : (
+                <p>✦ <strong>Final Sale Notice:</strong> Returns & exchange are not available for this specific item.</p>
+              )}
             </div>
           )}
         </div>

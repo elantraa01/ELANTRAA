@@ -113,6 +113,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [promoCode, setPromoCode] = useState("");
   const [guestId, setGuestId] = useState("");
   const [isHydrated, setIsHydrated] = useState(false);
+  const [storeShippingCharge, setStoreShippingCharge] = useState<number>(0);
+
+  useEffect(() => {
+    async function fetchStoreSettings() {
+      try {
+        const res = await fetch("/api/settings", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.settings?.shippingCharge !== undefined) {
+            setStoreShippingCharge(Number(data.settings.shippingCharge));
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to fetch store settings in cart context", err);
+      }
+    }
+    fetchStoreSettings();
+  }, []);
 
   const loadServerCart = useCallback(async () => {
     const res = await fetch("/api/cart", { cache: "no-store" });
@@ -339,7 +357,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const isInWishlist = (productId: string) => wishlistItems.some((item) => item.id === productId);
   const wishlistCount = wishlistItems.length;
   const cartCount = useMemo(() => items.reduce((acc, item) => acc + item.quantity, 0), [items]);
-  const shipping = subtotal > 5000 || subtotal === 0 ? 0 : 250;
+  const shipping = useMemo(
+    () => (subtotal > 5000 || subtotal === 0 ? 0 : storeShippingCharge),
+    [subtotal, storeShippingCharge]
+  );
   const discount = promoDiscount;
   const total = Math.max(0, subtotal - discount + shipping);
 

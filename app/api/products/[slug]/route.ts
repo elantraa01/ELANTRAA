@@ -44,6 +44,7 @@ export async function GET(
       images: p.images.length > 0 ? p.images : ["/images/collections/dresses.png"],
       stock: p.stock,
       isFeatured: p.isFeatured,
+      isReturnable: p.isReturnable !== false,
       rating: Math.round(avgRating * 10) / 10,
       reviewCount: p.reviews.length || 38,
       createdAt: p.createdAt.toISOString(),

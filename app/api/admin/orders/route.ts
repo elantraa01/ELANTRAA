@@ -12,7 +12,14 @@ export async function GET() {
         user: true,
         items: {
           include: {
-            product: true,
+            product: {
+              select: {
+                id: true,
+                name: true,
+                images: true,
+                price: true,
+              },
+            },
           },
         },
       },
