@@ -23,6 +23,10 @@ export async function GET() {
         isFeatured: true,
         isActive: true,
         isReturnable: true,
+        productInformation: true,
+        deliveryTimelines: true,
+        disclaimer: true,
+        additionalInfo: true,
         createdAt: true,
         category: {
           select: {
@@ -51,6 +55,10 @@ export async function GET() {
       isFeatured: p.isFeatured,
       isActive: p.isActive,
       isReturnable: p.isReturnable !== false,
+      productInformation: p.productInformation || "",
+      deliveryTimelines: p.deliveryTimelines || "",
+      disclaimer: p.disclaimer || "",
+      additionalInfo: p.additionalInfo || "",
       createdAt: p.createdAt.toISOString(),
     }));
 
@@ -137,6 +145,10 @@ export async function POST(req: NextRequest) {
       isFeatured = true,
       isActive = true,
       isReturnable = true,
+      productInformation,
+      deliveryTimelines,
+      disclaimer,
+      additionalInfo,
     } = body;
 
     if (!name || price === undefined || price === null) {
@@ -207,7 +219,34 @@ export async function POST(req: NextRequest) {
         isFeatured: Boolean(isFeatured),
         isActive: Boolean(isActive),
         isReturnable: Boolean(isReturnable),
+        productInformation: productInformation ? String(productInformation).trim() : null,
+        deliveryTimelines: deliveryTimelines ? String(deliveryTimelines).trim() : null,
+        disclaimer: disclaimer ? String(disclaimer).trim() : null,
+        additionalInfo: additionalInfo ? String(additionalInfo).trim() : null,
       };
+
+    const baseSelect = {
+      id: true,
+      name: true,
+      slug: true,
+      sku: true,
+      description: true,
+      price: true,
+      discountPrice: true,
+      sizes: true,
+      colors: true,
+      images: true,
+      stock: true,
+      isFeatured: true,
+      isActive: true,
+      isReturnable: true,
+      productInformation: true,
+      deliveryTimelines: true,
+      disclaimer: true,
+      additionalInfo: true,
+      createdAt: true,
+      category: { select: { name: true, slug: true } },
+    };
 
     let newProduct;
     try {
@@ -216,17 +255,19 @@ export async function POST(req: NextRequest) {
           ...createData,
           sku: sku?.trim() || null,
         },
-        include: {
-          category: { select: { name: true, slug: true } },
-        },
+        select: baseSelect,
       });
     } catch (createError) {
       if (!isMissingColumnError(createError)) throw createError;
+      const fallbackCreate = { ...createData };
+      delete (fallbackCreate as Record<string, unknown>).productInformation;
+      delete (fallbackCreate as Record<string, unknown>).deliveryTimelines;
+      delete (fallbackCreate as Record<string, unknown>).disclaimer;
+      delete (fallbackCreate as Record<string, unknown>).additionalInfo;
+      delete (fallbackCreate as Record<string, unknown>).sku;
       newProduct = await prisma.product.create({
-        data: createData,
-        include: {
-          category: { select: { name: true, slug: true } },
-        },
+        data: fallbackCreate,
+        select: baseSelect,
       });
     }
 
@@ -247,6 +288,10 @@ export async function POST(req: NextRequest) {
       isFeatured: newProduct.isFeatured,
       isActive: newProduct.isActive,
       isReturnable: newProduct.isReturnable !== false,
+      productInformation: (newProduct as { productInformation?: string | null }).productInformation || "",
+      deliveryTimelines: (newProduct as { deliveryTimelines?: string | null }).deliveryTimelines || "",
+      disclaimer: (newProduct as { disclaimer?: string | null }).disclaimer || "",
+      additionalInfo: (newProduct as { additionalInfo?: string | null }).additionalInfo || "",
       createdAt: newProduct.createdAt.toISOString(),
     };
 
@@ -263,7 +308,7 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { id, isFeatured, isActive, isReturnable, stock, name, price, discountPrice, images, description, sizes, colors, categoryId, categoryName, sku } = body;
+    const { id, isFeatured, isActive, isReturnable, stock, name, price, discountPrice, images, description, sizes, colors, categoryId, categoryName, sku, productInformation, deliveryTimelines, disclaimer, additionalInfo } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
@@ -280,6 +325,10 @@ export async function PATCH(req: NextRequest) {
     if (discountPrice !== undefined) updateData.discountPrice = discountPrice ? Number(discountPrice) : null;
     if (Array.isArray(images) && images.length > 0) updateData.images = images;
     if (description) updateData.description = description;
+    if (productInformation !== undefined) updateData.productInformation = productInformation ? String(productInformation).trim() : null;
+    if (deliveryTimelines !== undefined) updateData.deliveryTimelines = deliveryTimelines ? String(deliveryTimelines).trim() : null;
+    if (disclaimer !== undefined) updateData.disclaimer = disclaimer ? String(disclaimer).trim() : null;
+    if (additionalInfo !== undefined) updateData.additionalInfo = additionalInfo ? String(additionalInfo).trim() : null;
     if (Array.isArray(sizes)) updateData.sizes = sizes;
     if (Array.isArray(colors)) updateData.colors = colors;
 
@@ -318,24 +367,48 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
+    const baseSelect = {
+      id: true,
+      name: true,
+      slug: true,
+      sku: true,
+      description: true,
+      price: true,
+      discountPrice: true,
+      sizes: true,
+      colors: true,
+      images: true,
+      stock: true,
+      isFeatured: true,
+      isActive: true,
+      isReturnable: true,
+      productInformation: true,
+      deliveryTimelines: true,
+      disclaimer: true,
+      additionalInfo: true,
+      createdAt: true,
+      category: { select: { name: true, slug: true } },
+    };
+
     let updated;
     try {
       updated = await prisma.product.update({
         where: { id },
         data: updateData,
-        include: {
-          category: { select: { name: true, slug: true } },
-        },
+        select: baseSelect,
       });
     } catch (updateError) {
-      if (!isMissingColumnError(updateError) || !("sku" in updateData)) throw updateError;
-      delete updateData.sku;
+      if (!isMissingColumnError(updateError)) throw updateError;
+      const fallbackData = { ...updateData };
+      delete fallbackData.productInformation;
+      delete fallbackData.deliveryTimelines;
+      delete fallbackData.disclaimer;
+      delete fallbackData.additionalInfo;
+      delete fallbackData.sku;
       updated = await prisma.product.update({
         where: { id },
-        data: updateData,
-        include: {
-          category: { select: { name: true, slug: true } },
-        },
+        data: fallbackData,
+        select: baseSelect,
       });
     }
 
@@ -356,6 +429,10 @@ export async function PATCH(req: NextRequest) {
       isFeatured: updated.isFeatured,
       isActive: updated.isActive,
       isReturnable: updated.isReturnable !== false,
+      productInformation: (updated as { productInformation?: string | null }).productInformation || "",
+      deliveryTimelines: (updated as { deliveryTimelines?: string | null }).deliveryTimelines || "",
+      disclaimer: (updated as { disclaimer?: string | null }).disclaimer || "",
+      additionalInfo: (updated as { additionalInfo?: string | null }).additionalInfo || "",
       createdAt: updated.createdAt.toISOString(),
     };
 

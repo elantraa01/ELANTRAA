@@ -93,7 +93,24 @@ export async function POST(req: NextRequest) {
 
     const finalCart = await prisma.cart.findUnique({
       where: { id: userCart.id },
-      include: { items: { include: { product: true } } },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                price: true,
+                discountPrice: true,
+                images: true,
+                stock: true,
+                isReturnable: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     return NextResponse.json({

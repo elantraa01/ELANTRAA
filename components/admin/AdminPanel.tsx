@@ -25,6 +25,10 @@ type Product = {
   isActive?: boolean;
   isFeatured?: boolean;
   isReturnable?: boolean;
+  productInformation?: string;
+  deliveryTimelines?: string;
+  disclaimer?: string;
+  additionalInfo?: string;
   createdAt?: string;
 };
 
@@ -105,6 +109,10 @@ const emptyProduct = {
   images: [""],
   isActive: true,
   isReturnable: true,
+  productInformation: "",
+  deliveryTimelines: "",
+  disclaimer: "",
+  additionalInfo: "",
 };
 
 const emptyCategory = {
@@ -284,6 +292,10 @@ export default function AdminPanel() {
             images: product.images.length ? product.images : [""],
             isActive: product.isActive !== false,
             isReturnable: product.isReturnable !== false,
+            productInformation: product.productInformation || "",
+            deliveryTimelines: product.deliveryTimelines || "",
+            disclaimer: product.disclaimer || "",
+            additionalInfo: product.additionalInfo || "",
           }
         : { ...emptyProduct, categoryName: categories[0]?.name || "" }
     );
@@ -308,6 +320,10 @@ export default function AdminPanel() {
       images: productForm.images.map((img) => img.trim()).filter(Boolean),
       isActive: productForm.isActive,
       isReturnable: productForm.isReturnable,
+      productInformation: productForm.productInformation.trim(),
+      deliveryTimelines: productForm.deliveryTimelines.trim(),
+      disclaimer: productForm.disclaimer.trim(),
+      additionalInfo: productForm.additionalInfo.trim(),
       sizes: ["XS", "S", "M", "L", "XL"],
       colors: [],
     };
@@ -674,8 +690,33 @@ export default function AdminPanel() {
             <Field label="Stock Quantity" type="number" value={productForm.stock} onChange={(value) => setProductForm({ ...productForm, stock: value })} required />
             <label className="sm:col-span-2 block text-sm font-medium text-slate-700">
               Description
-              <textarea required rows={4} value={productForm.description} onChange={(e) => setProductForm({ ...productForm, description: e.target.value })} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#C9A648]" />
+              <textarea required rows={3} value={productForm.description} onChange={(e) => setProductForm({ ...productForm, description: e.target.value })} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#C9A648]" />
             </label>
+
+            {/* Product Detail Accordion Tabs Section */}
+            <div className="sm:col-span-2 border-t border-b border-slate-200 py-4 my-2 space-y-4">
+              <h4 className="text-xs uppercase tracking-widest font-bold text-[#C9A648]">Product Accordion Tabs (Shown on Product Page)</h4>
+              
+              <label className="block text-sm font-medium text-slate-700">
+                Product Information
+                <textarea rows={2} placeholder="Detailed product info, fit, craftsmanship..." value={productForm.productInformation} onChange={(e) => setProductForm({ ...productForm, productInformation: e.target.value })} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#C9A648]" />
+              </label>
+
+              <label className="block text-sm font-medium text-slate-700">
+                Delivery Timelines
+                <textarea rows={2} placeholder="e.g., Express shipping: 2-4 days, Dispatch in 24 hours" value={productForm.deliveryTimelines} onChange={(e) => setProductForm({ ...productForm, deliveryTimelines: e.target.value })} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#C9A648]" />
+              </label>
+
+              <label className="block text-sm font-medium text-slate-700">
+                Disclaimer
+                <textarea rows={2} placeholder="e.g., Color may slightly vary due to studio lighting" value={productForm.disclaimer} onChange={(e) => setProductForm({ ...productForm, disclaimer: e.target.value })} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#C9A648]" />
+              </label>
+
+              <label className="block text-sm font-medium text-slate-700">
+                Additional Information
+                <textarea rows={2} placeholder="e.g., Fabric details, care instructions, customization availability" value={productForm.additionalInfo} onChange={(e) => setProductForm({ ...productForm, additionalInfo: e.target.value })} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#C9A648]" />
+              </label>
+            </div>
             <div className="flex flex-wrap gap-6 sm:col-span-2">
               <label className="flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer">
                 <input type="checkbox" checked={productForm.isActive} onChange={(e) => setProductForm({ ...productForm, isActive: e.target.checked })} className="h-4 w-4 accent-[#C9A648]" />

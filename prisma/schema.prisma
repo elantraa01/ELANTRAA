@@ -88,6 +88,10 @@ model Product {
   isFeatured    Boolean     @default(false)
   isActive      Boolean     @default(true)
   isReturnable  Boolean     @default(true)
+  productInformation String?
+  deliveryTimelines  String?
+  disclaimer         String?
+  additionalInfo     String?
   createdAt     DateTime    @default(now())
   orderItems    OrderItem[]
   cartItems     CartItem[]

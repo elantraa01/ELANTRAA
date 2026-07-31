@@ -29,7 +29,7 @@ interface OrderHistoryItem {
   id: string;
   date: string;
   totalAmount: number;
-  status: "CONFIRMED" | "SHIPPED" | "DELIVERED";
+  status: "PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
   itemsCount: number;
   sampleImage: string;
   itemsSummary: string;
@@ -46,14 +46,16 @@ function AccountPageContent() {
     window.location.href = "/login";
   };
 
-  const [activeTab, setActiveTab] = useState<"orders" | "addresses" | "wishlist">("orders");
+  const [activeTab, setActiveTab] = useState<"orders" | "addresses">("orders");
 
   useEffect(() => {
     const tabParam = searchParams.get("tab");
-    if (tabParam === "wishlist" || tabParam === "addresses" || tabParam === "orders") {
+    if (tabParam === "wishlist") {
+      router.replace("/wishlist");
+    } else if (tabParam === "addresses" || tabParam === "orders") {
       setActiveTab(tabParam);
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -188,22 +190,24 @@ function AccountPageContent() {
           </div>
         </div>
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16 pb-28 sm:pb-16">
           {/* User Profile Header */}
-          <div className="bg-[#171717] text-white p-6 sm:p-8 rounded-2xl shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative overflow-hidden border border-[#C9A648]/30 mb-10">
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#AA771C] via-[#D4AF37] to-[#F3E5AB] text-[#171717] font-serif font-bold text-2xl flex items-center justify-center shadow-lg border-2 border-white">
+          <div className="bg-[#171717] text-white p-5 sm:p-8 rounded-2xl shadow-xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-5 relative overflow-hidden border border-[#C9A648]/30 mb-8 sm:mb-10">
+            <div className="flex items-center space-x-3.5 sm:space-x-4 min-w-0">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-[#AA771C] via-[#D4AF37] to-[#F3E5AB] text-[#171717] font-serif font-bold text-xl sm:text-2xl flex items-center justify-center shadow-lg border-2 border-white shrink-0">
                 {userName[0]}
               </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <h1 className="text-2xl sm:text-3xl font-serif text-white">{userName}</h1>
-                  <span className="px-2.5 py-0.5 bg-[#C9A648]/20 text-[#D4AF37] border border-[#C9A648]/40 text-[10px] uppercase font-bold tracking-widest rounded">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-xl sm:text-3xl font-serif text-white truncate max-w-[180px] sm:max-w-none">
+                    {userName}
+                  </h1>
+                  <span className="px-2 py-0.5 bg-[#C9A648]/20 text-[#D4AF37] border border-[#C9A648]/40 text-[9px] sm:text-[10px] uppercase font-bold tracking-widest rounded shrink-0">
                     {userRole}
                   </span>
                 </div>
-                <p className="text-xs text-gray-400 font-light mt-0.5">{userEmail}</p>
-                <p className="text-[11px] text-[#D4AF37] uppercase tracking-widest mt-1">
+                <p className="text-xs text-gray-400 font-light mt-0.5 truncate">{userEmail}</p>
+                <p className="text-[10px] sm:text-[11px] text-[#D4AF37] uppercase tracking-widest mt-1 font-medium">
                   ✦ ELANTRAA Privé VIP Connoisseur
                 </p>
               </div>
@@ -211,7 +215,7 @@ function AccountPageContent() {
 
             <button
               onClick={handleSignOut}
-              className="px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs uppercase tracking-widest rounded font-medium transition-colors"
+              className="w-full sm:w-auto px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs uppercase tracking-widest rounded font-semibold transition-colors text-center shrink-0"
             >
               Sign Out
             </button>
@@ -222,7 +226,6 @@ function AccountPageContent() {
             {[
               { id: "orders" as const, label: "Order History", icon: "📦" },
               { id: "addresses" as const, label: "Saved Addresses", icon: "📍" },
-              { id: "wishlist" as const, label: "My Wishlist", icon: "❤️" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -252,35 +255,39 @@ function AccountPageContent() {
                     return (
                       <div
                         key={order.id}
-                        className="bg-[#FAF8F5] rounded-xl p-6 border border-gray-200 shadow-sm space-y-6"
+                        className="bg-[#FAF8F5] rounded-xl p-4 sm:p-6 border border-gray-200 shadow-sm space-y-5 sm:space-y-6 overflow-hidden"
                       >
                         {/* Header & Main Info */}
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-200 pb-4">
-                          <div className="flex items-center space-x-4">
-                            <div className="relative w-14 h-16 rounded bg-white overflow-hidden border border-gray-200 shrink-0">
+                          <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 min-w-0 w-full">
+                            <div className="relative w-12 h-14 sm:w-14 sm:h-16 rounded bg-white overflow-hidden border border-gray-200 shrink-0">
                               <Image src={order.sampleImage} alt="" fill className="object-cover" />
                             </div>
-                            <div>
-                              <div className="flex items-center space-x-2">
-                                <span className="font-serif font-bold text-gray-900">{order.id}</span>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                <span className="font-serif font-bold text-gray-900 text-xs sm:text-base break-all">
+                                  {order.id}
+                                </span>
                                 <span
-                                  className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded ${
+                                  className={`px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase rounded shrink-0 ${
                                     order.status === "DELIVERED"
                                       ? "bg-emerald-100 text-emerald-800"
                                       : order.status === "SHIPPED"
                                       ? "bg-blue-100 text-blue-800"
+                                      : order.status === "CANCELLED"
+                                      ? "bg-rose-100 text-rose-800 border border-rose-200"
                                       : "bg-amber-100 text-amber-800"
                                   }`}
                                 >
                                   {order.status}
                                 </span>
                               </div>
-                              <p className="text-xs text-gray-600 mt-0.5">{order.itemsSummary}</p>
+                              <p className="text-xs text-gray-600 mt-1 line-clamp-1">{order.itemsSummary}</p>
                               <p className="text-[11px] text-gray-400">Placed on {order.date}</p>
                             </div>
                           </div>
 
-                          <div className="sm:text-right w-full sm:w-auto flex justify-between sm:block pt-2 sm:pt-0">
+                          <div className="sm:text-right w-full sm:w-auto flex items-center justify-between sm:block pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-200/60">
                             <div>
                               <p className="text-[10px] text-gray-400 uppercase tracking-widest">Total Amount</p>
                               <p className="text-base font-semibold text-gray-900 font-sans">
@@ -339,22 +346,22 @@ function AccountPageContent() {
                                   printWin.document.close();
                                 }
                               }}
-                              className="mt-2 inline-flex items-center space-x-1 text-xs text-[#C9A648] hover:underline font-semibold uppercase tracking-wider"
+                              className="sm:mt-2 inline-flex items-center space-x-1 text-xs text-[#C9A648] hover:underline font-semibold uppercase tracking-wider"
                             >
-                              <span>🖨 Print Tax Invoice</span>
+                              <span>🖨 Print Invoice</span>
                             </button>
                           </div>
                         </div>
 
                         {/* Order Tracking Progress Bar Timeline */}
-                        <div className="pt-2">
-                          <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">
+                        <div className="pt-1">
+                          <p className="text-[11px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">
                             Shipment Progress Timeline:
                           </p>
-                          <div className="relative flex items-center justify-between">
-                            <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-gray-200 z-0 rounded-full" />
+                          <div className="relative flex items-center justify-between px-1 sm:px-2">
+                            <div className="absolute left-3 right-3 top-1/2 -translate-y-1/2 h-1 bg-gray-200 z-0 rounded-full" />
                             <div
-                              className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-[#C9A648] z-0 rounded-full transition-all duration-500"
+                              className="absolute left-3 top-1/2 -translate-y-1/2 h-1 bg-[#C9A648] z-0 rounded-full transition-all duration-500"
                               style={{ width: `${(currentStepIndex / (statusSteps.length - 1)) * 100}%` }}
                             />
 
@@ -363,7 +370,7 @@ function AccountPageContent() {
                               return (
                                 <div key={step} className="relative z-10 flex flex-col items-center">
                                   <div
-                                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                                    className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold transition-colors ${
                                       isCompleted
                                         ? "bg-[#171717] text-[#D4AF37] border-2 border-[#C9A648]"
                                         : "bg-white text-gray-400 border-2 border-gray-300"
@@ -372,7 +379,7 @@ function AccountPageContent() {
                                     {isCompleted ? "✓" : idx + 1}
                                   </div>
                                   <span
-                                    className={`text-[10px] uppercase font-semibold mt-1.5 ${
+                                    className={`text-[9px] sm:text-[10px] uppercase font-semibold mt-1 tracking-tight sm:tracking-normal ${
                                       isCompleted ? "text-gray-900 font-bold" : "text-gray-400"
                                     }`}
                                   >
@@ -450,40 +457,6 @@ function AccountPageContent() {
                   >
                     + Add your first address
                   </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* TAB 3: WISHLIST */}
-          {activeTab === "wishlist" && (
-            <div className="space-y-6 animate-in fade-in duration-300">
-              <h3 className="text-lg font-serif font-semibold text-gray-900">Your Saved Wishlist ({wishlistItems.length})</h3>
-              {wishlistItems.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {wishlistItems.map((prod) => (
-                    <ProductCard
-                      key={prod.id}
-                      product={prod}
-                      isWishlisted={true}
-                      onQuickView={(p) => setSelectedProduct(p)}
-                      onAddToCart={(p) => {
-                        addItem(p);
-                        showNotification(`Added ${p.name} to shopping bag.`);
-                      }}
-                      onToggleWishlist={() => showNotification("Wishlist updated.")}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-[#FAF8F5] rounded-xl p-8 text-center border border-gray-200 space-y-3">
-                  <p className="text-xs text-gray-500 italic">Your wishlist is currently empty.</p>
-                  <a
-                    href="/shop"
-                    className="inline-block text-xs text-[#C9A648] font-bold uppercase tracking-widest hover:underline"
-                  >
-                    ✦ Explore Couture Catalogue
-                  </a>
                 </div>
               )}
             </div>

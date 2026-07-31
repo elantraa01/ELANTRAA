@@ -24,6 +24,10 @@ export interface Product {
   details?: string[];
   materials?: string;
   careInstructions?: string;
+  productInformation?: string | null;
+  deliveryTimelines?: string | null;
+  disclaimer?: string | null;
+  additionalInfo?: string | null;
 }
 
 export interface Review {

@@ -23,7 +23,7 @@ export default function Navbar({
   const router = useRouter();
   const { data: session } = useSession();
   const accountHref = session?.user ? "/account" : "/login";
-  const { cartCount: ctxCartCount, wishlistCount: ctxWishlistCount } = useCart();
+  const { cartCount: ctxCartCount, wishlistCount: ctxWishlistCount, setCartOpen } = useCart();
   const activeCartCount = customCartCount !== undefined ? customCartCount : ctxCartCount;
   const wishlistCount = customWishlistCount !== undefined ? customWishlistCount : ctxWishlistCount;
   const [isScrolled, setIsScrolled] = useState(false);
@@ -169,8 +169,8 @@ export default function Navbar({
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center space-x-6 text-xs font-medium tracking-[0.15em] text-gray-800 uppercase">
-            <Link href="/shop" className="hover:text-[#C9A648] transition-colors font-semibold text-[#C9A648]">
+          <nav className="hidden lg:flex items-center space-x-6 text-xs font-medium tracking-[0.15em] text-gray-800 uppercase relative z-10">
+            <Link href="/shop" className="hover:text-[#C9A648] transition-colors font-semibold text-[#C9A648] cursor-pointer">
               Shop All
             </Link>
             {navCategories.length > 0 ? (
@@ -178,41 +178,41 @@ export default function Navbar({
                 <Link
                   key={cat.id}
                   href={`/shop?category=${encodeURIComponent(cat.name)}`}
-                  className="hover:text-[#C9A648] transition-colors"
+                  className="hover:text-[#C9A648] transition-colors cursor-pointer"
                 >
                   {cat.name}
                 </Link>
               ))
             ) : (
               <>
-                <Link href="/category/women" className="hover:text-[#C9A648] transition-colors">
+                <Link href="/category/women" className="hover:text-[#C9A648] transition-colors cursor-pointer">
                   Women
                 </Link>
-                <Link href="/category/men" className="hover:text-[#C9A648] transition-colors">
+                <Link href="/category/men" className="hover:text-[#C9A648] transition-colors cursor-pointer">
                   Men
                 </Link>
-                <Link href="/category/accessories" className="hover:text-[#C9A648] transition-colors">
+                <Link href="/category/accessories" className="hover:text-[#C9A648] transition-colors cursor-pointer">
                   Accessories
                 </Link>
               </>
             )}
-            <Link href="/category/new-arrivals" className="hover:text-[#C9A648] transition-colors">
+            <Link href="/category/new-arrivals" className="hover:text-[#C9A648] transition-colors cursor-pointer">
               New Arrivals
             </Link>
-            <Link href="/category/sale" className="hover:text-[#C9A648] transition-colors text-red-600 font-semibold">
+            <Link href="/category/sale" className="hover:text-[#C9A648] transition-colors text-red-600 font-semibold cursor-pointer">
               Sale
             </Link>
           </nav>
 
           {/* Center: Brand Logo */}
-          <div className="text-center min-w-0 flex-1 lg:flex-none px-0.5 sm:px-1">
-            <Link href="/" className="inline-flex items-center justify-center group" aria-label="ELANTRAA Home">
-              <span className="relative block w-56 h-11 sm:w-72 sm:h-13 lg:w-[360px] lg:h-14">
+          <div className="text-center min-w-0 flex-1 lg:flex-none px-2 shrink-0 relative z-10">
+            <Link href="/" className="inline-flex items-center justify-center group py-1" aria-label="ELANTRAA Home">
+              <span className="relative block w-36 h-9 sm:w-44 sm:h-10 lg:w-48 lg:h-11">
                 <Image
                   src="/images/logo/logo.png"
                   alt="ELANTRAA"
                   fill
-                  className="object-contain object-center scale-[3.4] sm:scale-[3.8] transition-transform group-hover:scale-[4.0]"
+                  className="object-contain object-center transition-transform group-hover:scale-105"
                   priority
                 />
               </span>
@@ -220,11 +220,12 @@ export default function Navbar({
           </div>
 
           {/* Right Utilities (Search, Account, Wishlist, Cart) */}
-          <div className="flex items-center gap-2 sm:gap-5 text-gray-700 shrink-0 pr-0.5 sm:pr-1">
+          <div className="flex items-center gap-2 sm:gap-5 text-gray-700 shrink-0 pr-0.5 sm:pr-1 relative z-10">
             {/* Search (Desktop) */}
             <button
+              type="button"
               onClick={() => setSearchOpen(true)}
-              className="hidden lg:flex items-center text-xs tracking-widest uppercase hover:text-[#C9A648] transition-colors"
+              className="hidden lg:flex items-center text-xs tracking-widest uppercase hover:text-[#C9A648] transition-colors cursor-pointer"
             >
               <svg className="w-5 h-5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -233,77 +234,44 @@ export default function Navbar({
             </button>
 
             {/* Account */}
-            <Link href={accountHref} className="hidden sm:inline-block p-1 hover:text-[#C9A648] transition-colors" aria-label="Account">
+            <Link href={accountHref} className="hidden sm:inline-block p-1 hover:text-[#C9A648] transition-colors cursor-pointer" aria-label="Account">
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </Link>
 
             {/* Wishlist */}
-            {onOpenWishlist ? (
-              <button
-                onClick={onOpenWishlist}
-                className="p-1 hover:text-[#C9A648] transition-colors relative"
-                aria-label="Wishlist"
-              >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
-                </svg>
-                {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] px-1 bg-[#C9A648] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
-                    {wishlistCount}
-                  </span>
-                )}
-              </button>
-            ) : (
-              <Link
-                href={session?.user ? "/account?tab=wishlist" : "/login"}
-                className="p-1 hover:text-[#C9A648] transition-colors relative inline-block"
-                aria-label="Wishlist"
-              >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
-                </svg>
-                {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] px-1 bg-[#C9A648] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
-                    {wishlistCount}
-                  </span>
-                )}
-              </Link>
-            )}
+            <Link
+              href="/wishlist"
+              className="p-1 hover:text-[#C9A648] transition-colors relative inline-block cursor-pointer"
+              aria-label="Wishlist"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
+              </svg>
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] px-1 bg-[#C9A648] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
 
-            {/* Shopping Cart Button / Link */}
-            {onOpenCart ? (
-              <button
-                onClick={onOpenCart}
-                className="p-1 hover:text-[#C9A648] transition-colors relative"
-                aria-label="Shopping Cart"
-              >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-                {activeCartCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 bg-[#171717] text-[#D4AF37] text-[10px] font-bold rounded-full flex items-center justify-center border border-[#C9A648]/40 shadow-sm leading-none">
-                    {activeCartCount}
-                  </span>
-                )}
-              </button>
-            ) : (
-              <Link
-                href="/cart"
-                className="p-1 hover:text-[#C9A648] transition-colors relative inline-block"
-                aria-label="Shopping Cart"
-              >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-                {activeCartCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 bg-[#171717] text-[#D4AF37] text-[10px] font-bold rounded-full flex items-center justify-center border border-[#C9A648]/40 shadow-sm leading-none">
-                    {activeCartCount}
-                  </span>
-                )}
-              </Link>
-            )}
+            {/* Shopping Cart Button */}
+            <button
+              type="button"
+              onClick={onOpenCart || (() => setCartOpen(true))}
+              className="p-1 hover:text-[#C9A648] transition-colors relative cursor-pointer"
+              aria-label="Shopping Cart"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              {activeCartCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 bg-[#171717] text-[#D4AF37] text-[10px] font-bold rounded-full flex items-center justify-center border border-[#C9A648]/40 shadow-sm leading-none">
+                  {activeCartCount}
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </header>
@@ -385,13 +353,11 @@ export default function Navbar({
                     Best Seller
                   </Link>
 
-                  <button
-                    type="button"
+                  <Link
+                    href="/wishlist"
                     onClick={() => {
                       setMobileMenuOpen(false);
-                      if (onOpenWishlist) {
-                        onOpenWishlist();
-                      }
+                      if (onOpenWishlist) onOpenWishlist();
                     }}
                     className="w-full text-left px-5 py-3.5 text-xs sm:text-sm font-medium tracking-wider text-gray-800 hover:bg-gray-50 transition-colors flex items-center space-x-3"
                   >
@@ -399,7 +365,7 @@ export default function Navbar({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
                     </svg>
                     <span>Wishlist {wishlistCount > 0 && `(${wishlistCount})`}</span>
-                  </button>
+                  </Link>
 
                   <button
                     type="button"

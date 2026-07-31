@@ -13,7 +13,7 @@ interface MobileBottomNavProps {
 export default function MobileBottomNav({ onOpenCart, onOpenWishlist }: MobileBottomNavProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const { cartCount, wishlistCount } = useCart();
+  const { cartCount, wishlistCount, setCartOpen } = useCart();
 
   // Hide on admin routes
   if (pathname?.startsWith("/admin")) {
@@ -68,7 +68,7 @@ export default function MobileBottomNav({ onOpenCart, onOpenWishlist }: MobileBo
         </button>
       ) : (
         <Link
-          href="/account?tab=wishlist"
+          href="/wishlist"
           className="flex flex-col items-center justify-center space-y-0.5 text-[10px] font-medium uppercase tracking-wider text-gray-600 hover:text-gray-900 relative"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -84,37 +84,20 @@ export default function MobileBottomNav({ onOpenCart, onOpenWishlist }: MobileBo
       )}
 
       {/* Cart */}
-      {onOpenCart ? (
-        <button
-          onClick={onOpenCart}
-          className="flex flex-col items-center justify-center space-y-0.5 text-[10px] font-medium uppercase tracking-wider text-gray-600 hover:text-gray-900 relative"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
-          </svg>
-          <span>Cart</span>
-          {cartCount > 0 && (
-            <span className="absolute -top-1 right-1.5 min-w-[15px] h-[15px] px-1 bg-[#171717] text-[#D4AF37] text-[9px] font-bold rounded-full flex items-center justify-center border border-[#C9A648]/40">
-              {cartCount}
-            </span>
-          )}
-        </button>
-      ) : (
-        <Link
-          href="/cart"
-          className="flex flex-col items-center justify-center space-y-0.5 text-[10px] font-medium uppercase tracking-wider text-gray-600 hover:text-gray-900 relative"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
-          </svg>
-          <span>Cart</span>
-          {cartCount > 0 && (
-            <span className="absolute -top-1 right-1.5 min-w-[15px] h-[15px] px-1 bg-[#171717] text-[#D4AF37] text-[9px] font-bold rounded-full flex items-center justify-center border border-[#C9A648]/40">
-              {cartCount}
-            </span>
-          )}
-        </Link>
-      )}
+      <button
+        onClick={onOpenCart || (() => setCartOpen(true))}
+        className="flex flex-col items-center justify-center space-y-0.5 text-[10px] font-medium uppercase tracking-wider text-gray-600 hover:text-gray-900 relative"
+      >
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
+        </svg>
+        <span>Cart</span>
+        {cartCount > 0 && (
+          <span className="absolute -top-1 right-1.5 min-w-[15px] h-[15px] px-1 bg-[#171717] text-[#D4AF37] text-[9px] font-bold rounded-full flex items-center justify-center border border-[#C9A648]/40">
+            {cartCount}
+          </span>
+        )}
+      </button>
 
       {/* Profile */}
       <Link

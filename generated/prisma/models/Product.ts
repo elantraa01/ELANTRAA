@@ -51,6 +51,10 @@ export type ProductMinAggregateOutputType = {
   isFeatured: boolean | null
   isActive: boolean | null
   isReturnable: boolean | null
+  productInformation: string | null
+  deliveryTimelines: string | null
+  disclaimer: string | null
+  additionalInfo: string | null
   createdAt: Date | null
 }
 
@@ -67,6 +71,10 @@ export type ProductMaxAggregateOutputType = {
   isFeatured: boolean | null
   isActive: boolean | null
   isReturnable: boolean | null
+  productInformation: string | null
+  deliveryTimelines: string | null
+  disclaimer: string | null
+  additionalInfo: string | null
   createdAt: Date | null
 }
 
@@ -86,6 +94,10 @@ export type ProductCountAggregateOutputType = {
   isFeatured: number
   isActive: number
   isReturnable: number
+  productInformation: number
+  deliveryTimelines: number
+  disclaimer: number
+  additionalInfo: number
   createdAt: number
   _all: number
 }
@@ -116,6 +128,10 @@ export type ProductMinAggregateInputType = {
   isFeatured?: true
   isActive?: true
   isReturnable?: true
+  productInformation?: true
+  deliveryTimelines?: true
+  disclaimer?: true
+  additionalInfo?: true
   createdAt?: true
 }
 
@@ -132,6 +148,10 @@ export type ProductMaxAggregateInputType = {
   isFeatured?: true
   isActive?: true
   isReturnable?: true
+  productInformation?: true
+  deliveryTimelines?: true
+  disclaimer?: true
+  additionalInfo?: true
   createdAt?: true
 }
 
@@ -151,6 +171,10 @@ export type ProductCountAggregateInputType = {
   isFeatured?: true
   isActive?: true
   isReturnable?: true
+  productInformation?: true
+  deliveryTimelines?: true
+  disclaimer?: true
+  additionalInfo?: true
   createdAt?: true
   _all?: true
 }
@@ -257,6 +281,10 @@ export type ProductGroupByOutputType = {
   isFeatured: boolean
   isActive: boolean
   isReturnable: boolean
+  productInformation: string | null
+  deliveryTimelines: string | null
+  disclaimer: string | null
+  additionalInfo: string | null
   createdAt: Date
   _count: ProductCountAggregateOutputType | null
   _avg: ProductAvgAggregateOutputType | null
@@ -299,6 +327,10 @@ export type ProductWhereInput = {
   isFeatured?: Prisma.BoolFilter<"Product"> | boolean
   isActive?: Prisma.BoolFilter<"Product"> | boolean
   isReturnable?: Prisma.BoolFilter<"Product"> | boolean
+  productInformation?: Prisma.StringNullableFilter<"Product"> | string | null
+  deliveryTimelines?: Prisma.StringNullableFilter<"Product"> | string | null
+  disclaimer?: Prisma.StringNullableFilter<"Product"> | string | null
+  additionalInfo?: Prisma.StringNullableFilter<"Product"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   category?: Prisma.XOR<Prisma.CategoryScalarRelationFilter, Prisma.CategoryWhereInput>
   orderItems?: Prisma.OrderItemListRelationFilter
@@ -323,6 +355,10 @@ export type ProductOrderByWithRelationInput = {
   isFeatured?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isReturnable?: Prisma.SortOrder
+  productInformation?: Prisma.SortOrderInput | Prisma.SortOrder
+  deliveryTimelines?: Prisma.SortOrderInput | Prisma.SortOrder
+  disclaimer?: Prisma.SortOrderInput | Prisma.SortOrder
+  additionalInfo?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   category?: Prisma.CategoryOrderByWithRelationInput
   orderItems?: Prisma.OrderItemOrderByRelationAggregateInput
@@ -350,6 +386,10 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   isFeatured?: Prisma.BoolFilter<"Product"> | boolean
   isActive?: Prisma.BoolFilter<"Product"> | boolean
   isReturnable?: Prisma.BoolFilter<"Product"> | boolean
+  productInformation?: Prisma.StringNullableFilter<"Product"> | string | null
+  deliveryTimelines?: Prisma.StringNullableFilter<"Product"> | string | null
+  disclaimer?: Prisma.StringNullableFilter<"Product"> | string | null
+  additionalInfo?: Prisma.StringNullableFilter<"Product"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   category?: Prisma.XOR<Prisma.CategoryScalarRelationFilter, Prisma.CategoryWhereInput>
   orderItems?: Prisma.OrderItemListRelationFilter
@@ -374,6 +414,10 @@ export type ProductOrderByWithAggregationInput = {
   isFeatured?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isReturnable?: Prisma.SortOrder
+  productInformation?: Prisma.SortOrderInput | Prisma.SortOrder
+  deliveryTimelines?: Prisma.SortOrderInput | Prisma.SortOrder
+  disclaimer?: Prisma.SortOrderInput | Prisma.SortOrder
+  additionalInfo?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.ProductCountOrderByAggregateInput
   _avg?: Prisma.ProductAvgOrderByAggregateInput
@@ -401,6 +445,10 @@ export type ProductScalarWhereWithAggregatesInput = {
   isFeatured?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
   isActive?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
   isReturnable?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
+  productInformation?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
+  deliveryTimelines?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
+  disclaimer?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
+  additionalInfo?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Product"> | Date | string
 }
 
@@ -419,6 +467,10 @@ export type ProductCreateInput = {
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: string | null
+  deliveryTimelines?: string | null
+  disclaimer?: string | null
+  additionalInfo?: string | null
   createdAt?: Date | string
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
   orderItems?: Prisma.OrderItemCreateNestedManyWithoutProductInput
@@ -443,6 +495,10 @@ export type ProductUncheckedCreateInput = {
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: string | null
+  deliveryTimelines?: string | null
+  disclaimer?: string | null
+  additionalInfo?: string | null
   createdAt?: Date | string
   orderItems?: Prisma.OrderItemUncheckedCreateNestedManyWithoutProductInput
   cartItems?: Prisma.CartItemUncheckedCreateNestedManyWithoutProductInput
@@ -465,6 +521,10 @@ export type ProductUpdateInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryTimelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  disclaimer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  additionalInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
   orderItems?: Prisma.OrderItemUpdateManyWithoutProductNestedInput
@@ -489,6 +549,10 @@ export type ProductUncheckedUpdateInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryTimelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  disclaimer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  additionalInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   orderItems?: Prisma.OrderItemUncheckedUpdateManyWithoutProductNestedInput
   cartItems?: Prisma.CartItemUncheckedUpdateManyWithoutProductNestedInput
@@ -512,6 +576,10 @@ export type ProductCreateManyInput = {
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: string | null
+  deliveryTimelines?: string | null
+  disclaimer?: string | null
+  additionalInfo?: string | null
   createdAt?: Date | string
 }
 
@@ -530,6 +598,10 @@ export type ProductUpdateManyMutationInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryTimelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  disclaimer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  additionalInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -549,6 +621,10 @@ export type ProductUncheckedUpdateManyInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryTimelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  disclaimer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  additionalInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -586,6 +662,10 @@ export type ProductCountOrderByAggregateInput = {
   isFeatured?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isReturnable?: Prisma.SortOrder
+  productInformation?: Prisma.SortOrder
+  deliveryTimelines?: Prisma.SortOrder
+  disclaimer?: Prisma.SortOrder
+  additionalInfo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -608,6 +688,10 @@ export type ProductMaxOrderByAggregateInput = {
   isFeatured?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isReturnable?: Prisma.SortOrder
+  productInformation?: Prisma.SortOrder
+  deliveryTimelines?: Prisma.SortOrder
+  disclaimer?: Prisma.SortOrder
+  additionalInfo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -624,6 +708,10 @@ export type ProductMinOrderByAggregateInput = {
   isFeatured?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isReturnable?: Prisma.SortOrder
+  productInformation?: Prisma.SortOrder
+  deliveryTimelines?: Prisma.SortOrder
+  disclaimer?: Prisma.SortOrder
+  additionalInfo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -802,6 +890,10 @@ export type ProductCreateWithoutCategoryInput = {
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: string | null
+  deliveryTimelines?: string | null
+  disclaimer?: string | null
+  additionalInfo?: string | null
   createdAt?: Date | string
   orderItems?: Prisma.OrderItemCreateNestedManyWithoutProductInput
   cartItems?: Prisma.CartItemCreateNestedManyWithoutProductInput
@@ -824,6 +916,10 @@ export type ProductUncheckedCreateWithoutCategoryInput = {
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: string | null
+  deliveryTimelines?: string | null
+  disclaimer?: string | null
+  additionalInfo?: string | null
   createdAt?: Date | string
   orderItems?: Prisma.OrderItemUncheckedCreateNestedManyWithoutProductInput
   cartItems?: Prisma.CartItemUncheckedCreateNestedManyWithoutProductInput
@@ -876,6 +972,10 @@ export type ProductScalarWhereInput = {
   isFeatured?: Prisma.BoolFilter<"Product"> | boolean
   isActive?: Prisma.BoolFilter<"Product"> | boolean
   isReturnable?: Prisma.BoolFilter<"Product"> | boolean
+  productInformation?: Prisma.StringNullableFilter<"Product"> | string | null
+  deliveryTimelines?: Prisma.StringNullableFilter<"Product"> | string | null
+  disclaimer?: Prisma.StringNullableFilter<"Product"> | string | null
+  additionalInfo?: Prisma.StringNullableFilter<"Product"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
 }
 
@@ -894,6 +994,10 @@ export type ProductCreateWithoutOrderItemsInput = {
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: string | null
+  deliveryTimelines?: string | null
+  disclaimer?: string | null
+  additionalInfo?: string | null
   createdAt?: Date | string
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
   cartItems?: Prisma.CartItemCreateNestedManyWithoutProductInput
@@ -917,6 +1021,10 @@ export type ProductUncheckedCreateWithoutOrderItemsInput = {
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: string | null
+  deliveryTimelines?: string | null
+  disclaimer?: string | null
+  additionalInfo?: string | null
   createdAt?: Date | string
   cartItems?: Prisma.CartItemUncheckedCreateNestedManyWithoutProductInput
   wishlist?: Prisma.WishlistUncheckedCreateNestedManyWithoutProductInput
@@ -954,6 +1062,10 @@ export type ProductUpdateWithoutOrderItemsInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryTimelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  disclaimer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  additionalInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
   cartItems?: Prisma.CartItemUpdateManyWithoutProductNestedInput
@@ -977,6 +1089,10 @@ export type ProductUncheckedUpdateWithoutOrderItemsInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryTimelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  disclaimer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  additionalInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cartItems?: Prisma.CartItemUncheckedUpdateManyWithoutProductNestedInput
   wishlist?: Prisma.WishlistUncheckedUpdateManyWithoutProductNestedInput
@@ -998,6 +1114,10 @@ export type ProductCreateWithoutCartItemsInput = {
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: string | null
+  deliveryTimelines?: string | null
+  disclaimer?: string | null
+  additionalInfo?: string | null
   createdAt?: Date | string
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
   orderItems?: Prisma.OrderItemCreateNestedManyWithoutProductInput
@@ -1021,6 +1141,10 @@ export type ProductUncheckedCreateWithoutCartItemsInput = {
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: string | null
+  deliveryTimelines?: string | null
+  disclaimer?: string | null
+  additionalInfo?: string | null
   createdAt?: Date | string
   orderItems?: Prisma.OrderItemUncheckedCreateNestedManyWithoutProductInput
   wishlist?: Prisma.WishlistUncheckedCreateNestedManyWithoutProductInput
@@ -1058,6 +1182,10 @@ export type ProductUpdateWithoutCartItemsInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryTimelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  disclaimer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  additionalInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
   orderItems?: Prisma.OrderItemUpdateManyWithoutProductNestedInput
@@ -1081,6 +1209,10 @@ export type ProductUncheckedUpdateWithoutCartItemsInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryTimelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  disclaimer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  additionalInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   orderItems?: Prisma.OrderItemUncheckedUpdateManyWithoutProductNestedInput
   wishlist?: Prisma.WishlistUncheckedUpdateManyWithoutProductNestedInput
@@ -1102,6 +1234,10 @@ export type ProductCreateWithoutWishlistInput = {
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: string | null
+  deliveryTimelines?: string | null
+  disclaimer?: string | null
+  additionalInfo?: string | null
   createdAt?: Date | string
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
   orderItems?: Prisma.OrderItemCreateNestedManyWithoutProductInput
@@ -1125,6 +1261,10 @@ export type ProductUncheckedCreateWithoutWishlistInput = {
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: string | null
+  deliveryTimelines?: string | null
+  disclaimer?: string | null
+  additionalInfo?: string | null
   createdAt?: Date | string
   orderItems?: Prisma.OrderItemUncheckedCreateNestedManyWithoutProductInput
   cartItems?: Prisma.CartItemUncheckedCreateNestedManyWithoutProductInput
@@ -1162,6 +1302,10 @@ export type ProductUpdateWithoutWishlistInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryTimelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  disclaimer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  additionalInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
   orderItems?: Prisma.OrderItemUpdateManyWithoutProductNestedInput
@@ -1185,6 +1329,10 @@ export type ProductUncheckedUpdateWithoutWishlistInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryTimelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  disclaimer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  additionalInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   orderItems?: Prisma.OrderItemUncheckedUpdateManyWithoutProductNestedInput
   cartItems?: Prisma.CartItemUncheckedUpdateManyWithoutProductNestedInput
@@ -1206,6 +1354,10 @@ export type ProductCreateWithoutReviewsInput = {
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: string | null
+  deliveryTimelines?: string | null
+  disclaimer?: string | null
+  additionalInfo?: string | null
   createdAt?: Date | string
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
   orderItems?: Prisma.OrderItemCreateNestedManyWithoutProductInput
@@ -1229,6 +1381,10 @@ export type ProductUncheckedCreateWithoutReviewsInput = {
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: string | null
+  deliveryTimelines?: string | null
+  disclaimer?: string | null
+  additionalInfo?: string | null
   createdAt?: Date | string
   orderItems?: Prisma.OrderItemUncheckedCreateNestedManyWithoutProductInput
   cartItems?: Prisma.CartItemUncheckedCreateNestedManyWithoutProductInput
@@ -1266,6 +1422,10 @@ export type ProductUpdateWithoutReviewsInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryTimelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  disclaimer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  additionalInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
   orderItems?: Prisma.OrderItemUpdateManyWithoutProductNestedInput
@@ -1289,6 +1449,10 @@ export type ProductUncheckedUpdateWithoutReviewsInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryTimelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  disclaimer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  additionalInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   orderItems?: Prisma.OrderItemUncheckedUpdateManyWithoutProductNestedInput
   cartItems?: Prisma.CartItemUncheckedUpdateManyWithoutProductNestedInput
@@ -1310,6 +1474,10 @@ export type ProductCreateManyCategoryInput = {
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: string | null
+  deliveryTimelines?: string | null
+  disclaimer?: string | null
+  additionalInfo?: string | null
   createdAt?: Date | string
 }
 
@@ -1328,6 +1496,10 @@ export type ProductUpdateWithoutCategoryInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryTimelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  disclaimer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  additionalInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   orderItems?: Prisma.OrderItemUpdateManyWithoutProductNestedInput
   cartItems?: Prisma.CartItemUpdateManyWithoutProductNestedInput
@@ -1350,6 +1522,10 @@ export type ProductUncheckedUpdateWithoutCategoryInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryTimelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  disclaimer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  additionalInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   orderItems?: Prisma.OrderItemUncheckedUpdateManyWithoutProductNestedInput
   cartItems?: Prisma.CartItemUncheckedUpdateManyWithoutProductNestedInput
@@ -1372,6 +1548,10 @@ export type ProductUncheckedUpdateManyWithoutCategoryInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryTimelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  disclaimer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  additionalInfo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -1449,6 +1629,10 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: boolean
+  deliveryTimelines?: boolean
+  disclaimer?: boolean
+  additionalInfo?: boolean
   createdAt?: boolean
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
   orderItems?: boolean | Prisma.Product$orderItemsArgs<ExtArgs>
@@ -1474,6 +1658,10 @@ export type ProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: boolean
+  deliveryTimelines?: boolean
+  disclaimer?: boolean
+  additionalInfo?: boolean
   createdAt?: boolean
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["product"]>
@@ -1494,6 +1682,10 @@ export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: boolean
+  deliveryTimelines?: boolean
+  disclaimer?: boolean
+  additionalInfo?: boolean
   createdAt?: boolean
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["product"]>
@@ -1514,10 +1706,14 @@ export type ProductSelectScalar = {
   isFeatured?: boolean
   isActive?: boolean
   isReturnable?: boolean
+  productInformation?: boolean
+  deliveryTimelines?: boolean
+  disclaimer?: boolean
+  additionalInfo?: boolean
   createdAt?: boolean
 }
 
-export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "sku" | "description" | "price" | "discountPrice" | "categoryId" | "sizes" | "colors" | "images" | "stock" | "isFeatured" | "isActive" | "isReturnable" | "createdAt", ExtArgs["result"]["product"]>
+export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "sku" | "description" | "price" | "discountPrice" | "categoryId" | "sizes" | "colors" | "images" | "stock" | "isFeatured" | "isActive" | "isReturnable" | "productInformation" | "deliveryTimelines" | "disclaimer" | "additionalInfo" | "createdAt", ExtArgs["result"]["product"]>
 export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
   orderItems?: boolean | Prisma.Product$orderItemsArgs<ExtArgs>
@@ -1558,6 +1754,10 @@ export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     isFeatured: boolean
     isActive: boolean
     isReturnable: boolean
+    productInformation: string | null
+    deliveryTimelines: string | null
+    disclaimer: string | null
+    additionalInfo: string | null
     createdAt: Date
   }, ExtArgs["result"]["product"]>
   composites: {}
@@ -2002,6 +2202,10 @@ export interface ProductFieldRefs {
   readonly isFeatured: Prisma.FieldRef<"Product", 'Boolean'>
   readonly isActive: Prisma.FieldRef<"Product", 'Boolean'>
   readonly isReturnable: Prisma.FieldRef<"Product", 'Boolean'>
+  readonly productInformation: Prisma.FieldRef<"Product", 'String'>
+  readonly deliveryTimelines: Prisma.FieldRef<"Product", 'String'>
+  readonly disclaimer: Prisma.FieldRef<"Product", 'String'>
+  readonly additionalInfo: Prisma.FieldRef<"Product", 'String'>
   readonly createdAt: Prisma.FieldRef<"Product", 'DateTime'>
 }
     

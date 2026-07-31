@@ -23,10 +23,25 @@ export async function GET() {
 
     const wishlistRecords = await prisma.wishlist.findMany({
       where: { userId: user.id },
-      include: {
+      select: {
+        id: true,
         product: {
-          include: {
-            category: true,
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            price: true,
+            discountPrice: true,
+            images: true,
+            sizes: true,
+            colors: true,
+            isFeatured: true,
+            description: true,
+            category: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
       },
@@ -107,10 +122,25 @@ export async function POST(req: NextRequest) {
     // Return updated wishlist
     const updatedRecords = await prisma.wishlist.findMany({
       where: { userId: user.id },
-      include: {
+      select: {
+        id: true,
         product: {
-          include: {
-            category: true,
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            price: true,
+            discountPrice: true,
+            images: true,
+            sizes: true,
+            colors: true,
+            isFeatured: true,
+            description: true,
+            category: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
       },

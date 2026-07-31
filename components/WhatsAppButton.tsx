@@ -17,7 +17,7 @@ export default function WhatsAppButton() {
   )}`;
 
   return (
-    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center group">
+    <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center group">
       {/* Hover / Focus Tooltip (Desktop & Mobile accessible) */}
       <span
         className={`mr-3 px-3 py-1.5 text-xs sm:text-sm font-medium bg-slate-900 text-white rounded-full shadow-lg border border-slate-800 transition-all duration-300 pointer-events-none whitespace-nowrap hidden sm:inline-block ${
