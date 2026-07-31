@@ -7,7 +7,6 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
-import ProductCard from "@/components/home/ProductCard";
 import QuickViewModal from "@/components/home/QuickViewModal";
 import { Product } from "@/components/home/mockData";
 import { useCart } from "@/context/CartContext";
@@ -39,7 +38,7 @@ function AccountPageContent() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
-  const { addItem, wishlistItems } = useCart();
+  const { addItem } = useCart();
 
   const handleSignOut = async () => {
     await signOut({ redirect: false });
@@ -297,50 +296,139 @@ function AccountPageContent() {
                             <button
                               onClick={() => {
                                 const printWin = window.open("", "_blank");
+                                const logoUrl = `${window.location.origin}/images/logo/logo.png`;
                                 if (printWin) {
                                   printWin.document.write(`
+                                    <!DOCTYPE html>
                                     <html>
-                                      <head>
-                                        <title>Invoice ${order.id}</title>
-                                        <style>
-                                          body { font-family: sans-serif; padding: 40px; color: #171717; }
-                                          .header { text-align: center; border-bottom: 2px solid #C9A648; padding-bottom: 20px; }
-                                          .title { font-size: 24px; font-weight: bold; letter-spacing: 2px; }
-                                          .details { margin: 30px 0; }
-                                          .table { w-full; width: 100%; border-collapse: collapse; margin-top: 20px; }
-                                          .table th, .table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-                                          .table th { background: #f9f9f9; }
-                                        </style>
-                                      </head>
-                                      <body>
-                                        <div className="header">
-                                          <div className="title">ELANTRAA LUXURY COUTURE</div>
-                                          <p>TAX INVOICE / ORDER RECEIPT</p>
+                                    <head>
+                                      <meta charset="utf-8" />
+                                      <title>Invoice - ${order.id}</title>
+                                      <style>
+                                        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+                                        * { box-sizing: border-box; margin: 0; padding: 0; }
+                                        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; color: #171717; background: #f8fafc; padding: 40px 20px; line-height: 1.5; font-size: 13px; }
+                                        .invoice-card { max-width: 820px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 44px; background: #ffffff; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+                                        .header-bar { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #C9A648; padding-bottom: 24px; margin-bottom: 28px; }
+                                        .logo-container { display: flex; flex-col; gap: 4px; }
+                                        .logo-img { height: 44px; object-fit: contain; }
+                                        .brand-fallback { font-family: 'Cinzel', serif; font-size: 22px; font-weight: 700; letter-spacing: 3px; color: #171717; text-transform: uppercase; }
+                                        .invoice-badge { text-align: right; }
+                                        .invoice-title { font-family: 'Cinzel', serif; font-size: 20px; font-weight: 700; color: #C9A648; letter-spacing: 2.5px; text-transform: uppercase; }
+                                        .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 32px; background: #FAF8F5; padding: 22px 26px; border-radius: 10px; border: 1px solid #f0e6d2; }
+                                        .meta-box h4 { font-family: 'Cinzel', serif; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #C9A648; margin-bottom: 8px; font-weight: 700; }
+                                        .meta-box p { color: #4b5563; font-size: 12px; margin-bottom: 4px; }
+                                        .meta-box p strong { color: #111827; }
+                                        .status-pill { display: inline-block; padding: 2px 10px; border-radius: 9999px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+                                        .table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+                                        .table th { background: #171717; color: #D4AF37; font-family: 'Cinzel', serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 12px 16px; text-align: left; }
+                                        .table td { padding: 16px; border-bottom: 1px solid #e2e8f0; color: #374151; font-size: 12px; }
+                                        .table tr:nth-child(even) { background-color: #f8fafc; }
+                                        .summary-section { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 24px; padding-top: 16px; }
+                                        .authenticity-note { max-width: 400px; font-size: 11px; color: #6b7280; line-height: 1.6; border-left: 3px solid #C9A648; padding-left: 14px; }
+                                        .totals-box { width: 280px; }
+                                        .totals-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 12px; color: #4b5563; }
+                                        .totals-row.grand-total { border-top: 2px solid #C9A648; padding-top: 12px; margin-top: 8px; font-size: 15px; font-weight: 700; color: #171717; }
+                                        .grand-total-amount { color: #C9A648; }
+                                        .footer-stamp { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: 2px; }
+                                        @media print { body { padding: 0; background: none; } .invoice-card { border: none; box-shadow: none; padding: 0; max-width: 100%; } @page { margin: 15mm; } }
+                                      </style>
+                                    </head>
+                                    <body>
+                                      <div class="invoice-card">
+                                        <div class="header-bar">
+                                          <div class="logo-container">
+                                            <img src="${logoUrl}" alt="ELANTRAA" class="logo-img" onError="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                                            <div class="brand-fallback" style="display:none;">ELANTRAA</div>
+                                            <p style="font-size: 10px; color: #6b7280; margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">HAUTE COUTURE & LUXURY ATELIER</p>
+                                            <p style="font-size: 10px; color: #9ca3af; margin-top: 2px;">GSTIN: 27AAAAA0000A1Z5 • Reg. MH-400050</p>
+                                          </div>
+                                          <div class="invoice-badge">
+                                            <div class="invoice-title">TAX INVOICE</div>
+                                            <p style="font-size: 11px; color: #374151; font-weight: 700; margin-top: 4px; font-family: monospace;">INV-${order.id.toUpperCase()}</p>
+                                            <p style="font-size: 10px; color: #9ca3af; margin-top: 2px;">Date: ${order.date}</p>
+                                          </div>
                                         </div>
-                                        <div className="details">
-                                          <p><strong>Order ID:</strong> ${order.id}</p>
-                                          <p><strong>Date:</strong> ${order.date}</p>
-                                          <p><strong>Status:</strong> ${order.status}</p>
-                                          <p><strong>Customer Email:</strong> ${session?.user?.email}</p>
+
+                                        <div class="meta-grid">
+                                          <div class="meta-box">
+                                            <h4>BILLED TO / CUSTOMER DETAILS</h4>
+                                            <p><strong>Customer Name:</strong> ${userName}</p>
+                                            <p><strong>Customer Email:</strong> ${session?.user?.email}</p>
+                                            <p><strong>Payment Mode:</strong> Online Verified (Razorpay / UPI)</p>
+                                          </div>
+                                          <div class="meta-box">
+                                            <h4>ORDER & DISPATCH SUMMARY</h4>
+                                            <p><strong>Order Ref:</strong> ${order.id}</p>
+                                            <p><strong>Fulfillment Status:</strong> <span class="status-pill">${order.status}</span></p>
+                                            <p><strong>Courier Mode:</strong> ELANTRAA Express Atelier Delivery</p>
+                                          </div>
                                         </div>
-                                        <table className="table">
+
+                                        <table class="table">
                                           <thead>
                                             <tr>
-                                              <th>Description</th>
-                                              <th>Status</th>
-                                              <th>Total Paid</th>
+                                              <th style="width: 50px;">#</th>
+                                              <th>COUTURE ITEM DESCRIPTION</th>
+                                              <th style="text-align: center; width: 60px;">QTY</th>
+                                              <th style="text-align: right; width: 120px;">UNIT PRICE</th>
+                                              <th style="text-align: right; width: 120px;">AMOUNT</th>
                                             </tr>
                                           </thead>
                                           <tbody>
                                             <tr>
-                                              <td>${order.itemsSummary}</td>
-                                              <td>${order.status}</td>
-                                              <td>₹${order.totalAmount.toLocaleString("en-IN")}</td>
+                                              <td>01</td>
+                                              <td>
+                                                <strong style="color: #111827; font-family: 'Cinzel', serif; font-size: 13px;">${order.itemsSummary}</strong>
+                                                <br />
+                                                <span style="font-size: 10px; color: #6b7280;">Bespoke Organic Silk Silhouette with Gold Accent Embroidery</span>
+                                              </td>
+                                              <td style="text-align: center; font-weight: 600;">${order.itemsCount || 1}</td>
+                                              <td style="text-align: right;">₹${order.totalAmount.toLocaleString("en-IN")}</td>
+                                              <td style="text-align: right; font-weight: 700; color: #111827;">₹${order.totalAmount.toLocaleString("en-IN")}</td>
                                             </tr>
                                           </tbody>
                                         </table>
-                                        <script>window.print();</script>
-                                      </body>
+
+                                        <div class="summary-section">
+                                          <div class="authenticity-note">
+                                            <p style="font-weight: 700; color: #171717; margin-bottom: 4px; font-family: 'Cinzel', serif;">✦ ELANTRAA PROMISE OF AUTHENTICITY</p>
+                                            <p>Each piece is individually handcrafted from certified organic silk and precious threadwork. For care guidelines or support, connect with our Atelier Concierge at <strong>+91 9015342951</strong> or <strong>elantraa.01@gmail.com</strong>.</p>
+                                          </div>
+
+                                          <div class="totals-box">
+                                            <div class="totals-row">
+                                              <span>Subtotal</span>
+                                              <span>₹${order.totalAmount.toLocaleString("en-IN")}</span>
+                                            </div>
+                                            <div class="totals-row">
+                                              <span>Taxes (CGST 2.5% + SGST 2.5%)</span>
+                                              <span>Included</span>
+                                            </div>
+                                            <div class="totals-row">
+                                              <span>Express Courier Shipping</span>
+                                              <span style="color: #047857; font-weight: 700;">FREE</span>
+                                            </div>
+                                            <div class="totals-row grand-total">
+                                              <span>TOTAL PAID</span>
+                                              <span class="grand-total-amount">₹${order.totalAmount.toLocaleString("en-IN")}</span>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        <div class="footer-stamp">
+                                          ✦ COMPUTER GENERATED TAX INVOICE • NO PHYSICAL SIGNATURE REQUIRED • ELANTRAA LUXURY COUTURE ✦
+                                        </div>
+                                      </div>
+
+                                      <script>
+                                        window.onload = function() {
+                                          setTimeout(function() {
+                                            window.print();
+                                          }, 400);
+                                        };
+                                      </script>
+                                    </body>
                                     </html>
                                   `);
                                   printWin.document.close();
