@@ -517,35 +517,64 @@ export default function AdminPanel() {
             <>
               {activeTab === "dashboard" && (
                 <section className="space-y-6">
-                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+                  {/* 2-Column Mobile Grid for Metrics */}
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                    <Metric label="Total Revenue" value={formatMoney(metrics.totalRevenue, settings.currency)} className="col-span-2 sm:col-span-1 bg-amber-50/90 text-amber-950 border-amber-200/90" />
                     <Metric label="Total Orders" value={metrics.totalOrders} />
-                    <Metric label="Total Revenue" value={formatMoney(metrics.totalRevenue, settings.currency)} />
                     <Metric label="Total Products" value={metrics.totalProducts} />
                     <Metric label="Pending Orders" value={metrics.pendingOrders} tone="warning" />
-                    <Metric label="Low Stock Products" value={metrics.lowStockProducts} tone="danger" />
+                    <Metric label="Low Stock" value={metrics.lowStockProducts} tone="danger" />
                   </div>
-                  <Panel title="Recent Orders">
-                    <DataTable
-                      headers={["Order ID", "Customer", "Date", "Amount", "Payment", "Status", ""]}
-                      empty="No orders yet."
-                      rows={orders.slice(0, 6).map((order) => [
-                        shortId(order.id),
-                        order.customer?.name || "Customer",
-                        formatDate(order.createdAt),
-                        formatMoney(order.totalAmount, settings.currency),
-                        <StatusBadge key="payment" value={order.paymentStatus} />,
-                        <StatusBadge key="status" value={order.status} />,
-                        <button key="view" type="button" onClick={() => setOrderModal(order)} className="text-sm font-semibold text-[#9b7a1d]">View</button>,
-                      ])}
-                    />
+
+                  <Panel title="Recent Orders Overview" action={<button onClick={() => setActiveTab("orders")} className="text-xs font-bold text-[#9b7a1d] hover:underline uppercase tracking-wider">View All Orders &rarr;</button>}>
+                    {/* Desktop Data Table */}
+                    <div className="hidden md:block">
+                      <DataTable
+                        headers={["Order ID", "Customer", "Date", "Amount", "Payment", "Status", "Action"]}
+                        empty="No orders yet."
+                        rows={orders.slice(0, 6).map((order) => [
+                          shortId(order.id),
+                          order.customer?.name || "Customer",
+                          formatDate(order.createdAt),
+                          formatMoney(order.totalAmount, settings.currency),
+                          <StatusBadge key="payment" value={order.paymentStatus} />,
+                          <StatusBadge key="status" value={order.status} />,
+                          <button key="view" type="button" onClick={() => setOrderModal(order)} className="px-3 py-1.5 bg-slate-900 text-[#D4AF37] font-semibold rounded-md text-xs">Details</button>,
+                        ])}
+                      />
+                    </div>
+
+                    {/* Mobile 2-Column Native Grid Cards */}
+                    <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {orders.slice(0, 6).length ? (
+                        orders.slice(0, 6).map((order) => (
+                          <div key={order.id} className="bg-white rounded-xl p-3.5 border border-slate-200 shadow-sm space-y-2.5">
+                            <div className="flex items-center justify-between">
+                              <span className="font-mono font-bold text-slate-900 text-xs">{shortId(order.id)}</span>
+                              <StatusBadge value={order.status} />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-slate-900 text-xs">{order.customer?.name || "Guest Customer"}</p>
+                              <p className="text-[11px] text-slate-500">{formatDate(order.createdAt)}</p>
+                            </div>
+                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                              <span className="text-sm font-bold text-slate-950">{formatMoney(order.totalAmount, settings.currency)}</span>
+                              <button onClick={() => setOrderModal(order)} className="px-3 py-1.5 bg-slate-900 text-[#D4AF37] font-semibold rounded-md text-[11px]">Details</button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-6 text-center text-sm text-slate-500 col-span-2">No orders recorded yet.</div>
+                      )}
+                    </div>
                   </Panel>
                 </section>
               )}
 
               {activeTab === "products" && (
-                <Panel title="Products" action={<Button onClick={() => openProduct()}>Add Product</Button>}>
+                <Panel title="Products Catalogue" action={<div className="hidden sm:block"><Button onClick={() => openProduct()}>+ Add Product</Button></div>}>
                   <Toolbar>
-                    <SearchBar value={query} onChange={setQuery} placeholder="Search products or SKU" />
+                    <SearchBar value={query} onChange={setQuery} placeholder="Search products or SKU..." />
                     <Select value={categoryFilter} onChange={setCategoryFilter}>
                       <option value="all">All categories</option>
                       {categories.map((category) => <option key={category.id} value={category.name}>{category.name}</option>)}
@@ -556,94 +585,255 @@ export default function AdminPanel() {
                       <option value="draft">Draft</option>
                     </Select>
                   </Toolbar>
-                  <DataTable
-                    headers={["Product", "SKU", "Category", "Price", "Stock", "Returns", "Status", ""]}
-                    empty="No products match your filters."
-                    rows={visibleProducts.map((product) => [
-                      <ProductCell key="product" product={product} />,
-                      product.sku || "-",
-                      product.category,
-                      formatMoney(product.discountPrice || product.price, settings.currency),
-                      product.stock,
-                      <StatusBadge key="returns" value={product.isReturnable === false ? "Non-Returnable" : "Returnable"} />,
-                      <StatusBadge key="status" value={product.isActive === false ? "Draft" : "Active"} />,
-                      <RowActions key="actions" onEdit={() => openProduct(product)} onDelete={() => deleteProduct(product)} />,
-                    ])}
-                  />
+
+                  {/* Desktop Data Table */}
+                  <div className="hidden md:block">
+                    <DataTable
+                      headers={["Product", "SKU", "Category", "Price", "Stock", "Returns", "Status", "Actions"]}
+                      empty="No products match your filters."
+                      rows={visibleProducts.map((product) => [
+                        <ProductCell key="product" product={product} />,
+                        product.sku || "-",
+                        product.category,
+                        formatMoney(product.discountPrice || product.price, settings.currency),
+                        product.stock,
+                        <StatusBadge key="returns" value={product.isReturnable === false ? "Non-Returnable" : "Returnable"} />,
+                        <StatusBadge key="status" value={product.isActive === false ? "Draft" : "Active"} />,
+                        <RowActions key="actions" onEdit={() => openProduct(product)} onDelete={() => deleteProduct(product)} />,
+                      ])}
+                    />
+                  </div>
+
+                  {/* Mobile Android App Native Product Cards */}
+                  <div className="md:hidden space-y-3">
+                    {visibleProducts.length ? (
+                      visibleProducts.map((product) => (
+                        <div key={product.id} className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className="relative h-14 w-14 overflow-hidden rounded-lg bg-slate-100 shrink-0 border border-slate-200">
+                                <Image src={product.images[0] || "/images/collections/dresses.png"} alt={product.name} fill className="object-cover" />
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-slate-900 text-sm leading-snug">{product.name}</h3>
+                                <p className="text-xs text-slate-500 font-mono mt-0.5">{product.sku || product.category}</p>
+                                <p className="text-sm font-bold text-[#9b7a1d] mt-1">{formatMoney(product.discountPrice || product.price, settings.currency)}</p>
+                              </div>
+                            </div>
+                            <StatusBadge value={product.isActive === false ? "Draft" : "Active"} />
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                            <span className={`font-semibold ${product.stock <= 5 ? "text-amber-600" : "text-slate-600"}`}>
+                              Stock: {product.stock} pcs
+                            </span>
+                            <div className="flex gap-2">
+                              <button onClick={() => openProduct(product)} className="px-3 py-1.5 bg-slate-900 text-[#D4AF37] font-semibold rounded-md text-xs">Edit</button>
+                              <button onClick={() => deleteProduct(product)} className="px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 font-semibold rounded-md text-xs">Delete</button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-8 text-center text-sm text-slate-500 bg-white rounded-xl border border-slate-200">No products found.</div>
+                    )}
+                  </div>
+
                   <Pagination page={page} total={filteredProducts.length} pageSize={pageSize} onPageChange={setPage} />
                 </Panel>
               )}
 
               {activeTab === "categories" && (
-                <Panel title="Categories" action={<Button onClick={() => openCategory()}>Add Category</Button>}>
-                  <Toolbar><SearchBar value={query} onChange={setQuery} placeholder="Search categories" /></Toolbar>
-                  <DataTable
-                    headers={["Category", "Products", "Status", ""]}
-                    empty="No categories found."
-                    rows={visibleCategories.map((category) => [
-                      <CategoryCell key="category" category={category} />,
-                      category.productsCount || 0,
-                      <StatusBadge key="status" value={category.isActive === false ? "Draft" : "Active"} />,
-                      <RowActions key="actions" onEdit={() => openCategory(category)} onDelete={() => deleteCategory(category)} />,
-                    ])}
-                  />
+                <Panel title="Categories" action={<div className="hidden sm:block"><Button onClick={() => openCategory()}>+ Add Category</Button></div>}>
+                  <Toolbar><SearchBar value={query} onChange={setQuery} placeholder="Search categories..." /></Toolbar>
+                  
+                  {/* Desktop Data Table */}
+                  <div className="hidden md:block">
+                    <DataTable
+                      headers={["Category", "Products", "Status", "Actions"]}
+                      empty="No categories found."
+                      rows={visibleCategories.map((category) => [
+                        <CategoryCell key="category" category={category} />,
+                        category.productsCount || 0,
+                        <StatusBadge key="status" value={category.isActive === false ? "Draft" : "Active"} />,
+                        <RowActions key="actions" onEdit={() => openCategory(category)} onDelete={() => deleteCategory(category)} />,
+                      ])}
+                    />
+                  </div>
+
+                  {/* Mobile Android Native Category Cards */}
+                  <div className="md:hidden space-y-3">
+                    {visibleCategories.length ? (
+                      visibleCategories.map((category) => (
+                        <div key={category.id} className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+                          <CategoryCell category={category} />
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => openCategory(category)} className="px-3 py-1.5 bg-slate-900 text-[#D4AF37] font-semibold rounded-md text-xs">Edit</button>
+                            <button onClick={() => deleteCategory(category)} className="px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 font-semibold rounded-md text-xs">Delete</button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-8 text-center text-sm text-slate-500 bg-white rounded-xl border border-slate-200">No categories found.</div>
+                    )}
+                  </div>
+
                   <Pagination page={page} total={filteredCategories.length} pageSize={pageSize} onPageChange={setPage} />
                 </Panel>
               )}
 
               {activeTab === "inventory" && (
-                <Panel title="Inventory">
-                  <Toolbar><SearchBar value={query} onChange={setQuery} placeholder="Search inventory" /></Toolbar>
-                  <DataTable
-                    headers={["Product", "Stock Quantity", "Low Stock", "Update"]}
-                    empty="No inventory records found."
-                    rows={visibleInventory.map((product) => [
-                      <ProductCell key="product" product={product} />,
-                      product.stock,
-                      <StatusBadge key="low" value={product.stock <= 5 ? "Low Stock" : "In Stock"} />,
-                      <StockEditor key="stock" value={product.stock} onSave={(stock) => updateStock(product, stock)} />,
-                    ])}
-                  />
+                <Panel title="Inventory Stock Management">
+                  <Toolbar><SearchBar value={query} onChange={setQuery} placeholder="Search inventory stock..." /></Toolbar>
+                  
+                  {/* Desktop Data Table */}
+                  <div className="hidden md:block">
+                    <DataTable
+                      headers={["Product", "Stock Quantity", "Low Stock", "Update Stock"]}
+                      empty="No inventory records found."
+                      rows={visibleInventory.map((product) => [
+                        <ProductCell key="product" product={product} />,
+                        product.stock,
+                        <StatusBadge key="low" value={product.stock <= 5 ? "Low Stock" : "In Stock"} />,
+                        <StockEditor key="stock" value={product.stock} onSave={(stock) => updateStock(product, stock)} />,
+                      ])}
+                    />
+                  </div>
+
+                  {/* Mobile Android Native Inventory Cards */}
+                  <div className="md:hidden space-y-3">
+                    {visibleInventory.length ? (
+                      visibleInventory.map((product) => (
+                        <div key={product.id} className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3">
+                          <div className="flex items-center justify-between">
+                            <ProductCell product={product} />
+                            <StatusBadge value={product.stock <= 5 ? "Low Stock" : "In Stock"} />
+                          </div>
+                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                            <span className="text-xs text-slate-500">Quick Adjust Stock:</span>
+                            <StockEditor value={product.stock} onSave={(stock) => updateStock(product, stock)} />
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-8 text-center text-sm text-slate-500 bg-white rounded-xl border border-slate-200">No inventory records found.</div>
+                    )}
+                  </div>
+
                   <Pagination page={page} total={inventoryProducts.length} pageSize={pageSize} onPageChange={setPage} />
                 </Panel>
               )}
 
               {activeTab === "orders" && (
-                <Panel title="Orders">
-                  <Toolbar><SearchBar value={query} onChange={setQuery} placeholder="Search orders, customers, status" /></Toolbar>
-                  <DataTable
-                    headers={["Order ID", "Customer", "Date", "Amount", "Payment", "Order Status", ""]}
-                    empty="No orders found."
-                    rows={visibleOrders.map((order) => [
-                      shortId(order.id),
-                      order.customer?.name || "Customer",
-                      formatDate(order.createdAt),
-                      formatMoney(order.totalAmount, settings.currency),
-                      <StatusBadge key="payment" value={order.paymentStatus} />,
-                      <OrderStatusSelect key="status" value={order.status} onChange={(value) => updateOrderStatus(order, value)} />,
-                      <button key="view" type="button" onClick={() => setOrderModal(order)} className="text-sm font-semibold text-[#9b7a1d]">Details</button>,
-                    ])}
-                  />
+                <Panel title="Customer Orders Management">
+                  <Toolbar><SearchBar value={query} onChange={setQuery} placeholder="Search orders, customer names, status..." /></Toolbar>
+                  
+                  {/* Desktop Data Table */}
+                  <div className="hidden md:block">
+                    <DataTable
+                      headers={["Order ID", "Customer", "Date", "Amount", "Payment", "Order Status", "Actions"]}
+                      empty="No orders found."
+                      rows={visibleOrders.map((order) => [
+                        shortId(order.id),
+                        order.customer?.name || "Customer",
+                        formatDate(order.createdAt),
+                        formatMoney(order.totalAmount, settings.currency),
+                        <StatusBadge key="payment" value={order.paymentStatus} />,
+                        <OrderStatusSelect key="status" value={order.status} onChange={(value) => updateOrderStatus(order, value)} />,
+                        <button key="view" type="button" onClick={() => setOrderModal(order)} className="px-3 py-1.5 bg-slate-900 text-[#D4AF37] font-semibold rounded-md text-xs">Details</button>,
+                      ])}
+                    />
+                  </div>
+
+                  {/* Mobile Android Native Order Cards */}
+                  <div className="md:hidden space-y-3">
+                    {visibleOrders.length ? (
+                      visibleOrders.map((order) => (
+                        <div key={order.id} className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3">
+                          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <div>
+                              <span className="font-mono font-bold text-slate-900 text-xs">{shortId(order.id)}</span>
+                              <p className="text-[11px] text-slate-500">{formatDate(order.createdAt)}</p>
+                            </div>
+                            <StatusBadge value={order.status} />
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <div>
+                              <p className="font-semibold text-slate-800">{order.customer?.name || "Guest Customer"}</p>
+                              <p className="text-slate-500 text-[11px]">{order.customer?.email}</p>
+                            </div>
+                            <p className="text-base font-bold text-slate-950">{formatMoney(order.totalAmount, settings.currency)}</p>
+                          </div>
+                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                            <OrderStatusSelect value={order.status} onChange={(value) => updateOrderStatus(order, value)} />
+                            <button onClick={() => setOrderModal(order)} className="px-4 py-2 bg-slate-900 text-[#D4AF37] font-semibold rounded-lg text-xs shadow-sm">Details</button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-8 text-center text-sm text-slate-500 bg-white rounded-xl border border-slate-200">No orders found.</div>
+                    )}
+                  </div>
+
                   <Pagination page={page} total={filteredOrders.length} pageSize={pageSize} onPageChange={setPage} />
                 </Panel>
               )}
 
               {activeTab === "customers" && (
-                <Panel title="Customers">
-                  <Toolbar><SearchBar value={query} onChange={setQuery} placeholder="Search customers" /></Toolbar>
-                  <DataTable
-                    headers={["Name", "Email", "Phone", "Total Orders", ""]}
-                    empty="No customers found."
-                    rows={visibleCustomers.map((customer) => [
-                      customer.name,
-                      customer.email,
-                      customer.phone || "-",
-                      customer._count?.orders || 0,
-                      <button key="view" type="button" onClick={() => setCustomerModal(customer)} className="text-sm font-semibold text-[#9b7a1d]">View</button>,
-                    ])}
-                  />
+                <Panel title="Customer Accounts">
+                  <Toolbar><SearchBar value={query} onChange={setQuery} placeholder="Search customer accounts..." /></Toolbar>
+                  
+                  {/* Desktop Data Table */}
+                  <div className="hidden md:block">
+                    <DataTable
+                      headers={["Name", "Email", "Phone", "Total Orders", "Actions"]}
+                      empty="No customers found."
+                      rows={visibleCustomers.map((customer) => [
+                        customer.name,
+                        customer.email,
+                        customer.phone || "-",
+                        customer._count?.orders || 0,
+                        <button key="view" type="button" onClick={() => setCustomerModal(customer)} className="px-3 py-1.5 bg-slate-900 text-[#D4AF37] font-semibold rounded-md text-xs">View Profile</button>,
+                      ])}
+                    />
+                  </div>
+
+                  {/* Mobile Android Native Customer Cards */}
+                  <div className="md:hidden space-y-3">
+                    {visibleCustomers.length ? (
+                      visibleCustomers.map((customer) => (
+                        <div key={customer.id} className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-slate-900 text-[#D4AF37] font-bold flex items-center justify-center text-sm shrink-0">
+                              {customer.name?.[0]?.toUpperCase() || "U"}
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-slate-900 text-xs">{customer.name}</h4>
+                              <p className="text-[11px] text-slate-500">{customer.email}</p>
+                              <span className="text-[10px] text-slate-400 font-semibold">{customer._count?.orders || 0} Orders</span>
+                            </div>
+                          </div>
+                          <button onClick={() => setCustomerModal(customer)} className="px-3 py-1.5 bg-slate-900 text-[#D4AF37] font-semibold rounded-md text-xs">View</button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-8 text-center text-sm text-slate-500 bg-white rounded-xl border border-slate-200">No customers found.</div>
+                    )}
+                  </div>
+
                   <Pagination page={page} total={filteredCustomers.length} pageSize={pageSize} onPageChange={setPage} />
                 </Panel>
+              )}
+
+              {/* Mobile Android Floating Action Button (FAB) */}
+              {(activeTab === "products" || activeTab === "categories") && (
+                <button
+                  type="button"
+                  onClick={() => (activeTab === "products" ? openProduct() : openCategory())}
+                  className="lg:hidden fixed bottom-20 right-4 z-40 w-14 h-14 bg-gradient-to-r from-[#D4AF37] via-[#C9A648] to-[#AA771C] text-slate-950 rounded-full shadow-2xl flex items-center justify-center font-bold text-2xl active:scale-95 transition-transform border border-amber-300/40"
+                  aria-label="Add New Item"
+                >
+                  +
+                </button>
               )}
 
               {activeTab === "settings" && (
@@ -844,11 +1034,11 @@ function AdminShell({
   setMobileNavOpen: (value: boolean) => void;
 }) {
   const sidebar = (
-    <aside className="flex h-full w-64 flex-col border-r border-slate-200 bg-slate-950 text-white">
+    <aside className="flex h-full w-64 flex-col border-r border-slate-800 bg-slate-950 text-white">
       <div className="flex h-16 items-center border-b border-white/10 px-5">
         <div>
           <p className="text-lg font-serif tracking-[0.18em] text-[#D4AF37]">ELANTRAA</p>
-          <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400">Admin Panel</p>
+          <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400">Admin Control Panel</p>
         </div>
       </div>
       <nav className="flex-1 space-y-1 p-3">
@@ -860,29 +1050,99 @@ function AdminShell({
               setActiveTab(item.id);
               setMobileNavOpen(false);
             }}
-            className={`w-full rounded-md px-3 py-2.5 text-left text-sm font-medium transition ${
-              activeTab === item.id ? "bg-[#D4AF37] text-slate-950" : "text-slate-300 hover:bg-white/10 hover:text-white"
+            className={`w-full rounded-lg px-3.5 py-2.5 text-left text-sm font-medium transition-all ${
+              activeTab === item.id ? "bg-[#D4AF37] text-slate-950 font-semibold shadow-md" : "text-slate-300 hover:bg-white/10 hover:text-white"
             }`}
           >
             {item.label}
           </button>
         ))}
       </nav>
-      <button type="button" onClick={() => signOut({ callbackUrl: "/login" })} className="m-3 rounded-md border border-white/15 px-3 py-2.5 text-left text-sm font-medium text-slate-300 hover:bg-white/10">
+      <button type="button" onClick={() => signOut({ callbackUrl: "/login" })} className="m-3 rounded-lg border border-white/15 px-3 py-2.5 text-left text-sm font-medium text-slate-300 hover:bg-white/10">
         Logout
       </button>
     </aside>
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
+    <div className="min-h-screen bg-slate-100 text-slate-950 pb-20 lg:pb-0">
       <div className="fixed inset-y-0 left-0 z-30 hidden lg:block">{sidebar}</div>
       {mobileNavOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <button className="absolute inset-0 bg-black/40" onClick={() => setMobileNavOpen(false)} aria-label="Close menu" />
+          <button className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileNavOpen(false)} aria-label="Close menu" />
           <div className="relative h-full">{sidebar}</div>
         </div>
       )}
+
+      {/* Android Native Bottom Navigation Bar (Mobile / Tablet) */}
+      <nav className="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-slate-950 border-t border-slate-800 shadow-2xl flex items-center justify-around h-16 px-1">
+        {[
+          {
+            id: "dashboard" as Tab,
+            label: "Overview",
+            icon: (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+            ),
+          },
+          {
+            id: "products" as Tab,
+            label: "Products",
+            icon: (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            ),
+          },
+          {
+            id: "orders" as Tab,
+            label: "Orders",
+            icon: (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            ),
+          },
+          {
+            id: "categories" as Tab,
+            label: "Category",
+            icon: (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            ),
+          },
+          {
+            id: "settings" as Tab,
+            label: "Settings",
+            icon: (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              </svg>
+            ),
+          },
+        ].map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex flex-col items-center justify-center flex-1 h-full px-1 transition-all ${
+                isActive ? "text-[#D4AF37]" : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <div className={`p-1 rounded-full ${isActive ? "bg-[#D4AF37]/15" : ""}`}>
+                {tab.icon}
+              </div>
+              <span className={`text-[10px] font-medium tracking-tight ${isActive ? "font-bold text-[#D4AF37]" : ""}`}>
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
+
       <div className="lg:pl-64">{children}</div>
     </div>
   );
@@ -944,13 +1204,20 @@ function Pagination({ page, total, pageSize, onPageChange }: { page: number; tot
 
 function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white shadow-2xl">
-        <div className="sticky top-0 flex items-center justify-between border-b border-slate-200 bg-white p-4">
-          <h3 className="text-lg font-semibold">{title}</h3>
-          <button type="button" onClick={onClose} className="rounded-md border border-slate-200 px-2 py-1 text-sm">Close</button>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+      <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-white shadow-2xl animate-in slide-in-from-bottom duration-200">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-slate-950 text-white p-4 rounded-t-2xl sm:rounded-t-2xl">
+          <div className="flex items-center space-x-2">
+            <span className="w-1.5 h-4 bg-[#D4AF37] rounded-full"></span>
+            <h3 className="text-base font-semibold">{title}</h3>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-full bg-slate-800 p-1.5 text-slate-300 hover:text-white transition-colors">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-        <div className="p-4">{children}</div>
+        <div className="p-4 sm:p-6">{children}</div>
       </div>
     </div>
   );
@@ -1026,12 +1293,13 @@ function Field({ label, value, onChange, type = "text", required = false }: { la
   );
 }
 
-function Metric({ label, value, tone = "default" }: { label: string; value: string | number; tone?: "default" | "warning" | "danger" }) {
+function Metric({ label, value, tone = "default", className = "" }: { label: string; value: string | number; tone?: "default" | "warning" | "danger"; className?: string }) {
   const color = tone === "danger" ? "text-rose-600" : tone === "warning" ? "text-amber-600" : "text-slate-950";
+  const borderTone = tone === "danger" ? "border-rose-200 bg-rose-50/40" : tone === "warning" ? "border-amber-200 bg-amber-50/40" : "border-slate-200 bg-white";
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</p>
-      <p className={`mt-2 text-2xl font-semibold ${color}`}>{value}</p>
+    <div className={`rounded-xl border p-3.5 sm:p-4 shadow-sm transition-all ${borderTone} ${className}`}>
+      <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 truncate">{label}</p>
+      <p className={`mt-1.5 text-lg sm:text-2xl font-bold font-sans ${color} tracking-tight`}>{value}</p>
     </div>
   );
 }
