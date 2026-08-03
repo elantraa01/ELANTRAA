@@ -144,6 +144,7 @@ export default function CheckoutPage() {
       },
       items,
       totalAmount: total,
+      promoCode,
       paymentMethod: formData.paymentMethod,
     };
 
@@ -175,7 +176,8 @@ export default function CheckoutPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            amount: total,
+            items,
+            promoCode,
             currency: "INR",
             receipt: `rcpt_${Date.now()}`,
           }),

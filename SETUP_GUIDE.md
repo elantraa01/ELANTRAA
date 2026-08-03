@@ -116,7 +116,17 @@ SMTP_PORT="587"
 SMTP_USER="your_smtp_username"
 SMTP_PASS="your_smtp_password"
 EMAIL_FROM="ELANTRAA Concierge <elantraa.01@gmail.com>"
+
+# Persistent Upload Storage (Cloudinary)
+CLOUDINARY_CLOUD_NAME="your_cloudinary_cloud_name"
+CLOUDINARY_UPLOAD_PRESET="your_unsigned_upload_preset"
+# Or use signed uploads instead:
+# CLOUDINARY_API_KEY="your_cloudinary_api_key"
+# CLOUDINARY_API_SECRET="your_cloudinary_api_secret"
 ```
+
+Production uploads require persistent storage. If Cloudinary is not configured,
+the admin upload button will ask you to paste an externally hosted image URL instead.
 
 ---
 

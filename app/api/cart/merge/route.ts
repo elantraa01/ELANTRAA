@@ -3,6 +3,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 
+function isValidGuestId(guestId: unknown): guestId is string {
+  return typeof guestId === "string" && /^guest_[a-zA-Z0-9_-]{8,80}$/.test(guestId);
+}
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -84,7 +88,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Clean up guest DB cart if exists
-    if (guestId) {
+    if (guestId && isValidGuestId(guestId)) {
       const guestCart = await prisma.cart.findUnique({ where: { guestId } });
       if (guestCart) {
         await prisma.cart.delete({ where: { id: guestCart.id } });

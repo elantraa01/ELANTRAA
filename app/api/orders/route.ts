@@ -4,6 +4,29 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 import { sendOrderConfirmationEmail } from "@/lib/email";
+import { getCouponDiscount } from "@/lib/coupons";
+
+type IncomingOrderItem = {
+  productId?: string;
+  size?: string;
+  color?: string;
+  quantity?: number;
+};
+
+type PricedOrderItem = {
+  productId: string;
+  name: string;
+  size: string;
+  color: string;
+  quantity: number;
+  price: number;
+};
+
+function getOrderQuantity(quantity: unknown) {
+  const parsed = Number(quantity || 1);
+  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 99) return null;
+  return parsed;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,7 +44,7 @@ export async function POST(req: NextRequest) {
       userEmail,
       shippingAddress,
       items,
-      totalAmount,
+      promoCode,
       paymentMethod = "COD",
       razorpay_payment_id,
       razorpay_order_id,
@@ -96,86 +119,151 @@ export async function POST(req: NextRequest) {
       console.warn("User lookup / address creation warning in order API:", userErr);
     }
 
-    // 1. Create Order in Database
-    let orderId = `ELN-2026-${Math.floor(100000 + Math.random() * 900000)}`;
-    try {
-      if (!orderUserId) {
-        return NextResponse.json(
-          { error: "A customer email is required to place an order." },
-          { status: 400 }
-        );
+    if (!orderUserId) {
+      return NextResponse.json(
+        { error: "A customer email is required to place an order." },
+        { status: 400 }
+      );
+    }
+
+    const normalizedItems = new Map<string, IncomingOrderItem & { quantity: number }>();
+    for (const item of items as IncomingOrderItem[]) {
+      if (!item.productId) {
+        return NextResponse.json({ error: "Every order item must include a productId." }, { status: 400 });
       }
 
-      const dbOrder = await prisma.order.create({
-        data: {
-          userId: orderUserId,
-          totalAmount: totalAmount || 0,
-          status: "CONFIRMED",
-          paymentStatus: paymentMethod === "COD" ? "PENDING" : "PAID",
-          shippingAddress: shippingAddress,
+      const quantity = getOrderQuantity(item.quantity);
+      if (!quantity) {
+        return NextResponse.json({ error: "Order item quantity must be between 1 and 99." }, { status: 400 });
+      }
+
+      const size = item.size || "M";
+      const color = item.color || "Default";
+      const key = `${item.productId}:${size}:${color}`;
+      const existing = normalizedItems.get(key);
+
+      normalizedItems.set(key, {
+        productId: item.productId,
+        size,
+        color,
+        quantity: (existing?.quantity || 0) + quantity,
+      });
+    }
+
+    const orderLines = Array.from(normalizedItems.values());
+    const productIds = Array.from(new Set(orderLines.map((item) => item.productId!)));
+
+    const orderSummary = await prisma.$transaction(async (tx) => {
+      const products = await tx.product.findMany({
+        where: {
+          id: { in: productIds },
+          isActive: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          price: true,
+          discountPrice: true,
+          stock: true,
         },
       });
-      orderId = dbOrder.id;
 
-      // 2. Create OrderItems & Decrement Product Stock in DB
-      for (const item of items) {
-        if (item.productId) {
-          const productExists = await prisma.product.findUnique({
-            where: { id: item.productId },
-          });
+      const productsById = new Map(products.map((product) => [product.id, product]));
+      const pricedItems: PricedOrderItem[] = [];
 
-          if (productExists) {
-            // Create OrderItem
-            await prisma.orderItem.create({
-              data: {
-                orderId: dbOrder.id,
-                productId: item.productId,
-                size: item.size || "M",
-                color: item.color || "Default",
-                quantity: item.quantity || 1,
-                price: item.price || 0,
-              },
-            });
+      for (const item of orderLines) {
+        const product = productsById.get(item.productId!);
+        if (!product) {
+          throw new Error("One or more products are no longer available.");
+        }
 
-            // Decrement Stock
-            await prisma.product.update({
-              where: { id: item.productId },
-              data: {
-                stock: {
-                  decrement: Math.min(productExists.stock, item.quantity || 1),
-                },
-              },
-            });
-          }
+        if (product.stock < item.quantity) {
+          throw new Error(`${product.name} has only ${product.stock} item(s) left in stock.`);
+        }
+
+        pricedItems.push({
+          productId: product.id,
+          name: product.name,
+          size: item.size || "M",
+          color: item.color || "Default",
+          quantity: item.quantity,
+          price: Number(product.discountPrice ?? product.price),
+        });
+      }
+
+      const subtotal = pricedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      const settings = await tx.storeSetting.findUnique({ where: { id: "default" } });
+      const shippingCharge = subtotal > 5000 || subtotal === 0 ? 0 : Number(settings?.shippingCharge || 0);
+      const couponDiscount = await getCouponDiscount(promoCode, subtotal);
+      const promoDiscount = couponDiscount?.discountAmount || 0;
+      const recalculatedTotal = Math.max(0, subtotal - promoDiscount + shippingCharge);
+
+      for (const item of pricedItems) {
+        const stockUpdate = await tx.product.updateMany({
+          where: {
+            id: item.productId,
+            stock: { gte: item.quantity },
+          },
+          data: {
+            stock: {
+              decrement: item.quantity,
+            },
+          },
+        });
+
+        if (stockUpdate.count !== 1) {
+          throw new Error(`${item.name} is no longer available in the requested quantity.`);
         }
       }
-    } catch (dbErr) {
-      console.warn("DB Order saving warning (using fallback mock order ID):", dbErr);
-    }
+
+      const dbOrder = await tx.order.create({
+        data: {
+          userId: orderUserId,
+          totalAmount: recalculatedTotal,
+          status: "CONFIRMED",
+          paymentStatus: paymentMethod === "COD" ? "PENDING" : "PAID",
+          shippingAddress: {
+            ...shippingAddress,
+            pricing: {
+              subtotal,
+              promoCode: couponDiscount?.code || null,
+              promoDiscount,
+              shippingCharge,
+            },
+          },
+          items: {
+            create: pricedItems.map((item) => ({
+              productId: item.productId,
+              size: item.size,
+              color: item.color,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+          },
+        },
+      });
+
+      return {
+        orderId: dbOrder.id,
+        totalAmount: recalculatedTotal,
+        items: pricedItems,
+      };
+    });
 
     // 3. Send Order Confirmation Email using Nodemailer/Resend
     await sendOrderConfirmationEmail({
-      orderId,
+      orderId: orderSummary.orderId,
       customerName: shippingAddress.fullName || "Valued Client",
       customerEmail: shippingAddress.email || userEmail,
-      totalAmount: totalAmount || 0,
+      totalAmount: orderSummary.totalAmount,
       paymentMethod,
-      items: items.map(
-        (i: {
-          name: string;
-          size?: string;
-          color?: string;
-          quantity: number;
-          price: number;
-          discountPrice?: number | null;
-        }) => ({
-          name: i.name,
-          size: i.size,
-          color: i.color,
-          quantity: i.quantity,
-          price: i.discountPrice || i.price,
-        })
-      ),
+      items: orderSummary.items.map((item) => ({
+        name: item.name,
+        size: item.size,
+        color: item.color,
+        quantity: item.quantity,
+        price: item.price,
+      })),
       shippingAddress: {
         line1: shippingAddress.line1,
         line2: shippingAddress.line2,
@@ -188,7 +276,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      orderId,
+      orderId: orderSummary.orderId,
+      totalAmount: orderSummary.totalAmount,
       message: "Order placed, stock decremented, and confirmation email sent successfully.",
     });
   } catch (error) {

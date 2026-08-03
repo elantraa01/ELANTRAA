@@ -4,7 +4,7 @@ import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-type Tab = "dashboard" | "products" | "categories" | "inventory" | "orders" | "customers" | "settings";
+type Tab = "dashboard" | "products" | "categories" | "inventory" | "orders" | "customers" | "hero" | "coupons" | "settings";
 type Status = "idle" | "loading" | "error" | "ready";
 type OrderStatus = "PENDING" | "CONFIRMED" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
 
@@ -85,6 +85,30 @@ type Settings = {
   taxPercentage: number;
 };
 
+type HeroBannerData = {
+  announcement: string;
+  tagline: string;
+  title: string;
+  highlight: string;
+  description: string;
+  buttonText: string;
+  buttonLink: string;
+  bgImage: string;
+  bgVideo?: string | null;
+};
+
+type Coupon = {
+  id: string;
+  code: string;
+  type: "percentage" | "fixed";
+  value: number;
+  minSpend?: number | null;
+  isActive: boolean;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  createdAt?: string;
+};
+
 type Toast = { type: "success" | "error"; message: string } | null;
 type ConfirmState = { title: string; message: string; onConfirm: () => void } | null;
 
@@ -95,6 +119,8 @@ const navItems: { id: Tab; label: string }[] = [
   { id: "inventory", label: "Inventory" },
   { id: "orders", label: "Orders" },
   { id: "customers", label: "Customers" },
+  { id: "hero", label: "Hero Banner" },
+  { id: "coupons", label: "Promocodes" },
   { id: "settings", label: "Settings" },
 ];
 
@@ -121,6 +147,29 @@ const emptyCategory = {
   isActive: true,
 };
 
+const emptyHero: HeroBannerData = {
+  announcement: "COMPLIMENTARY WORLDWIDE EXPRESS SHIPPING ON ORDERS ABOVE ₹5,000",
+  tagline: "AUTUMN / WINTER 2026 COLLECTION",
+  title: "ELANTRAA",
+  highlight: "& Timeless Elegance",
+  description:
+    "Immerse yourself in handcrafted silk gowns, tailored silhouettes, and intricate metallic embroidery designed for the discerning individual.",
+  buttonText: "Explore Collection",
+  buttonLink: "/shop",
+  bgImage: "/images/hero/hero_banner.png",
+  bgVideo: "",
+};
+
+const emptyCoupon = {
+  code: "",
+  type: "percentage" as const,
+  value: "",
+  minSpend: "",
+  isActive: true,
+  startsAt: "",
+  endsAt: "",
+};
+
 export default function AdminPanel() {
   const { data: session, status: authStatus } = useSession();
   const role = (session?.user as { role?: string } | undefined)?.role;
@@ -135,6 +184,8 @@ export default function AdminPanel() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [heroForm, setHeroForm] = useState<HeroBannerData>(emptyHero);
   const [settings, setSettings] = useState<Settings>({
     storeName: "ELANTRAA",
     storeLogo: "/images/logo/logo.png",
@@ -152,8 +203,10 @@ export default function AdminPanel() {
   const [categoryModal, setCategoryModal] = useState<{ open: boolean; id?: string }>({ open: false });
   const [orderModal, setOrderModal] = useState<Order | null>(null);
   const [customerModal, setCustomerModal] = useState<Customer | null>(null);
+  const [couponModal, setCouponModal] = useState<{ open: boolean; id?: string }>({ open: false });
   const [productForm, setProductForm] = useState(emptyProduct);
   const [categoryForm, setCategoryForm] = useState(emptyCategory);
+  const [couponForm, setCouponForm] = useState(emptyCoupon);
   const [settingsForm, setSettingsForm] = useState(settings);
   const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "" });
 
@@ -181,12 +234,14 @@ export default function AdminPanel() {
     setStatus("loading");
     setError("");
     try {
-      const [productData, categoryData, orderData, customerData, settingsData] = await Promise.all([
+      const [productData, categoryData, orderData, customerData, settingsData, heroData, couponData] = await Promise.all([
         request<{ products: Product[] }>("/api/admin/products"),
         request<{ categories: Category[] }>("/api/admin/categories"),
         request<{ orders: Order[] }>("/api/admin/orders"),
         request<{ users: Customer[] }>("/api/admin/customers"),
         request<{ settings: Settings }>("/api/admin/settings"),
+        request<{ hero: HeroBannerData }>("/api/admin/hero"),
+        request<{ coupons: Coupon[] }>("/api/admin/coupons"),
       ]);
       setProducts(productData.products || []);
       setCategories(categoryData.categories || []);
@@ -194,6 +249,8 @@ export default function AdminPanel() {
       setCustomers(customerData.users || []);
       setSettings(settingsData.settings);
       setSettingsForm(settingsData.settings);
+      setHeroForm({ ...emptyHero, ...(heroData.hero || {}) });
+      setCoupons(couponData.coupons || []);
       setStatus("ready");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load admin data");
@@ -266,6 +323,11 @@ export default function AdminPanel() {
     [customers, query]
   );
 
+  const filteredCoupons = useMemo(
+    () => coupons.filter((coupon) => [coupon.code, coupon.type].join(" ").toLowerCase().includes(query.toLowerCase())),
+    [coupons, query]
+  );
+
   const inventoryProducts = useMemo(
     () => products.filter((product) => [product.name, product.sku].join(" ").toLowerCase().includes(query.toLowerCase())),
     [products, query]
@@ -275,6 +337,7 @@ export default function AdminPanel() {
   const visibleCategories = paginate(filteredCategories, page, pageSize);
   const visibleOrders = paginate(filteredOrders, page, pageSize);
   const visibleCustomers = paginate(filteredCustomers, page, pageSize);
+  const visibleCoupons = paginate(filteredCoupons, page, pageSize);
   const visibleInventory = paginate(inventoryProducts, page, pageSize);
 
   function openProduct(product?: Product) {
@@ -403,6 +466,91 @@ export default function AdminPanel() {
           notify("success", "Category deleted.");
         } catch (err) {
           notify("error", err instanceof Error ? err.message : "Unable to delete category.");
+        }
+      },
+    });
+  }
+
+  function openCoupon(coupon?: Coupon) {
+    setCouponModal({ open: true, id: coupon?.id });
+    setCouponForm(
+      coupon
+        ? {
+            code: coupon.code,
+            type: coupon.type,
+            value: String(coupon.value),
+            minSpend: coupon.minSpend ? String(coupon.minSpend) : "",
+            isActive: coupon.isActive !== false,
+            startsAt: toDateInputValue(coupon.startsAt),
+            endsAt: toDateInputValue(coupon.endsAt),
+          }
+        : emptyCoupon
+    );
+  }
+
+  async function saveHero(e: React.FormEvent) {
+    e.preventDefault();
+    if (!heroForm.title.trim() || !heroForm.bgImage.trim()) {
+      notify("error", "Hero title and background image are required.");
+      return;
+    }
+
+    try {
+      const data = await request<{ hero: HeroBannerData }>("/api/admin/hero", {
+        method: "PATCH",
+        body: JSON.stringify(heroForm),
+      });
+      setHeroForm({ ...emptyHero, ...data.hero });
+      notify("success", "Hero banner updated.");
+    } catch (err) {
+      notify("error", err instanceof Error ? err.message : "Unable to save hero banner.");
+    }
+  }
+
+  async function saveCoupon(e: React.FormEvent) {
+    e.preventDefault();
+    if (!couponForm.code.trim() || Number(couponForm.value) <= 0) {
+      notify("error", "Promo code and a valid discount value are required.");
+      return;
+    }
+
+    const payload = {
+      id: couponModal.id,
+      code: couponForm.code.trim().toUpperCase(),
+      type: couponForm.type,
+      value: Number(couponForm.value),
+      minSpend: couponForm.minSpend ? Number(couponForm.minSpend) : null,
+      isActive: couponForm.isActive,
+      startsAt: couponForm.startsAt || null,
+      endsAt: couponForm.endsAt || null,
+    };
+
+    try {
+      const data = await request<{ coupon: Coupon }>("/api/admin/coupons", {
+        method: couponModal.id ? "PATCH" : "POST",
+        body: JSON.stringify(payload),
+      });
+      setCoupons((prev) =>
+        couponModal.id ? prev.map((item) => (item.id === data.coupon.id ? data.coupon : item)) : [data.coupon, ...prev]
+      );
+      setCouponModal({ open: false });
+      notify("success", couponModal.id ? "Promocode updated." : "Promocode created.");
+    } catch (err) {
+      notify("error", err instanceof Error ? err.message : "Unable to save promocode.");
+    }
+  }
+
+  function deleteCoupon(coupon: Coupon) {
+    setConfirm({
+      title: "Delete promocode",
+      message: `Delete "${coupon.code}"? Customers will no longer be able to apply it.`,
+      onConfirm: async () => {
+        try {
+          await request(`/api/admin/coupons?id=${coupon.id}`, { method: "DELETE" });
+          setCoupons((prev) => prev.filter((item) => item.id !== coupon.id));
+          notify("success", "Promocode deleted.");
+        } catch (err) {
+          notify("error", err instanceof Error ? err.message : "Unable to delete promocode.");
         }
       },
     });
@@ -1249,15 +1397,20 @@ function StatusBadge({ value }: { value: string }) {
 
 function ImageUpload({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
   async function upload(file?: File) {
     if (!file) return;
     setUploading(true);
+    setError("");
     const form = new FormData();
     form.append("file", file);
     try {
       const res = await fetch("/api/upload", { method: "POST", body: form });
       const data = await res.json();
       if (res.ok && data.url) onChange(data.url);
+      if (!res.ok) setError(data.error || "Upload failed. Paste an image URL instead.");
+    } catch {
+      setError("Upload failed. Paste an image URL instead.");
     } finally {
       setUploading(false);
     }
@@ -1272,6 +1425,7 @@ function ImageUpload({ label, value, onChange }: { label: string; value: string;
         {uploading ? "Uploading" : "Upload"}
         <input type="file" accept="image/*" className="hidden" onChange={(e) => upload(e.target.files?.[0])} />
       </label>
+      {error ? <p className="text-xs text-rose-600 sm:col-span-3">{error}</p> : null}
     </div>
   );
 }

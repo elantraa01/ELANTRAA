@@ -15,6 +15,10 @@ async function getSessionUserId() {
   return user?.id || null;
 }
 
+function isValidGuestId(guestId: unknown): guestId is string {
+  return typeof guestId === "string" && /^guest_[a-zA-Z0-9_-]{8,80}$/.test(guestId);
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const userId = await getSessionUserId();
@@ -24,9 +28,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ cart: null });
   }
 
+  if (!userId && !isValidGuestId(guestId)) {
+    return NextResponse.json({ error: "A valid guestId is required" }, { status: 400 });
+  }
+
   try {
     const cart = await prisma.cart.findFirst({
-      where: userId ? { userId } : { guestId: guestId || undefined },
+      where: userId ? { userId } : { guestId },
       include: {
         items: {
           include: {
@@ -148,13 +156,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "productId is required" }, { status: 400 });
     }
 
+    if (!userId && !isValidGuestId(guestId)) {
+      return NextResponse.json({ error: "A valid guestId is required for guest carts" }, { status: 400 });
+    }
+
     let cart = await prisma.cart.findFirst({
-      where: userId ? { userId } : { guestId: guestId || "default_guest" },
+      where: userId ? { userId } : { guestId },
     });
 
     if (!cart) {
       cart = await prisma.cart.create({
-        data: userId ? { userId } : { guestId: guestId || "default_guest" },
+        data: userId ? { userId } : { guestId },
       });
     }
 

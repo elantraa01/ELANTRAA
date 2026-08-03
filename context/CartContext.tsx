@@ -68,6 +68,14 @@ const GUEST_ID_KEY = "elantraa_guest_id";
 const PROMO_CODE_KEY = "elantraa_promo_code";
 const GUEST_WISHLIST_KEY = "elantraa_guest_wishlist";
 
+function createGuestId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return `guest_${crypto.randomUUID()}`;
+  }
+
+  return `guest_${Math.random().toString(36).slice(2, 11)}_${Date.now()}`;
+}
+
 function mapDbCart(cart: DbCart): CartItemType[] {
   return (cart?.items || []).map((item) => ({
     id: item.id,
@@ -167,7 +175,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let gid = localStorage.getItem(GUEST_ID_KEY);
     if (!gid) {
-      gid = `guest_${Math.random().toString(36).slice(2, 11)}_${Date.now()}`;
+      gid = createGuestId();
       localStorage.setItem(GUEST_ID_KEY, gid);
     }
     setGuestId(gid);

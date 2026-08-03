@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const VALID_COUPONS: Record<string, { type: "percentage" | "fixed"; value: number; minSpend?: number }> = {
-  ELANTRAAGOLD: { type: "percentage", value: 10 },
-  WELCOME10: { type: "fixed", value: 500, minSpend: 2500 },
-  FESTIVE15: { type: "percentage", value: 15, minSpend: 4000 },
-};
+import { getCouponValidation } from "@/lib/coupons";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,34 +11,26 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanCode = code.trim().toUpperCase();
-    const coupon = VALID_COUPONS[cleanCode];
+    const currentSubtotal = Number(subtotal) || 0;
+    const { discount, minSpend } = await getCouponValidation(cleanCode, currentSubtotal);
 
-    if (!coupon) {
+    if (!discount && !minSpend) {
       return NextResponse.json({ error: "Invalid or expired promo code" }, { status: 400 });
     }
 
-    const currentSubtotal = Number(subtotal) || 0;
-
-    if (coupon.minSpend && currentSubtotal < coupon.minSpend) {
+    if (!discount && minSpend) {
       return NextResponse.json(
-        { error: `Minimum order amount of ₹${coupon.minSpend.toLocaleString("en-IN")} required for code ${cleanCode}` },
+        { error: `Minimum order amount of ₹${minSpend.toLocaleString("en-IN")} required for code ${cleanCode}` },
         { status: 400 }
       );
     }
 
-    let discountAmount = 0;
-    if (coupon.type === "percentage") {
-      discountAmount = (currentSubtotal * coupon.value) / 100;
-    } else {
-      discountAmount = coupon.value;
-    }
-
     return NextResponse.json({
       valid: true,
-      code: cleanCode,
-      discountType: coupon.type,
-      discountValue: coupon.value,
-      discountAmount: Math.round(discountAmount),
+      code: discount!.code,
+      discountType: discount!.discountType,
+      discountValue: discount!.discountValue,
+      discountAmount: discount!.discountAmount,
       message: `Promo code ${cleanCode} applied successfully!`,
     });
   } catch (error) {
