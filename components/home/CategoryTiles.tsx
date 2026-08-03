@@ -16,7 +16,6 @@ interface DbCategory {
 
 export default function CategoryTiles() {
   const [dbCategories, setDbCategories] = useState<DbCategory[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -30,8 +29,6 @@ export default function CategoryTiles() {
         }
       } catch (err) {
         console.warn("Failed to load real categories for CategoryTiles", err);
-      } finally {
-        setLoading(false);
       }
     }
     fetchCategories();

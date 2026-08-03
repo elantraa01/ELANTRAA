@@ -384,11 +384,6 @@ export default function AdminPanel() {
     [customers, query]
   );
 
-  const filteredCoupons = useMemo(
-    () => coupons.filter((coupon) => [coupon.code, coupon.type].join(" ").toLowerCase().includes(query.toLowerCase())),
-    [coupons, query]
-  );
-
   const inventoryProducts = useMemo(
     () => products.filter((product) => [product.name, product.sku].join(" ").toLowerCase().includes(query.toLowerCase())),
     [products, query]
@@ -398,7 +393,6 @@ export default function AdminPanel() {
   const visibleCategories = paginate(filteredCategories, page, pageSize);
   const visibleOrders = paginate(filteredOrders, page, pageSize);
   const visibleCustomers = paginate(filteredCustomers, page, pageSize);
-  const visibleCoupons = paginate(filteredCoupons, page, pageSize);
   const visibleInventory = paginate(inventoryProducts, page, pageSize);
 
   function openProduct(product?: Product) {
