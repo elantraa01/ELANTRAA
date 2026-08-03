@@ -15,39 +15,32 @@ export default function ReturnsPolicyPage() {
             <nav className="flex items-center space-x-2 text-xs text-gray-500 uppercase tracking-widest font-light">
               <Link href="/" className="hover:text-[#C9A648]">Home</Link>
               <span>/</span>
-              <span className="text-gray-900 font-medium">Returns & Exchanges</span>
+              <span className="text-gray-900 font-medium">Bespoke Policy</span>
             </nav>
           </div>
         </div>
 
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="border-b border-gray-200 pb-6 mb-8">
-            <span className="text-xs tracking-[0.3em] text-[#C9A648] uppercase font-bold">CLIENT GUARANTEE</span>
+            <span className="text-xs tracking-[0.3em] text-[#C9A648] uppercase font-bold">ATELIER GUARANTEE</span>
             <h1 className="text-3xl sm:text-5xl font-serif text-gray-900 mt-1 tracking-tight">
-              Complimentary 15-Day Returns & Exchanges
+              Bespoke Couture & Order Policy
             </h1>
           </div>
 
           <div className="prose prose-slate max-w-none text-xs sm:text-sm text-gray-600 font-light space-y-6 leading-relaxed">
             <p>
-              We want you to be completely delighted with your ELANTRAA couture piece. If the size or fit is not perfect, we offer a complimentary 15-day return and exchange window.
+              Each ELANTRAA creation is crafted individually to order using hand-embroidered luxury silks and artisanal techniques. Due to the bespoke nature of haute couture, all orders are final.
             </p>
 
-            <h3 className="text-lg font-serif text-gray-900 font-semibold mt-6">1. Return Eligibility</h3>
-            <ul className="list-disc pl-5 space-y-2">
-              <li>Items must be unworn, unwashed, and unaltered with original ELANTRAA tags and security ribbon intact.</li>
-              <li>Returns must be initiated within 15 calendar days of receiving your package.</li>
-              <li>Custom bespoke garments tailored to non-standard measurements are final sale.</li>
-            </ul>
-
-            <h3 className="text-lg font-serif text-gray-900 font-semibold mt-6">2. Complimentary Courier Pickup</h3>
+            <h3 className="text-lg font-serif text-gray-900 font-semibold mt-6">1. Quality Assurance & Inspection</h3>
             <p>
-              Our client concierge will arrange a doorstep pickup at your preferred address. Simply contact us at <strong className="text-[#C9A648]">elantraa.01@gmail.com</strong> or via WhatsApp / Phone at <strong className="text-[#C9A648]">+91 9015342951</strong>.
+              Prior to dispatch, every piece undergoes rigorous multi-stage quality inspections to guarantee flawless embroidery, stitching, and finishing.
             </p>
 
-            <h3 className="text-lg font-serif text-gray-900 font-semibold mt-6">3. Refund Processing</h3>
+            <h3 className="text-lg font-serif text-gray-900 font-semibold mt-6">2. Client Concierge Assistance</h3>
             <p>
-              Once returned items are inspected by our quality assurance team, refunds are issued back to your original payment method (Razorpay online or bank transfer for COD) within 3-5 business days.
+              Should you require any assistance or custom sizing fitting guidance before placing your order, please contact our concierge team at <strong className="text-[#C9A648]">elantraa.01@gmail.com</strong> or via WhatsApp at <strong className="text-[#C9A648]">+91 9015342951</strong>.
             </p>
           </div>
         </main>

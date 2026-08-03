@@ -49,6 +49,8 @@ export type ProductMinAggregateOutputType = {
   categoryId: string | null
   stock: number | null
   isFeatured: boolean | null
+  isNewArrival: boolean | null
+  isBestSeller: boolean | null
   isActive: boolean | null
   isReturnable: boolean | null
   productInformation: string | null
@@ -69,6 +71,8 @@ export type ProductMaxAggregateOutputType = {
   categoryId: string | null
   stock: number | null
   isFeatured: boolean | null
+  isNewArrival: boolean | null
+  isBestSeller: boolean | null
   isActive: boolean | null
   isReturnable: boolean | null
   productInformation: string | null
@@ -89,9 +93,12 @@ export type ProductCountAggregateOutputType = {
   categoryId: number
   sizes: number
   colors: number
+  tags: number
   images: number
   stock: number
   isFeatured: number
+  isNewArrival: number
+  isBestSeller: number
   isActive: number
   isReturnable: number
   productInformation: number
@@ -126,6 +133,8 @@ export type ProductMinAggregateInputType = {
   categoryId?: true
   stock?: true
   isFeatured?: true
+  isNewArrival?: true
+  isBestSeller?: true
   isActive?: true
   isReturnable?: true
   productInformation?: true
@@ -146,6 +155,8 @@ export type ProductMaxAggregateInputType = {
   categoryId?: true
   stock?: true
   isFeatured?: true
+  isNewArrival?: true
+  isBestSeller?: true
   isActive?: true
   isReturnable?: true
   productInformation?: true
@@ -166,9 +177,12 @@ export type ProductCountAggregateInputType = {
   categoryId?: true
   sizes?: true
   colors?: true
+  tags?: true
   images?: true
   stock?: true
   isFeatured?: true
+  isNewArrival?: true
+  isBestSeller?: true
   isActive?: true
   isReturnable?: true
   productInformation?: true
@@ -276,9 +290,12 @@ export type ProductGroupByOutputType = {
   categoryId: string
   sizes: string[]
   colors: string[]
+  tags: string[]
   images: string[]
   stock: number
   isFeatured: boolean
+  isNewArrival: boolean
+  isBestSeller: boolean
   isActive: boolean
   isReturnable: boolean
   productInformation: string | null
@@ -322,9 +339,12 @@ export type ProductWhereInput = {
   categoryId?: Prisma.StringFilter<"Product"> | string
   sizes?: Prisma.StringNullableListFilter<"Product">
   colors?: Prisma.StringNullableListFilter<"Product">
+  tags?: Prisma.StringNullableListFilter<"Product">
   images?: Prisma.StringNullableListFilter<"Product">
   stock?: Prisma.IntFilter<"Product"> | number
   isFeatured?: Prisma.BoolFilter<"Product"> | boolean
+  isNewArrival?: Prisma.BoolFilter<"Product"> | boolean
+  isBestSeller?: Prisma.BoolFilter<"Product"> | boolean
   isActive?: Prisma.BoolFilter<"Product"> | boolean
   isReturnable?: Prisma.BoolFilter<"Product"> | boolean
   productInformation?: Prisma.StringNullableFilter<"Product"> | string | null
@@ -350,9 +370,12 @@ export type ProductOrderByWithRelationInput = {
   categoryId?: Prisma.SortOrder
   sizes?: Prisma.SortOrder
   colors?: Prisma.SortOrder
+  tags?: Prisma.SortOrder
   images?: Prisma.SortOrder
   stock?: Prisma.SortOrder
   isFeatured?: Prisma.SortOrder
+  isNewArrival?: Prisma.SortOrder
+  isBestSeller?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isReturnable?: Prisma.SortOrder
   productInformation?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -381,9 +404,12 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   categoryId?: Prisma.StringFilter<"Product"> | string
   sizes?: Prisma.StringNullableListFilter<"Product">
   colors?: Prisma.StringNullableListFilter<"Product">
+  tags?: Prisma.StringNullableListFilter<"Product">
   images?: Prisma.StringNullableListFilter<"Product">
   stock?: Prisma.IntFilter<"Product"> | number
   isFeatured?: Prisma.BoolFilter<"Product"> | boolean
+  isNewArrival?: Prisma.BoolFilter<"Product"> | boolean
+  isBestSeller?: Prisma.BoolFilter<"Product"> | boolean
   isActive?: Prisma.BoolFilter<"Product"> | boolean
   isReturnable?: Prisma.BoolFilter<"Product"> | boolean
   productInformation?: Prisma.StringNullableFilter<"Product"> | string | null
@@ -409,9 +435,12 @@ export type ProductOrderByWithAggregationInput = {
   categoryId?: Prisma.SortOrder
   sizes?: Prisma.SortOrder
   colors?: Prisma.SortOrder
+  tags?: Prisma.SortOrder
   images?: Prisma.SortOrder
   stock?: Prisma.SortOrder
   isFeatured?: Prisma.SortOrder
+  isNewArrival?: Prisma.SortOrder
+  isBestSeller?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isReturnable?: Prisma.SortOrder
   productInformation?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -440,9 +469,12 @@ export type ProductScalarWhereWithAggregatesInput = {
   categoryId?: Prisma.StringWithAggregatesFilter<"Product"> | string
   sizes?: Prisma.StringNullableListFilter<"Product">
   colors?: Prisma.StringNullableListFilter<"Product">
+  tags?: Prisma.StringNullableListFilter<"Product">
   images?: Prisma.StringNullableListFilter<"Product">
   stock?: Prisma.IntWithAggregatesFilter<"Product"> | number
   isFeatured?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
+  isNewArrival?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
+  isBestSeller?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
   isActive?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
   isReturnable?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
   productInformation?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
@@ -462,9 +494,12 @@ export type ProductCreateInput = {
   discountPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   sizes?: Prisma.ProductCreatesizesInput | string[]
   colors?: Prisma.ProductCreatecolorsInput | string[]
+  tags?: Prisma.ProductCreatetagsInput | string[]
   images?: Prisma.ProductCreateimagesInput | string[]
   stock?: number
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: string | null
@@ -490,9 +525,12 @@ export type ProductUncheckedCreateInput = {
   categoryId: string
   sizes?: Prisma.ProductCreatesizesInput | string[]
   colors?: Prisma.ProductCreatecolorsInput | string[]
+  tags?: Prisma.ProductCreatetagsInput | string[]
   images?: Prisma.ProductCreateimagesInput | string[]
   stock?: number
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: string | null
@@ -516,9 +554,12 @@ export type ProductUpdateInput = {
   discountPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   sizes?: Prisma.ProductUpdatesizesInput | string[]
   colors?: Prisma.ProductUpdatecolorsInput | string[]
+  tags?: Prisma.ProductUpdatetagsInput | string[]
   images?: Prisma.ProductUpdateimagesInput | string[]
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNewArrival?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -544,9 +585,12 @@ export type ProductUncheckedUpdateInput = {
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sizes?: Prisma.ProductUpdatesizesInput | string[]
   colors?: Prisma.ProductUpdatecolorsInput | string[]
+  tags?: Prisma.ProductUpdatetagsInput | string[]
   images?: Prisma.ProductUpdateimagesInput | string[]
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNewArrival?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -571,9 +615,12 @@ export type ProductCreateManyInput = {
   categoryId: string
   sizes?: Prisma.ProductCreatesizesInput | string[]
   colors?: Prisma.ProductCreatecolorsInput | string[]
+  tags?: Prisma.ProductCreatetagsInput | string[]
   images?: Prisma.ProductCreateimagesInput | string[]
   stock?: number
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: string | null
@@ -593,9 +640,12 @@ export type ProductUpdateManyMutationInput = {
   discountPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   sizes?: Prisma.ProductUpdatesizesInput | string[]
   colors?: Prisma.ProductUpdatecolorsInput | string[]
+  tags?: Prisma.ProductUpdatetagsInput | string[]
   images?: Prisma.ProductUpdateimagesInput | string[]
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNewArrival?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -616,9 +666,12 @@ export type ProductUncheckedUpdateManyInput = {
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sizes?: Prisma.ProductUpdatesizesInput | string[]
   colors?: Prisma.ProductUpdatecolorsInput | string[]
+  tags?: Prisma.ProductUpdatetagsInput | string[]
   images?: Prisma.ProductUpdateimagesInput | string[]
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNewArrival?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -657,9 +710,12 @@ export type ProductCountOrderByAggregateInput = {
   categoryId?: Prisma.SortOrder
   sizes?: Prisma.SortOrder
   colors?: Prisma.SortOrder
+  tags?: Prisma.SortOrder
   images?: Prisma.SortOrder
   stock?: Prisma.SortOrder
   isFeatured?: Prisma.SortOrder
+  isNewArrival?: Prisma.SortOrder
+  isBestSeller?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isReturnable?: Prisma.SortOrder
   productInformation?: Prisma.SortOrder
@@ -686,6 +742,8 @@ export type ProductMaxOrderByAggregateInput = {
   categoryId?: Prisma.SortOrder
   stock?: Prisma.SortOrder
   isFeatured?: Prisma.SortOrder
+  isNewArrival?: Prisma.SortOrder
+  isBestSeller?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isReturnable?: Prisma.SortOrder
   productInformation?: Prisma.SortOrder
@@ -706,6 +764,8 @@ export type ProductMinOrderByAggregateInput = {
   categoryId?: Prisma.SortOrder
   stock?: Prisma.SortOrder
   isFeatured?: Prisma.SortOrder
+  isNewArrival?: Prisma.SortOrder
+  isBestSeller?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isReturnable?: Prisma.SortOrder
   productInformation?: Prisma.SortOrder
@@ -776,6 +836,10 @@ export type ProductCreatecolorsInput = {
   set: string[]
 }
 
+export type ProductCreatetagsInput = {
+  set: string[]
+}
+
 export type ProductCreateimagesInput = {
   set: string[]
 }
@@ -802,6 +866,11 @@ export type ProductUpdatesizesInput = {
 }
 
 export type ProductUpdatecolorsInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
+export type ProductUpdatetagsInput = {
   set?: string[]
   push?: string | string[]
 }
@@ -885,9 +954,12 @@ export type ProductCreateWithoutCategoryInput = {
   discountPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   sizes?: Prisma.ProductCreatesizesInput | string[]
   colors?: Prisma.ProductCreatecolorsInput | string[]
+  tags?: Prisma.ProductCreatetagsInput | string[]
   images?: Prisma.ProductCreateimagesInput | string[]
   stock?: number
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: string | null
@@ -911,9 +983,12 @@ export type ProductUncheckedCreateWithoutCategoryInput = {
   discountPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   sizes?: Prisma.ProductCreatesizesInput | string[]
   colors?: Prisma.ProductCreatecolorsInput | string[]
+  tags?: Prisma.ProductCreatetagsInput | string[]
   images?: Prisma.ProductCreateimagesInput | string[]
   stock?: number
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: string | null
@@ -967,9 +1042,12 @@ export type ProductScalarWhereInput = {
   categoryId?: Prisma.StringFilter<"Product"> | string
   sizes?: Prisma.StringNullableListFilter<"Product">
   colors?: Prisma.StringNullableListFilter<"Product">
+  tags?: Prisma.StringNullableListFilter<"Product">
   images?: Prisma.StringNullableListFilter<"Product">
   stock?: Prisma.IntFilter<"Product"> | number
   isFeatured?: Prisma.BoolFilter<"Product"> | boolean
+  isNewArrival?: Prisma.BoolFilter<"Product"> | boolean
+  isBestSeller?: Prisma.BoolFilter<"Product"> | boolean
   isActive?: Prisma.BoolFilter<"Product"> | boolean
   isReturnable?: Prisma.BoolFilter<"Product"> | boolean
   productInformation?: Prisma.StringNullableFilter<"Product"> | string | null
@@ -989,9 +1067,12 @@ export type ProductCreateWithoutOrderItemsInput = {
   discountPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   sizes?: Prisma.ProductCreatesizesInput | string[]
   colors?: Prisma.ProductCreatecolorsInput | string[]
+  tags?: Prisma.ProductCreatetagsInput | string[]
   images?: Prisma.ProductCreateimagesInput | string[]
   stock?: number
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: string | null
@@ -1016,9 +1097,12 @@ export type ProductUncheckedCreateWithoutOrderItemsInput = {
   categoryId: string
   sizes?: Prisma.ProductCreatesizesInput | string[]
   colors?: Prisma.ProductCreatecolorsInput | string[]
+  tags?: Prisma.ProductCreatetagsInput | string[]
   images?: Prisma.ProductCreateimagesInput | string[]
   stock?: number
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: string | null
@@ -1057,9 +1141,12 @@ export type ProductUpdateWithoutOrderItemsInput = {
   discountPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   sizes?: Prisma.ProductUpdatesizesInput | string[]
   colors?: Prisma.ProductUpdatecolorsInput | string[]
+  tags?: Prisma.ProductUpdatetagsInput | string[]
   images?: Prisma.ProductUpdateimagesInput | string[]
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNewArrival?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1084,9 +1171,12 @@ export type ProductUncheckedUpdateWithoutOrderItemsInput = {
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sizes?: Prisma.ProductUpdatesizesInput | string[]
   colors?: Prisma.ProductUpdatecolorsInput | string[]
+  tags?: Prisma.ProductUpdatetagsInput | string[]
   images?: Prisma.ProductUpdateimagesInput | string[]
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNewArrival?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1109,9 +1199,12 @@ export type ProductCreateWithoutCartItemsInput = {
   discountPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   sizes?: Prisma.ProductCreatesizesInput | string[]
   colors?: Prisma.ProductCreatecolorsInput | string[]
+  tags?: Prisma.ProductCreatetagsInput | string[]
   images?: Prisma.ProductCreateimagesInput | string[]
   stock?: number
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: string | null
@@ -1136,9 +1229,12 @@ export type ProductUncheckedCreateWithoutCartItemsInput = {
   categoryId: string
   sizes?: Prisma.ProductCreatesizesInput | string[]
   colors?: Prisma.ProductCreatecolorsInput | string[]
+  tags?: Prisma.ProductCreatetagsInput | string[]
   images?: Prisma.ProductCreateimagesInput | string[]
   stock?: number
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: string | null
@@ -1177,9 +1273,12 @@ export type ProductUpdateWithoutCartItemsInput = {
   discountPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   sizes?: Prisma.ProductUpdatesizesInput | string[]
   colors?: Prisma.ProductUpdatecolorsInput | string[]
+  tags?: Prisma.ProductUpdatetagsInput | string[]
   images?: Prisma.ProductUpdateimagesInput | string[]
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNewArrival?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1204,9 +1303,12 @@ export type ProductUncheckedUpdateWithoutCartItemsInput = {
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sizes?: Prisma.ProductUpdatesizesInput | string[]
   colors?: Prisma.ProductUpdatecolorsInput | string[]
+  tags?: Prisma.ProductUpdatetagsInput | string[]
   images?: Prisma.ProductUpdateimagesInput | string[]
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNewArrival?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1229,9 +1331,12 @@ export type ProductCreateWithoutWishlistInput = {
   discountPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   sizes?: Prisma.ProductCreatesizesInput | string[]
   colors?: Prisma.ProductCreatecolorsInput | string[]
+  tags?: Prisma.ProductCreatetagsInput | string[]
   images?: Prisma.ProductCreateimagesInput | string[]
   stock?: number
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: string | null
@@ -1256,9 +1361,12 @@ export type ProductUncheckedCreateWithoutWishlistInput = {
   categoryId: string
   sizes?: Prisma.ProductCreatesizesInput | string[]
   colors?: Prisma.ProductCreatecolorsInput | string[]
+  tags?: Prisma.ProductCreatetagsInput | string[]
   images?: Prisma.ProductCreateimagesInput | string[]
   stock?: number
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: string | null
@@ -1297,9 +1405,12 @@ export type ProductUpdateWithoutWishlistInput = {
   discountPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   sizes?: Prisma.ProductUpdatesizesInput | string[]
   colors?: Prisma.ProductUpdatecolorsInput | string[]
+  tags?: Prisma.ProductUpdatetagsInput | string[]
   images?: Prisma.ProductUpdateimagesInput | string[]
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNewArrival?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1324,9 +1435,12 @@ export type ProductUncheckedUpdateWithoutWishlistInput = {
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sizes?: Prisma.ProductUpdatesizesInput | string[]
   colors?: Prisma.ProductUpdatecolorsInput | string[]
+  tags?: Prisma.ProductUpdatetagsInput | string[]
   images?: Prisma.ProductUpdateimagesInput | string[]
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNewArrival?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1349,9 +1463,12 @@ export type ProductCreateWithoutReviewsInput = {
   discountPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   sizes?: Prisma.ProductCreatesizesInput | string[]
   colors?: Prisma.ProductCreatecolorsInput | string[]
+  tags?: Prisma.ProductCreatetagsInput | string[]
   images?: Prisma.ProductCreateimagesInput | string[]
   stock?: number
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: string | null
@@ -1376,9 +1493,12 @@ export type ProductUncheckedCreateWithoutReviewsInput = {
   categoryId: string
   sizes?: Prisma.ProductCreatesizesInput | string[]
   colors?: Prisma.ProductCreatecolorsInput | string[]
+  tags?: Prisma.ProductCreatetagsInput | string[]
   images?: Prisma.ProductCreateimagesInput | string[]
   stock?: number
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: string | null
@@ -1417,9 +1537,12 @@ export type ProductUpdateWithoutReviewsInput = {
   discountPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   sizes?: Prisma.ProductUpdatesizesInput | string[]
   colors?: Prisma.ProductUpdatecolorsInput | string[]
+  tags?: Prisma.ProductUpdatetagsInput | string[]
   images?: Prisma.ProductUpdateimagesInput | string[]
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNewArrival?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1444,9 +1567,12 @@ export type ProductUncheckedUpdateWithoutReviewsInput = {
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sizes?: Prisma.ProductUpdatesizesInput | string[]
   colors?: Prisma.ProductUpdatecolorsInput | string[]
+  tags?: Prisma.ProductUpdatetagsInput | string[]
   images?: Prisma.ProductUpdateimagesInput | string[]
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNewArrival?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1469,9 +1595,12 @@ export type ProductCreateManyCategoryInput = {
   discountPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   sizes?: Prisma.ProductCreatesizesInput | string[]
   colors?: Prisma.ProductCreatecolorsInput | string[]
+  tags?: Prisma.ProductCreatetagsInput | string[]
   images?: Prisma.ProductCreateimagesInput | string[]
   stock?: number
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: string | null
@@ -1491,9 +1620,12 @@ export type ProductUpdateWithoutCategoryInput = {
   discountPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   sizes?: Prisma.ProductUpdatesizesInput | string[]
   colors?: Prisma.ProductUpdatecolorsInput | string[]
+  tags?: Prisma.ProductUpdatetagsInput | string[]
   images?: Prisma.ProductUpdateimagesInput | string[]
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNewArrival?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1517,9 +1649,12 @@ export type ProductUncheckedUpdateWithoutCategoryInput = {
   discountPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   sizes?: Prisma.ProductUpdatesizesInput | string[]
   colors?: Prisma.ProductUpdatecolorsInput | string[]
+  tags?: Prisma.ProductUpdatetagsInput | string[]
   images?: Prisma.ProductUpdateimagesInput | string[]
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNewArrival?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1543,9 +1678,12 @@ export type ProductUncheckedUpdateManyWithoutCategoryInput = {
   discountPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   sizes?: Prisma.ProductUpdatesizesInput | string[]
   colors?: Prisma.ProductUpdatecolorsInput | string[]
+  tags?: Prisma.ProductUpdatetagsInput | string[]
   images?: Prisma.ProductUpdateimagesInput | string[]
   stock?: Prisma.IntFieldUpdateOperationsInput | number
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isNewArrival?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isReturnable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   productInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1624,9 +1762,12 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   categoryId?: boolean
   sizes?: boolean
   colors?: boolean
+  tags?: boolean
   images?: boolean
   stock?: boolean
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: boolean
@@ -1653,9 +1794,12 @@ export type ProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   categoryId?: boolean
   sizes?: boolean
   colors?: boolean
+  tags?: boolean
   images?: boolean
   stock?: boolean
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: boolean
@@ -1677,9 +1821,12 @@ export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   categoryId?: boolean
   sizes?: boolean
   colors?: boolean
+  tags?: boolean
   images?: boolean
   stock?: boolean
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: boolean
@@ -1701,9 +1848,12 @@ export type ProductSelectScalar = {
   categoryId?: boolean
   sizes?: boolean
   colors?: boolean
+  tags?: boolean
   images?: boolean
   stock?: boolean
   isFeatured?: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
   isActive?: boolean
   isReturnable?: boolean
   productInformation?: boolean
@@ -1713,7 +1863,7 @@ export type ProductSelectScalar = {
   createdAt?: boolean
 }
 
-export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "sku" | "description" | "price" | "discountPrice" | "categoryId" | "sizes" | "colors" | "images" | "stock" | "isFeatured" | "isActive" | "isReturnable" | "productInformation" | "deliveryTimelines" | "disclaimer" | "additionalInfo" | "createdAt", ExtArgs["result"]["product"]>
+export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "sku" | "description" | "price" | "discountPrice" | "categoryId" | "sizes" | "colors" | "tags" | "images" | "stock" | "isFeatured" | "isNewArrival" | "isBestSeller" | "isActive" | "isReturnable" | "productInformation" | "deliveryTimelines" | "disclaimer" | "additionalInfo" | "createdAt", ExtArgs["result"]["product"]>
 export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
   orderItems?: boolean | Prisma.Product$orderItemsArgs<ExtArgs>
@@ -1749,9 +1899,12 @@ export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     categoryId: string
     sizes: string[]
     colors: string[]
+    tags: string[]
     images: string[]
     stock: number
     isFeatured: boolean
+    isNewArrival: boolean
+    isBestSeller: boolean
     isActive: boolean
     isReturnable: boolean
     productInformation: string | null
@@ -2197,9 +2350,12 @@ export interface ProductFieldRefs {
   readonly categoryId: Prisma.FieldRef<"Product", 'String'>
   readonly sizes: Prisma.FieldRef<"Product", 'String[]'>
   readonly colors: Prisma.FieldRef<"Product", 'String[]'>
+  readonly tags: Prisma.FieldRef<"Product", 'String[]'>
   readonly images: Prisma.FieldRef<"Product", 'String[]'>
   readonly stock: Prisma.FieldRef<"Product", 'Int'>
   readonly isFeatured: Prisma.FieldRef<"Product", 'Boolean'>
+  readonly isNewArrival: Prisma.FieldRef<"Product", 'Boolean'>
+  readonly isBestSeller: Prisma.FieldRef<"Product", 'Boolean'>
   readonly isActive: Prisma.FieldRef<"Product", 'Boolean'>
   readonly isReturnable: Prisma.FieldRef<"Product", 'Boolean'>
   readonly productInformation: Prisma.FieldRef<"Product", 'String'>

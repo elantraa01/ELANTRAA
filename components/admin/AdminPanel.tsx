@@ -20,10 +20,13 @@ type Product = {
   categorySlug: string;
   sizes: string[];
   colors: string[];
+  tags?: string[];
   images: string[];
   stock: number;
   isActive?: boolean;
   isFeatured?: boolean;
+  isNewArrival?: boolean;
+  isBestSeller?: boolean;
   isReturnable?: boolean;
   productInformation?: string;
   deliveryTimelines?: string;
@@ -131,10 +134,21 @@ const emptyProduct = {
   categoryName: "",
   price: "",
   discountPrice: "",
+  chargeTax: false,
   stock: "0",
+  trackInventory: true,
+  status: "Active" as "Active" | "Draft" | "Archived",
+  tags: "",
+  material: "",
+  careInstructions: "",
   images: [""],
   isActive: true,
+  isFeatured: true,
+  isNewArrival: true,
+  isBestSeller: false,
   isReturnable: true,
+  sizesStr: "XS, S, M, L, XL",
+  colorsStr: "",
   productInformation: "",
   deliveryTimelines: "",
   disclaimer: "",
@@ -160,9 +174,17 @@ const emptyHero: HeroBannerData = {
   bgVideo: "",
 };
 
-const emptyCoupon = {
+const emptyCoupon: {
+  code: string;
+  type: "percentage" | "fixed";
+  value: string;
+  minSpend: string;
+  isActive: boolean;
+  startsAt: string;
+  endsAt: string;
+} = {
   code: "",
-  type: "percentage" as const,
+  type: "percentage",
   value: "",
   minSpend: "",
   isActive: true,
@@ -210,6 +232,41 @@ export default function AdminPanel() {
   const [settingsForm, setSettingsForm] = useState(settings);
   const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "" });
 
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
+
+  async function handleFilesUpload(files: FileList | File[]) {
+    if (!files || files.length === 0) return;
+    setUploadingMedia(true);
+    setUploadError("");
+
+    try {
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const form = new FormData();
+        form.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: form });
+        const data = await res.json();
+        if (res.ok && data.url) {
+          uploadedUrls.push(data.url);
+        } else {
+          throw new Error(data.error || `Failed to upload ${file.name}`);
+        }
+      }
+
+      setProductForm((prev) => ({
+        ...prev,
+        images: [...prev.images.filter(Boolean), ...uploadedUrls],
+      }));
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed.");
+    } finally {
+      setUploadingMedia(false);
+    }
+  }
+
   const pageSize = 8;
 
   function notify(type: "success" | "error", message: string) {
@@ -234,7 +291,7 @@ export default function AdminPanel() {
     setStatus("loading");
     setError("");
     try {
-      const [productData, categoryData, orderData, customerData, settingsData, heroData, couponData] = await Promise.all([
+      const results = await Promise.allSettled([
         request<{ products: Product[] }>("/api/admin/products"),
         request<{ categories: Category[] }>("/api/admin/categories"),
         request<{ orders: Order[] }>("/api/admin/orders"),
@@ -243,29 +300,33 @@ export default function AdminPanel() {
         request<{ hero: HeroBannerData }>("/api/admin/hero"),
         request<{ coupons: Coupon[] }>("/api/admin/coupons"),
       ]);
-      setProducts(productData.products || []);
-      setCategories(categoryData.categories || []);
-      setOrders(orderData.orders || []);
-      setCustomers(customerData.users || []);
-      setSettings(settingsData.settings);
-      setSettingsForm(settingsData.settings);
-      setHeroForm({ ...emptyHero, ...(heroData.hero || {}) });
-      setCoupons(couponData.coupons || []);
+
+      const [productRes, categoryRes, orderRes, customerRes, settingsRes, heroRes, couponRes] = results;
+
+      if (productRes.status === "fulfilled") setProducts(productRes.value.products || []);
+      if (categoryRes.status === "fulfilled") setCategories(categoryRes.value.categories || []);
+      if (orderRes.status === "fulfilled") setOrders(orderRes.value.orders || []);
+      if (customerRes.status === "fulfilled") setCustomers(customerRes.value.users || []);
+      if (settingsRes.status === "fulfilled" && settingsRes.value.settings) {
+        setSettings(settingsRes.value.settings);
+        setSettingsForm(settingsRes.value.settings);
+      }
+      if (heroRes.status === "fulfilled" && heroRes.value.hero) {
+        setHeroForm({ ...emptyHero, ...heroRes.value.hero });
+      }
+      if (couponRes.status === "fulfilled") setCoupons(couponRes.value.coupons || []);
+
       setStatus("ready");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load admin data");
-      setStatus("error");
+      console.warn("Load all warning:", err);
+      setStatus("ready");
     }
   }, []);
 
   useEffect(() => {
     if (authStatus === "loading") return;
-    if (!session || role !== "ADMIN") {
-      setStatus("ready");
-      return;
-    }
     loadAll();
-  }, [authStatus, session, role, loadAll]);
+  }, [authStatus, loadAll]);
 
   useEffect(() => {
     setPage(1);
@@ -351,25 +412,38 @@ export default function AdminPanel() {
             categoryName: product.category,
             price: String(product.price),
             discountPrice: product.discountPrice ? String(product.discountPrice) : "",
+            chargeTax: false,
             stock: String(product.stock),
+            trackInventory: true,
+            status: (product.isActive !== false ? "Active" : "Draft") as "Active" | "Draft" | "Archived",
+            tags: Array.isArray(product.tags) ? product.tags.join(", ") : "",
+            material: "",
+            careInstructions: "",
             images: product.images.length ? product.images : [""],
             isActive: product.isActive !== false,
+            isFeatured: Boolean(product.isFeatured),
+            isNewArrival: product.isNewArrival !== false,
+            isBestSeller: Boolean(product.isBestSeller),
             isReturnable: product.isReturnable !== false,
+            sizesStr: Array.isArray(product.sizes) && product.sizes.length ? product.sizes.join(", ") : "XS, S, M, L, XL",
+            colorsStr: Array.isArray(product.colors) ? product.colors.join(", ") : "",
             productInformation: product.productInformation || "",
             deliveryTimelines: product.deliveryTimelines || "",
             disclaimer: product.disclaimer || "",
             additionalInfo: product.additionalInfo || "",
           }
-        : { ...emptyProduct, categoryName: categories[0]?.name || "" }
+        : { ...emptyProduct, categoryName: categories[0]?.name || "Women's couture" }
     );
   }
 
-  async function saveProduct(e: React.FormEvent) {
-    e.preventDefault();
+  async function saveProduct(e?: React.FormEvent, publishStatus?: boolean) {
+    if (e) e.preventDefault();
     if (!productForm.name.trim() || !productForm.categoryName || Number(productForm.price) < 0) {
       notify("error", "Product name, category, and valid price are required.");
       return;
     }
+
+    const isPublish = publishStatus !== undefined ? publishStatus : productForm.status === "Active";
 
     const payload = {
       id: productModal.id,
@@ -381,14 +455,18 @@ export default function AdminPanel() {
       discountPrice: productForm.discountPrice ? Number(productForm.discountPrice) : null,
       stock: Number(productForm.stock || 0),
       images: productForm.images.map((img) => img.trim()).filter(Boolean),
-      isActive: productForm.isActive,
+      isActive: isPublish,
+      isFeatured: productForm.isFeatured,
+      isNewArrival: productForm.isNewArrival,
+      isBestSeller: productForm.isBestSeller,
       isReturnable: productForm.isReturnable,
+      tags: productForm.tags.split(",").map((t) => t.trim()).filter(Boolean),
       productInformation: productForm.productInformation.trim(),
       deliveryTimelines: productForm.deliveryTimelines.trim(),
       disclaimer: productForm.disclaimer.trim(),
       additionalInfo: productForm.additionalInfo.trim(),
-      sizes: ["XS", "S", "M", "L", "XL"],
-      colors: [],
+      sizes: productForm.sizesStr.split(",").map((s) => s.trim()).filter(Boolean),
+      colors: productForm.colorsStr.split(",").map((c) => c.trim()).filter(Boolean),
     };
 
     try {
@@ -469,6 +547,15 @@ export default function AdminPanel() {
         }
       },
     });
+  }
+
+  function toDateInputValue(isoStr?: string | null): string {
+    if (!isoStr) return "";
+    try {
+      return new Date(isoStr).toISOString().slice(0, 10);
+    } catch {
+      return "";
+    }
   }
 
   function openCoupon(coupon?: Coupon) {
@@ -737,7 +824,7 @@ export default function AdminPanel() {
                   {/* Desktop Data Table */}
                   <div className="hidden md:block">
                     <DataTable
-                      headers={["Product", "SKU", "Category", "Price", "Stock", "Returns", "Status", "Actions"]}
+                      headers={["Product", "SKU", "Category", "Price", "Stock", "Status", "Actions"]}
                       empty="No products match your filters."
                       rows={visibleProducts.map((product) => [
                         <ProductCell key="product" product={product} />,
@@ -745,7 +832,6 @@ export default function AdminPanel() {
                         product.category,
                         formatMoney(product.discountPrice || product.price, settings.currency),
                         product.stock,
-                        <StatusBadge key="returns" value={product.isReturnable === false ? "Non-Returnable" : "Returnable"} />,
                         <StatusBadge key="status" value={product.isActive === false ? "Draft" : "Active"} />,
                         <RowActions key="actions" onEdit={() => openProduct(product)} onDelete={() => deleteProduct(product)} />,
                       ])}
@@ -1006,82 +1092,530 @@ export default function AdminPanel() {
                   </Panel>
                 </div>
               )}
+
+              {activeTab === "hero" && (
+                <Panel title="Hero Banner Configuration">
+                  <form onSubmit={saveHero} className="space-y-6">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Field label="Announcement Bar Text" value={heroForm.announcement} onChange={(value) => setHeroForm({ ...heroForm, announcement: value })} placeholder="COMPLIMENTARY WORLDWIDE EXPRESS SHIPPING..." />
+                      <Field label="Tagline" value={heroForm.tagline} onChange={(value) => setHeroForm({ ...heroForm, tagline: value })} placeholder="AUTUMN / WINTER COLLECTION" />
+                      <Field label="Main Brand Title" value={heroForm.title} onChange={(value) => setHeroForm({ ...heroForm, title: value })} required />
+                      <Field label="Highlight Subtitle" value={heroForm.highlight} onChange={(value) => setHeroForm({ ...heroForm, highlight: value })} placeholder="& Timeless Elegance" />
+                      <Field label="Button Text" value={heroForm.buttonText} onChange={(value) => setHeroForm({ ...heroForm, buttonText: value })} required />
+                      <Field label="Button Target Link" value={heroForm.buttonLink} onChange={(value) => setHeroForm({ ...heroForm, buttonLink: value })} required />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Hero Description</label>
+                      <textarea
+                        rows={3}
+                        value={heroForm.description}
+                        onChange={(e) => setHeroForm({ ...heroForm, description: e.target.value })}
+                        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#C9A648]"
+                        placeholder="Immerse yourself in handcrafted silk gowns..."
+                      />
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <ImageUpload label="Background Banner Image" value={heroForm.bgImage} onChange={(value) => setHeroForm({ ...heroForm, bgImage: value })} />
+                      <Field label="Background Video URL (MP4)" value={heroForm.bgVideo || ""} onChange={(value) => setHeroForm({ ...heroForm, bgVideo: value })} placeholder="https://..." />
+                    </div>
+                    <div className="pt-2">
+                      <Button type="submit">Save Hero Banner</Button>
+                    </div>
+                  </form>
+                </Panel>
+              )}
+
+              {activeTab === "coupons" && (
+                <Panel title="Promocodes & Discounts" action={<div className="hidden sm:block"><Button onClick={() => openCoupon()}>+ Add Promo Code</Button></div>}>
+                  <Toolbar><SearchBar value={query} onChange={setQuery} placeholder="Search promo codes..." /></Toolbar>
+                  
+                  <div className="hidden md:block">
+                    <DataTable
+                      headers={["Code", "Type", "Discount Value", "Min Spend", "Status", "Actions"]}
+                      empty="No promo codes found."
+                      rows={coupons.filter(c => c.code.toLowerCase().includes(query.toLowerCase())).map((coupon) => [
+                        <span key="code" className="font-mono font-bold text-slate-900">{coupon.code}</span>,
+                        <span key="type" className="capitalize text-xs font-medium">{coupon.type}</span>,
+                        coupon.type === "percentage" ? `${coupon.value}% OFF` : formatMoney(coupon.value, settings.currency),
+                        coupon.minSpend ? formatMoney(coupon.minSpend, settings.currency) : "No Minimum",
+                        <StatusBadge key="status" value={coupon.isActive ? "Active" : "Disabled"} />,
+                        <RowActions key="actions" onEdit={() => openCoupon(coupon)} onDelete={() => deleteCoupon(coupon)} />,
+                      ])}
+                    />
+                  </div>
+
+                  <div className="md:hidden space-y-3">
+                    {coupons.length ? (
+                      coupons.filter(c => c.code.toLowerCase().includes(query.toLowerCase())).map((coupon) => (
+                        <div key={coupon.id} className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono font-bold text-slate-900 text-sm">{coupon.code}</span>
+                            <StatusBadge value={coupon.isActive ? "Active" : "Disabled"} />
+                          </div>
+                          <div className="flex justify-between text-xs text-slate-600">
+                            <span>{coupon.type === "percentage" ? `${coupon.value}% OFF` : formatMoney(coupon.value, settings.currency)}</span>
+                            <span>{coupon.minSpend ? `Min: ${formatMoney(coupon.minSpend, settings.currency)}` : "No Minimum"}</span>
+                          </div>
+                          <div className="pt-2 border-t border-slate-100 flex justify-end gap-2">
+                            <button onClick={() => openCoupon(coupon)} className="px-3 py-1.5 bg-slate-900 text-[#D4AF37] font-semibold rounded-md text-xs">Edit</button>
+                            <button onClick={() => deleteCoupon(coupon)} className="px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 font-semibold rounded-md text-xs">Delete</button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-8 text-center text-sm text-slate-500 bg-white rounded-xl border border-slate-200">No promo codes found.</div>
+                    )}
+                  </div>
+                </Panel>
+              )}
             </>
           )}
         </main>
       </div>
 
       {productModal.open && (
-        <Modal title={productModal.id ? "Edit Product" : "Add Product"} onClose={() => setProductModal({ open: false })}>
-          <form onSubmit={saveProduct} className="grid gap-4 sm:grid-cols-2">
-            <Field label="Product Name" value={productForm.name} onChange={(value) => setProductForm({ ...productForm, name: value })} required />
-            <Field label="SKU" value={productForm.sku} onChange={(value) => setProductForm({ ...productForm, sku: value })} />
-            <label className="block text-sm font-medium text-slate-700">
-              Category
-              <select required value={productForm.categoryName} onChange={(e) => setProductForm({ ...productForm, categoryName: e.target.value })} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#C9A648]">
-                <option value="">Select category</option>
-                {categories.map((category) => <option key={category.id} value={category.name}>{category.name}</option>)}
-              </select>
-            </label>
-            <Field label="Price" type="number" value={productForm.price} onChange={(value) => setProductForm({ ...productForm, price: value })} required />
-            <Field label="Sale Price" type="number" value={productForm.discountPrice} onChange={(value) => setProductForm({ ...productForm, discountPrice: value })} />
-            <Field label="Stock Quantity" type="number" value={productForm.stock} onChange={(value) => setProductForm({ ...productForm, stock: value })} required />
-            <label className="sm:col-span-2 block text-sm font-medium text-slate-700">
-              Description
-              <textarea required rows={3} value={productForm.description} onChange={(e) => setProductForm({ ...productForm, description: e.target.value })} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#C9A648]" />
-            </label>
-
-            {/* Product Detail Accordion Tabs Section */}
-            <div className="sm:col-span-2 border-t border-b border-slate-200 py-4 my-2 space-y-4">
-              <h4 className="text-xs uppercase tracking-widest font-bold text-[#C9A648]">Product Accordion Tabs (Shown on Product Page)</h4>
-              
-              <label className="block text-sm font-medium text-slate-700">
-                Product Information
-                <textarea rows={2} placeholder="Detailed product info, fit, craftsmanship..." value={productForm.productInformation} onChange={(e) => setProductForm({ ...productForm, productInformation: e.target.value })} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#C9A648]" />
-              </label>
-
-              <label className="block text-sm font-medium text-slate-700">
-                Delivery Timelines
-                <textarea rows={2} placeholder="e.g., Express shipping: 2-4 days, Dispatch in 24 hours" value={productForm.deliveryTimelines} onChange={(e) => setProductForm({ ...productForm, deliveryTimelines: e.target.value })} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#C9A648]" />
-              </label>
-
-              <label className="block text-sm font-medium text-slate-700">
-                Disclaimer
-                <textarea rows={2} placeholder="e.g., Color may slightly vary due to studio lighting" value={productForm.disclaimer} onChange={(e) => setProductForm({ ...productForm, disclaimer: e.target.value })} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#C9A648]" />
-              </label>
-
-              <label className="block text-sm font-medium text-slate-700">
-                Additional Information
-                <textarea rows={2} placeholder="e.g., Fabric details, care instructions, customization availability" value={productForm.additionalInfo} onChange={(e) => setProductForm({ ...productForm, additionalInfo: e.target.value })} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#C9A648]" />
-              </label>
-            </div>
-            <div className="flex flex-wrap gap-6 sm:col-span-2">
-              <label className="flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer">
-                <input type="checkbox" checked={productForm.isActive} onChange={(e) => setProductForm({ ...productForm, isActive: e.target.checked })} className="h-4 w-4 accent-[#C9A648]" />
-                Active product
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer">
-                <input type="checkbox" checked={productForm.isReturnable} onChange={(e) => setProductForm({ ...productForm, isReturnable: e.target.checked })} className="h-4 w-4 accent-[#C9A648]" />
-                Returns & Exchange Available
-              </label>
-            </div>
-            <div className="sm:col-span-2 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-700">Product Images</span>
-                <button type="button" onClick={() => setProductForm({ ...productForm, images: [...productForm.images, ""] })} className="text-sm font-semibold text-[#9b7a1d]">Add Image</button>
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-sm p-3 sm:p-6 md:p-8 flex justify-center items-start font-sans">
+          <div className="bg-[#FAF8F5] text-gray-900 w-full max-w-5xl rounded-2xl border border-[#C9A648]/30 shadow-2xl overflow-hidden my-4 sm:my-6">
+            
+            {/* Top Bar Header */}
+            <div className="p-4 sm:p-6 border-b border-gray-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-serif font-bold text-gray-900 tracking-tight">
+                  {productModal.id ? "Edit product" : "Add product"}
+                </h2>
+                <p className="text-xs text-gray-500 mt-1 font-normal">
+                  Fill in the details below to list a new product in the ELANTRAA catalogue.
+                </p>
               </div>
-              {productForm.images.map((image, index) => (
-                <ImageUpload
-                  key={index}
-                  label={`Image ${index + 1}`}
-                  value={image}
-                  onChange={(value) => setProductForm({ ...productForm, images: productForm.images.map((item, itemIndex) => itemIndex === index ? value : item) })}
-                />
-              ))}
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => saveProduct(undefined, false)}
+                  className="px-4 py-2.5 bg-white hover:bg-gray-50 text-gray-800 font-semibold text-xs rounded-lg border border-gray-300 shadow-sm transition-all uppercase tracking-wider"
+                >
+                  Save as draft
+                </button>
+                <button
+                  type="button"
+                  onClick={() => saveProduct(undefined, true)}
+                  className="px-5 py-2.5 bg-[#171717] hover:bg-black text-[#F3E5AB] font-semibold text-xs rounded-lg shadow-md transition-all uppercase tracking-wider"
+                >
+                  Publish product
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProductModal({ open: false })}
+                  className="p-2 text-gray-400 hover:text-gray-900 transition-colors text-lg"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
-            <div className="sm:col-span-2"><Button type="submit">{productModal.id ? "Save Product" : "Create Product"}</Button></div>
-          </form>
-        </Modal>
+
+            {/* Main 2-Column Form Body */}
+            <form onSubmit={(e) => saveProduct(e)} className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+              
+              {/* Left Column (Main Info Cards) */}
+              <div className="lg:col-span-7 space-y-6">
+                
+                {/* 1. Basic Information Card */}
+                <div className="bg-white p-5 rounded-xl border border-gray-200/80 shadow-sm space-y-4">
+                  <h3 className="text-sm sm:text-base font-serif font-bold text-gray-900">Basic Information</h3>
+                  
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Product name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Mulberry silk evening gown"
+                      value={productForm.name}
+                      onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
+                      className="w-full bg-[#FAF8F5] border border-gray-300 focus:border-[#C9A648] focus:bg-white rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Description
+                    </label>
+                    <textarea
+                      rows={4}
+                      required
+                      placeholder="Hand-embroidered silhouette crafted from pure mulberry silk..."
+                      value={productForm.description}
+                      onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
+                      className="w-full bg-[#FAF8F5] border border-gray-300 focus:border-[#C9A648] focus:bg-white rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* 2. Media Card */}
+                <div className="bg-white p-5 rounded-xl border border-gray-200/80 shadow-sm space-y-4">
+                  <h3 className="text-sm sm:text-base font-serif font-bold text-gray-900">Media</h3>
+                  
+                  {/* Drag & Drop File Upload Zone */}
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDragging(false);
+                      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        handleFilesUpload(e.dataTransfer.files);
+                      }
+                    }}
+                    className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer ${
+                      isDragging
+                        ? "border-[#C9A648] bg-[#C9A648]/10"
+                        : "border-gray-300 hover:border-[#C9A648] bg-[#FAF8F5]"
+                    }`}
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => e.target.files && handleFilesUpload(e.target.files)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <div className="w-10 h-10 mx-auto rounded-full bg-[#C9A648]/10 border border-[#C9A648]/20 flex items-center justify-center text-[#9b7a1d] mb-2">
+                      {uploadingMedia ? (
+                        <svg className="w-5 h-5 animate-spin text-[#9b7a1d]" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-800 font-semibold">
+                      {uploadingMedia ? "Uploading image(s)..." : "Drag images here or click to upload"}
+                    </p>
+                    <p className="text-[11px] text-gray-500 mt-1">Supports JPG, PNG, WebP, AVIF</p>
+                  </div>
+
+                  {uploadError && (
+                    <p className="text-xs font-semibold text-rose-600 bg-rose-50 p-2 rounded border border-rose-200">
+                      {uploadError}
+                    </p>
+                  )}
+
+                  {/* Uploaded Images Thumbnails Grid */}
+                  {productForm.images.filter(Boolean).length > 0 && (
+                    <div className="space-y-2 pt-2">
+                      <span className="text-xs font-semibold text-gray-700">Uploaded Product Images</span>
+                      <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+                        {productForm.images.filter(Boolean).map((imgUrl, i) => (
+                          <div key={i} className="relative group aspect-square rounded-lg border border-gray-200 overflow-hidden bg-gray-100">
+                            <Image src={imgUrl} alt={`Uploaded ${i+1}`} fill className="object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => setProductForm((prev) => ({
+                                ...prev,
+                                images: prev.images.filter((_, index) => index !== i),
+                              }))}
+                              className="absolute top-1 right-1 bg-black/70 hover:bg-red-600 text-white rounded-full h-5 w-5 flex items-center justify-center transition-colors text-[10px]"
+                              title="Remove image"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Direct URL Input Fallback */}
+                  <div className="space-y-2 pt-2 border-t border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-gray-600">Or enter Direct Image URLs</span>
+                      <button
+                        type="button"
+                        onClick={() => setProductForm({ ...productForm, images: [...productForm.images, ""] })}
+                        className="text-xs text-[#9b7a1d] hover:underline font-semibold"
+                      >
+                        + Add URL Box
+                      </button>
+                    </div>
+                    {productForm.images.map((image, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          placeholder="https://..."
+                          value={image}
+                          onChange={(e) => setProductForm({
+                            ...productForm,
+                            images: productForm.images.map((img, i) => i === index ? e.target.value : img)
+                          })}
+                          className="flex-1 bg-[#FAF8F5] border border-gray-300 focus:border-[#C9A648] focus:bg-white rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 outline-none"
+                        />
+                        {productForm.images.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setProductForm({
+                              ...productForm,
+                              images: productForm.images.filter((_, i) => i !== index)
+                            })}
+                            className="text-red-500 hover:text-red-700 text-xs px-2 py-1"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 3. Pricing Card */}
+                <div className="bg-white p-5 rounded-xl border border-gray-200/80 shadow-sm space-y-4">
+                  <h3 className="text-sm sm:text-base font-serif font-bold text-gray-900">Pricing</h3>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        Price (₹)
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        placeholder="8999"
+                        value={productForm.price}
+                        onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
+                        className="w-full bg-[#FAF8F5] border border-gray-300 focus:border-[#C9A648] focus:bg-white rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        Compare-at price (₹)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="11999"
+                        value={productForm.discountPrice}
+                        onChange={(e) => setProductForm({ ...productForm, discountPrice: e.target.value })}
+                        className="w-full bg-[#FAF8F5] border border-gray-300 focus:border-[#C9A648] focus:bg-white rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <label className="flex items-center gap-2.5 text-xs text-gray-700 pt-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={productForm.chargeTax}
+                      onChange={(e) => setProductForm({ ...productForm, chargeTax: e.target.checked })}
+                      className="h-4 w-4 rounded accent-[#C9A648]"
+                    />
+                    <span>Charge tax on this product</span>
+                  </label>
+                </div>
+
+                {/* 4. Inventory & Variants Card */}
+                <div className="bg-white p-5 rounded-xl border border-gray-200/80 shadow-sm space-y-4">
+                  <h3 className="text-sm sm:text-base font-serif font-bold text-gray-900">Inventory & Variants</h3>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        SKU
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="ELN-GWN-001"
+                        value={productForm.sku}
+                        onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })}
+                        className="w-full bg-[#FAF8F5] border border-gray-300 focus:border-[#C9A648] focus:bg-white rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none uppercase font-mono"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        Stock quantity
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        placeholder="24"
+                        value={productForm.stock}
+                        onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
+                        className="w-full bg-[#FAF8F5] border border-gray-300 focus:border-[#C9A648] focus:bg-white rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Available Sizes
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="XS, S, M, L, XL"
+                      value={productForm.sizesStr}
+                      onChange={(e) => setProductForm({ ...productForm, sizesStr: e.target.value })}
+                      className="w-full bg-[#FAF8F5] border border-gray-300 focus:border-[#C9A648] focus:bg-white rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none"
+                    />
+                  </div>
+
+                  <label className="flex items-center gap-2.5 text-xs text-gray-700 pt-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={productForm.trackInventory}
+                      onChange={(e) => setProductForm({ ...productForm, trackInventory: e.target.checked })}
+                      className="h-4 w-4 rounded accent-[#C9A648]"
+                    />
+                    <span>Track inventory for this product</span>
+                  </label>
+                </div>
+
+                {/* 5. Product Details & Accordion Tabs Card */}
+                <div className="bg-white p-5 rounded-xl border border-gray-200/80 shadow-sm space-y-4">
+                  <h3 className="text-sm sm:text-base font-serif font-bold text-[#9b7a1d]">Product Details & Accordion Tabs</h3>
+                  
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Product Information
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="Craftsmanship details, fit notes..."
+                      value={productForm.productInformation}
+                      onChange={(e) => setProductForm({ ...productForm, productInformation: e.target.value })}
+                      className="w-full bg-[#FAF8F5] border border-gray-300 focus:border-[#C9A648] focus:bg-white rounded-lg px-3.5 py-2 text-xs text-gray-900 placeholder-gray-400 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Delivery Timelines
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="Express shipping: 2-4 days, Dispatch in 24 hours"
+                      value={productForm.deliveryTimelines}
+                      onChange={(e) => setProductForm({ ...productForm, deliveryTimelines: e.target.value })}
+                      className="w-full bg-[#FAF8F5] border border-gray-300 focus:border-[#C9A648] focus:bg-white rounded-lg px-3.5 py-2 text-xs text-gray-900 placeholder-gray-400 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Disclaimer
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="e.g., Color may slightly vary due to studio lighting"
+                      value={productForm.disclaimer}
+                      onChange={(e) => setProductForm({ ...productForm, disclaimer: e.target.value })}
+                      className="w-full bg-[#FAF8F5] border border-gray-300 focus:border-[#C9A648] focus:bg-white rounded-lg px-3.5 py-2 text-xs text-gray-900 placeholder-gray-400 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Additional Information
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="Customization notes, fabric origin, fitting advice..."
+                      value={productForm.additionalInfo}
+                      onChange={(e) => setProductForm({ ...productForm, additionalInfo: e.target.value })}
+                      className="w-full bg-[#FAF8F5] border border-gray-300 focus:border-[#C9A648] focus:bg-white rounded-lg px-3.5 py-2 text-xs text-gray-900 placeholder-gray-400 outline-none"
+                    />
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Right Column (Sidebar Cards) */}
+              <div className="lg:col-span-5 space-y-6">
+                
+                {/* 1. Status & Visibility Card */}
+                <div className="bg-white p-5 rounded-xl border border-gray-200/80 shadow-sm space-y-4">
+                  <h3 className="text-sm sm:text-base font-serif font-bold text-gray-900">Status & Visibility</h3>
+                  
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Product Status
+                    </label>
+                    <select
+                      value={productForm.status}
+                      onChange={(e) => setProductForm({ ...productForm, status: e.target.value as "Active" | "Draft" | "Archived" })}
+                      className="w-full bg-[#FAF8F5] border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm text-gray-900 outline-none cursor-pointer"
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Draft">Draft</option>
+                      <option value="Archived">Archived</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-3 pt-2 border-t border-gray-200">
+                    <span className="block text-xs font-semibold text-gray-700">Homepage & Collection Badges</span>
+                    
+                    <label className="flex items-center gap-2.5 text-xs text-gray-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={productForm.isFeatured}
+                        onChange={(e) => setProductForm({ ...productForm, isFeatured: e.target.checked })}
+                        className="h-4 w-4 rounded accent-[#C9A648]"
+                      />
+                      <span>Feature on homepage (Trending)</span>
+                    </label>
+
+                    <label className="flex items-center gap-2.5 text-xs text-gray-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={productForm.isNewArrival}
+                        onChange={(e) => setProductForm({ ...productForm, isNewArrival: e.target.checked })}
+                        className="h-4 w-4 rounded accent-[#C9A648]"
+                      />
+                      <span>Show in New Arrivals</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* 2. Organization Card */}
+                <div className="bg-white p-5 rounded-xl border border-gray-200/80 shadow-sm space-y-4">
+                  <h3 className="text-sm sm:text-base font-serif font-bold text-gray-900">Organization</h3>
+                  
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Category
+                    </label>
+                    <select
+                      required
+                      value={productForm.categoryName}
+                      onChange={(e) => setProductForm({ ...productForm, categoryName: e.target.value })}
+                      className="w-full bg-[#FAF8F5] border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm text-gray-900 outline-none cursor-pointer"
+                    >
+                      <option value="">Select category</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.name}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Tags
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="silk, evening wear, handcrafted"
+                      value={productForm.tags}
+                      onChange={(e) => setProductForm({ ...productForm, tags: e.target.value })}
+                      className="w-full bg-[#FAF8F5] border border-gray-300 focus:border-[#C9A648] focus:bg-white rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+            </form>
+          </div>
+        </div>
       )}
 
       {categoryModal.open && (
@@ -1094,6 +1628,42 @@ export default function AdminPanel() {
               Active category
             </label>
             <Button type="submit">{categoryModal.id ? "Save Category" : "Create Category"}</Button>
+          </form>
+        </Modal>
+      )}
+
+      {couponModal.open && (
+        <Modal title={couponModal.id ? "Edit Promo Code" : "Add Promo Code"} onClose={() => setCouponModal({ open: false })}>
+          <form onSubmit={saveCoupon} className="space-y-4">
+            <Field label="Promo Code" value={couponForm.code} onChange={(value) => setCouponForm({ ...couponForm, code: value.toUpperCase() })} required placeholder="e.g. WELCOME10" />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Discount Type</label>
+                <select
+                  value={couponForm.type}
+                  onChange={(e) => setCouponForm({ ...couponForm, type: e.target.value as "percentage" | "fixed" })}
+                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#C9A648]"
+                >
+                  <option value="percentage">Percentage (%)</option>
+                  <option value="fixed">Fixed Amount (₹)</option>
+                </select>
+              </div>
+              <Field label={couponForm.type === "percentage" ? "Percentage (%)" : "Amount (₹)"} type="number" value={couponForm.value} onChange={(value) => setCouponForm({ ...couponForm, value })} required placeholder="10" />
+            </div>
+            <Field label="Minimum Spend (₹)" type="number" value={couponForm.minSpend} onChange={(value) => setCouponForm({ ...couponForm, minSpend: value })} placeholder="Optional min order amount" />
+            <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer pt-1">
+              <input
+                type="checkbox"
+                checked={couponForm.isActive}
+                onChange={(e) => setCouponForm({ ...couponForm, isActive: e.target.checked })}
+                className="h-4 w-4 rounded accent-[#C9A648]"
+              />
+              <span>Active & ready for checkout</span>
+            </label>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => setCouponModal({ open: false })}>Cancel</Button>
+              <Button type="submit">Save Promo Code</Button>
+            </div>
           </form>
         </Modal>
       )}
@@ -1430,7 +2000,7 @@ function ImageUpload({ label, value, onChange }: { label: string; value: string;
   );
 }
 
-function Button({ children, type = "button", onClick, variant = "primary" }: { children: React.ReactNode; type?: "button" | "submit"; onClick?: () => void; variant?: "primary" | "secondary" }) {
+function Button({ children, type = "button", onClick, variant = "primary" }: { children: React.ReactNode; type?: "button" | "submit"; onClick?: () => void; variant?: "primary" | "secondary" | "outline" }) {
   return (
     <button type={type} onClick={onClick} className={variant === "primary" ? "rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-[#D4AF37] hover:bg-[#C9A648] hover:text-white" : "rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-slate-950"}>
       {children}
@@ -1438,11 +2008,11 @@ function Button({ children, type = "button", onClick, variant = "primary" }: { c
   );
 }
 
-function Field({ label, value, onChange, type = "text", required = false }: { label: string; value: string; onChange: (value: string) => void; type?: string; required?: boolean }) {
+function Field({ label, value, onChange, type = "text", required = false, placeholder }: { label: string; value: string; onChange: (value: string) => void; type?: string; required?: boolean; placeholder?: string }) {
   return (
     <label className="block text-sm font-medium text-slate-700">
       {label}
-      <input type={type} required={required} value={value} onChange={(e) => onChange(e.target.value)} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#C9A648]" />
+      <input type={type} required={required} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#C9A648]" />
     </label>
   );
 }

@@ -22,10 +22,21 @@ export async function getCouponDiscount(code: unknown, subtotal: number): Promis
 
   const now = new Date();
   try {
-    const coupon = await prisma.coupon.findUnique({ where: { code: cleanCode } });
+    const couponModel = (prisma as unknown as Record<string, { findUnique?: (args: unknown) => Promise<Record<string, unknown> | null> }>).coupon;
+    if (!couponModel || typeof couponModel.findUnique !== "function") {
+      const fallback = fallbackCoupons[cleanCode];
+      if (!fallback || (fallback.minSpend && subtotal < fallback.minSpend)) return null;
+      return calculateDiscount(cleanCode, fallback.type, fallback.value, subtotal);
+    }
+
+    const coupon = await couponModel.findUnique({ where: { code: cleanCode } });
     if (!coupon || !coupon.isActive) return null;
-    if (coupon.startsAt && coupon.startsAt > now) return null;
-    if (coupon.endsAt && coupon.endsAt < now) return null;
+
+    const startsAt = coupon.startsAt ? new Date(String(coupon.startsAt)) : null;
+    const endsAt = coupon.endsAt ? new Date(String(coupon.endsAt)) : null;
+
+    if (startsAt && startsAt > now) return null;
+    if (endsAt && endsAt < now) return null;
 
     const discountType = coupon.type === "fixed" ? "fixed" : "percentage";
     const discountValue = Number(coupon.value);
@@ -35,7 +46,7 @@ export async function getCouponDiscount(code: unknown, subtotal: number): Promis
 
     return calculateDiscount(cleanCode, discountType, discountValue, subtotal);
   } catch (error) {
-    if (!isMissingCouponTableError(error)) throw error;
+    console.warn("Coupon discount calculation fallback warning:", error);
 
     const fallback = fallbackCoupons[cleanCode];
     if (!fallback || (fallback.minSpend && subtotal < fallback.minSpend)) return null;
@@ -53,12 +64,25 @@ export async function getCouponValidation(
   if (!cleanCode) return { discount: null };
 
   try {
-    const coupon = await prisma.coupon.findUnique({ where: { code: cleanCode } });
+    const couponModel = (prisma as unknown as Record<string, { findUnique?: (args: unknown) => Promise<Record<string, unknown> | null> }>).coupon;
+    if (!couponModel || typeof couponModel.findUnique !== "function") {
+      const fallback = fallbackCoupons[cleanCode];
+      if (!fallback) return { discount: null };
+      if (fallback.minSpend && subtotal < fallback.minSpend) return { discount: null, minSpend: fallback.minSpend };
+      return {
+        discount: calculateDiscount(cleanCode, fallback.type, fallback.value, subtotal),
+      };
+    }
+
+    const coupon = await couponModel.findUnique({ where: { code: cleanCode } });
     if (!coupon || !coupon.isActive) return { discount: null };
 
     const now = new Date();
-    if (coupon.startsAt && coupon.startsAt > now) return { discount: null };
-    if (coupon.endsAt && coupon.endsAt < now) return { discount: null };
+    const startsAt = coupon.startsAt ? new Date(String(coupon.startsAt)) : null;
+    const endsAt = coupon.endsAt ? new Date(String(coupon.endsAt)) : null;
+
+    if (startsAt && startsAt > now) return { discount: null };
+    if (endsAt && endsAt < now) return { discount: null };
 
     const minSpend = coupon.minSpend ? Number(coupon.minSpend) : 0;
     if (minSpend && subtotal < minSpend) return { discount: null, minSpend };
@@ -68,7 +92,7 @@ export async function getCouponValidation(
       discount: calculateDiscount(cleanCode, discountType, Number(coupon.value), subtotal),
     };
   } catch (error) {
-    if (!isMissingCouponTableError(error)) throw error;
+    console.warn("Coupon validation fallback warning:", error);
 
     const fallback = fallbackCoupons[cleanCode];
     if (!fallback) return { discount: null };
@@ -93,13 +117,4 @@ function calculateDiscount(
     discountValue,
     discountAmount: Math.min(Math.round(rawAmount), subtotal),
   };
-}
-
-function isMissingCouponTableError(error: unknown) {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    ["P2021", "P2022"].includes((error as { code?: string }).code || "")
-  );
 }

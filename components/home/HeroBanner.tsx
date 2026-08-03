@@ -15,8 +15,18 @@ export interface HeroData {
   bgVideo?: string;
 }
 
+const DEFAULT_HERO: HeroData = {
+  tagline: "AUTUMN / WINTER 2026 HAUTE COUTURE",
+  title: "Autumn/Winter",
+  highlight: "Curation",
+  description: "Discover bespoke hand-embroidered silks, sculpted silhouettes, and timeless Milanese tailoring.",
+  buttonText: "Shop Now",
+  buttonLink: "/shop",
+  bgImage: "/images/hero/hero_banner.png",
+};
+
 export default function HeroBanner() {
-  const [hero, setHero] = useState<HeroData | null>(null);
+  const [hero, setHero] = useState<HeroData>(DEFAULT_HERO);
 
   useEffect(() => {
     async function loadHero() {
@@ -25,7 +35,16 @@ export default function HeroBanner() {
         if (res.ok) {
           const data = await res.json();
           if (data.hero?.bgImage || data.hero?.bgVideo) {
-            setHero(data.hero);
+            setHero({
+              tagline: data.hero.tagline || DEFAULT_HERO.tagline,
+              title: data.hero.title || DEFAULT_HERO.title,
+              highlight: data.hero.highlight || DEFAULT_HERO.highlight,
+              description: data.hero.description || DEFAULT_HERO.description,
+              buttonText: "Shop Now",
+              buttonLink: data.hero.buttonLink || "/shop",
+              bgImage: data.hero.bgImage || DEFAULT_HERO.bgImage,
+              bgVideo: data.hero.bgVideo,
+            });
           }
         }
       } catch (err) {
@@ -36,8 +55,8 @@ export default function HeroBanner() {
   }, []);
 
   const isVideoBg = Boolean(
-    hero?.bgVideo ||
-      (hero?.bgImage && (
+    hero.bgVideo ||
+      (hero.bgImage && (
         hero.bgImage.endsWith(".mp4") ||
         hero.bgImage.endsWith(".webm") ||
         hero.bgImage.endsWith(".mov") ||
@@ -46,44 +65,41 @@ export default function HeroBanner() {
   );
 
   return (
-    <section className="relative w-full min-h-[85vh] sm:min-h-[90vh] flex items-center justify-center bg-[#FAF8F5] overflow-hidden border-b border-[#C9A648]/20">
+    <section className="relative w-full min-h-[80vh] sm:min-h-[88vh] flex items-center justify-center bg-[#171717] overflow-hidden border-b border-[#C9A648]/20">
       {/* Background Media Overlay (Video or Image) */}
-      {hero && (
-        <div className="absolute inset-0 z-0">
-          {isVideoBg ? (
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              poster={hero.bgImage}
-              className="w-full h-full object-cover object-center opacity-90 transition-transform duration-1000 scale-100"
-            >
-              <source src={hero.bgVideo || hero.bgImage} />
-            </video>
-          ) : (
-            <Image
-              src={hero.bgImage}
-              alt="ELANTRAA Luxury Fashion Banner"
-              fill
-              priority
-              className="object-cover object-center opacity-90 transition-transform duration-1000 scale-100 hover:scale-105"
-              sizes="100vw"
-            />
-          )}
-          {/* Soft Luxury Gradient Overlay for readable crisp gold text */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent sm:from-black/70 sm:via-black/50" />
-        </div>
-      )}
+      <div className="absolute inset-0 z-0">
+        {isVideoBg ? (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            poster={hero.bgImage}
+            className="w-full h-full object-cover object-center opacity-85 transition-transform duration-1000 scale-100"
+          >
+            <source src={hero.bgVideo || hero.bgImage} />
+          </video>
+        ) : (
+          <Image
+            src={hero.bgImage}
+            alt="ELANTRAA Autumn/Winter Collection"
+            fill
+            priority
+            className="object-cover object-center opacity-85 transition-transform duration-1000 scale-100 hover:scale-105"
+            sizes="100vw"
+          />
+        )}
+        {/* Soft Luxury Gradient Overlay for readable gold text */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-transparent sm:from-black/80 sm:via-black/55" />
+      </div>
 
       {/* Hero Content Box */}
-      {hero && (
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-left w-full">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-left w-full">
         <div className="max-w-2xl text-white">
           {/* Tagline Badge */}
-          <div className="max-w-full inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md border border-[#D4AF37]/50 rounded-full mb-6 overflow-hidden">
+          <div className="max-w-full inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/10 backdrop-blur-md border border-[#D4AF37]/50 rounded-full mb-6 overflow-hidden">
             <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse shrink-0" />
-            <span className="text-[10px] sm:text-xs tracking-[0.12em] sm:tracking-[0.25em] text-[#F3E5AB] uppercase font-medium truncate max-w-full">
+            <span className="text-[10px] sm:text-xs tracking-[0.15em] sm:tracking-[0.25em] text-[#F3E5AB] uppercase font-medium truncate max-w-full">
               {hero.tagline}
             </span>
           </div>
@@ -101,44 +117,20 @@ export default function HeroBanner() {
             {hero.description}
           </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          {/* Single CTA Button */}
+          <div>
             <Link
               href={hero.buttonLink}
-              className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-[#D4AF37] via-[#C9A648] to-[#AA771C] text-white font-medium text-xs sm:text-sm tracking-[0.2em] uppercase rounded shadow-lg hover:shadow-[#C9A648]/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group"
+              className="inline-flex items-center justify-center px-9 py-4 bg-gradient-to-r from-[#D4AF37] via-[#C9A648] to-[#AA771C] text-white font-medium text-xs sm:text-sm tracking-[0.2em] uppercase rounded shadow-xl hover:shadow-[#C9A648]/40 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 group"
             >
               <span>{hero.buttonText}</span>
-              <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 ml-2 group-hover:translate-x-1.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </Link>
-
-            <Link
-              href="#brand-story"
-              className="inline-flex items-center justify-center px-8 py-4 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white border border-white/30 hover:border-[#D4AF37] font-medium text-xs sm:text-sm tracking-[0.2em] uppercase rounded transition-all duration-300"
-            >
-              Our Heritage
-            </Link>
-          </div>
-
-          {/* Trust Highlights */}
-          <div className="mt-12 pt-8 border-t border-white/15 grid grid-cols-3 gap-4 text-center sm:text-left">
-            <div>
-              <p className="text-lg sm:text-xl font-serif text-[#F3E5AB]">100%</p>
-              <p className="text-[10px] sm:text-xs text-gray-300 uppercase tracking-wider">Artisanal Silks</p>
-            </div>
-            <div>
-              <p className="text-lg sm:text-xl font-serif text-[#F3E5AB]">Bespoke</p>
-              <p className="text-[10px] sm:text-xs text-gray-300 uppercase tracking-wider">Tailored Fit</p>
-            </div>
-            <div>
-              <p className="text-lg sm:text-xl font-serif text-[#F3E5AB]">Global</p>
-              <p className="text-[10px] sm:text-xs text-gray-300 uppercase tracking-wider">Express Shipping</p>
-            </div>
           </div>
         </div>
       </div>
-      )}
     </section>
   );
 }

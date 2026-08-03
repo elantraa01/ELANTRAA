@@ -43,7 +43,7 @@ export default function Footer() {
           {/* Quick Links */}
           <div>
             <h4 className="text-xs font-serif uppercase tracking-[0.2em] text-[#F3E5AB] mb-4">
-              COLLECTIONS
+              CATALOGUE
             </h4>
             <ul className="space-y-2.5 text-xs text-gray-400 font-light">
               <li>
@@ -91,11 +91,6 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/returns" className="hover:text-[#D4AF37] transition-colors">
-                  Returns & Exchanges
-                </Link>
-              </li>
-              <li>
                 <Link href="/shop" className="hover:text-[#D4AF37] transition-colors">
                   Explore Shop Catalogue
                 </Link>
@@ -127,11 +122,6 @@ export default function Footer() {
               <li>
                 <Link href="/terms" className="hover:text-[#D4AF37] transition-colors">
                   Terms & Conditions
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin" className="hover:text-[#D4AF37] transition-colors font-medium">
-                  Admin Portal
                 </Link>
               </li>
             </ul>

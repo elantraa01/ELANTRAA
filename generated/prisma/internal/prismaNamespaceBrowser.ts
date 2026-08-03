@@ -63,6 +63,7 @@ export const ModelName = {
   Review: 'Review',
   Collection: 'Collection',
   HeroBanner: 'HeroBanner',
+  Coupon: 'Coupon',
   StoreSetting: 'StoreSetting'
 } as const
 
@@ -132,9 +133,12 @@ export const ProductScalarFieldEnum = {
   categoryId: 'categoryId',
   sizes: 'sizes',
   colors: 'colors',
+  tags: 'tags',
   images: 'images',
   stock: 'stock',
   isFeatured: 'isFeatured',
+  isNewArrival: 'isNewArrival',
+  isBestSeller: 'isBestSeller',
   isActive: 'isActive',
   isReturnable: 'isReturnable',
   productInformation: 'productInformation',
@@ -248,6 +252,22 @@ export const HeroBannerScalarFieldEnum = {
 } as const
 
 export type HeroBannerScalarFieldEnum = (typeof HeroBannerScalarFieldEnum)[keyof typeof HeroBannerScalarFieldEnum]
+
+
+export const CouponScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  type: 'type',
+  value: 'value',
+  minSpend: 'minSpend',
+  isActive: 'isActive',
+  startsAt: 'startsAt',
+  endsAt: 'endsAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CouponScalarFieldEnum = (typeof CouponScalarFieldEnum)[keyof typeof CouponScalarFieldEnum]
 
 
 export const StoreSettingScalarFieldEnum = {

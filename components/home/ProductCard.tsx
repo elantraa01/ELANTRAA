@@ -48,19 +48,20 @@ export default function ProductCard({
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
         />
 
-        {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
-          {product.isNewArrival && (
-            <span className="px-2.5 py-1 bg-[#171717] text-[#D4AF37] text-[10px] font-bold tracking-widest uppercase rounded">
-              NEW
-            </span>
-          )}
-          {product.discountPrice && (
-            <span className="px-2.5 py-1 bg-[#C9A648] text-white text-[10px] font-bold tracking-widest uppercase rounded">
-              SALE
-            </span>
-          )}
-        </div>
+        {/* Badges - Rendered ONLY when added in Admin with Luxury Glassmorphism Styling */}
+        {Array.isArray(product.tags) && product.tags.length > 0 && (
+          <div className="absolute top-3 left-3 flex flex-wrap max-w-[80%] gap-1.5 z-10 pointer-events-none">
+            {product.tags.map((tag, idx) => (
+              <span
+                key={idx}
+                className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#171717]/90 backdrop-blur-md text-[#F3E5AB] border border-[#C9A648]/60 text-[9px] sm:text-[10px] font-medium tracking-[0.18em] uppercase rounded-full shadow-lg transition-transform duration-300 group-hover:scale-105"
+              >
+                <span className="text-[#C9A648] text-[8px]">✦</span>
+                <span>{tag}</span>
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Wishlist Button */}
         <button

@@ -18,9 +18,12 @@ export async function GET() {
         discountPrice: true,
         sizes: true,
         colors: true,
+        tags: true,
         images: true,
         stock: true,
         isFeatured: true,
+        isNewArrival: true,
+        isBestSeller: true,
         isActive: true,
         isReturnable: true,
         productInformation: true,
@@ -50,9 +53,12 @@ export async function GET() {
       categorySlug: p.category.slug,
       sizes: p.sizes,
       colors: p.colors,
+      tags: Array.isArray(p.tags) ? p.tags : [],
       images: p.images.length > 0 ? p.images : ["/images/collections/dresses.png"],
       stock: p.stock,
-      isFeatured: p.isFeatured,
+      isFeatured: Boolean(p.isFeatured),
+      isNewArrival: p.isNewArrival !== false,
+      isBestSeller: Boolean(p.isBestSeller),
       isActive: p.isActive,
       isReturnable: p.isReturnable !== false,
       productInformation: p.productInformation || "",
@@ -140,9 +146,12 @@ export async function POST(req: NextRequest) {
       categoryName = "Dresses",
       sizes = ["XS", "S", "M", "L", "XL"],
       colors = [],
+      tags = [],
       images = ["/images/collections/dresses.png"],
       stock = 25,
       isFeatured = true,
+      isNewArrival = true,
+      isBestSeller = false,
       isActive = true,
       isReturnable = true,
       productInformation,
@@ -214,9 +223,12 @@ export async function POST(req: NextRequest) {
         categoryId: cat.id,
         sizes: Array.isArray(sizes) && sizes.length > 0 ? sizes : ["XS", "S", "M", "L", "XL"],
         colors: Array.isArray(colors) ? colors : [],
+        tags: Array.isArray(tags) ? tags : [],
         images: Array.isArray(images) && images.length > 0 ? images : ["/images/collections/dresses.png"],
         stock: Number(stock),
         isFeatured: Boolean(isFeatured),
+        isNewArrival: Boolean(isNewArrival),
+        isBestSeller: Boolean(isBestSeller),
         isActive: Boolean(isActive),
         isReturnable: Boolean(isReturnable),
         productInformation: productInformation ? String(productInformation).trim() : null,
@@ -235,9 +247,12 @@ export async function POST(req: NextRequest) {
       discountPrice: true,
       sizes: true,
       colors: true,
+      tags: true,
       images: true,
       stock: true,
       isFeatured: true,
+      isNewArrival: true,
+      isBestSeller: true,
       isActive: true,
       isReturnable: true,
       productInformation: true,
@@ -258,6 +273,7 @@ export async function POST(req: NextRequest) {
         select: baseSelect,
       });
     } catch (createError) {
+      console.warn("Admin Product POST primary create failed, attempting fallback:", createError);
       if (!isMissingColumnError(createError)) throw createError;
       const fallbackCreate = { ...createData };
       delete (fallbackCreate as Record<string, unknown>).productInformation;
@@ -265,9 +281,30 @@ export async function POST(req: NextRequest) {
       delete (fallbackCreate as Record<string, unknown>).disclaimer;
       delete (fallbackCreate as Record<string, unknown>).additionalInfo;
       delete (fallbackCreate as Record<string, unknown>).sku;
+      delete (fallbackCreate as Record<string, unknown>).tags;
+      delete (fallbackCreate as Record<string, unknown>).isNewArrival;
+      delete (fallbackCreate as Record<string, unknown>).isBestSeller;
+
+      const fallbackSelect = {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        price: true,
+        discountPrice: true,
+        sizes: true,
+        colors: true,
+        images: true,
+        stock: true,
+        isFeatured: true,
+        isActive: true,
+        createdAt: true,
+        category: { select: { name: true, slug: true } },
+      };
+
       newProduct = await prisma.product.create({
         data: fallbackCreate,
-        select: baseSelect,
+        select: fallbackSelect,
       });
     }
 
@@ -275,7 +312,7 @@ export async function POST(req: NextRequest) {
       id: newProduct.id,
       name: newProduct.name,
       slug: newProduct.slug,
-      sku: newProduct.sku || "",
+      sku: (newProduct as { sku?: string }).sku || "",
       description: newProduct.description,
       price: Number(newProduct.price),
       discountPrice: newProduct.discountPrice ? Number(newProduct.discountPrice) : null,
@@ -283,11 +320,12 @@ export async function POST(req: NextRequest) {
       categorySlug: newProduct.category.slug,
       sizes: newProduct.sizes,
       colors: newProduct.colors,
+      tags: Array.isArray((newProduct as { tags?: string[] }).tags) ? (newProduct as { tags?: string[] }).tags : [],
       images: newProduct.images.length > 0 ? newProduct.images : ["/images/collections/dresses.png"],
       stock: newProduct.stock,
       isFeatured: newProduct.isFeatured,
       isActive: newProduct.isActive,
-      isReturnable: newProduct.isReturnable !== false,
+      isReturnable: (newProduct as { isReturnable?: boolean }).isReturnable !== false,
       productInformation: (newProduct as { productInformation?: string | null }).productInformation || "",
       deliveryTimelines: (newProduct as { deliveryTimelines?: string | null }).deliveryTimelines || "",
       disclaimer: (newProduct as { disclaimer?: string | null }).disclaimer || "",
@@ -308,7 +346,7 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { id, isFeatured, isActive, isReturnable, stock, name, price, discountPrice, images, description, sizes, colors, categoryId, categoryName, sku, productInformation, deliveryTimelines, disclaimer, additionalInfo } = body;
+    const { id, isFeatured, isNewArrival, isBestSeller, isActive, isReturnable, stock, name, price, discountPrice, images, description, sizes, colors, tags, categoryId, categoryName, sku, productInformation, deliveryTimelines, disclaimer, additionalInfo } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
@@ -316,6 +354,8 @@ export async function PATCH(req: NextRequest) {
 
     const updateData: Record<string, unknown> = {};
     if (typeof isFeatured === "boolean") updateData.isFeatured = isFeatured;
+    if (typeof isNewArrival === "boolean") updateData.isNewArrival = isNewArrival;
+    if (typeof isBestSeller === "boolean") updateData.isBestSeller = isBestSeller;
     if (typeof isActive === "boolean") updateData.isActive = isActive;
     if (typeof isReturnable === "boolean") updateData.isReturnable = isReturnable;
     if (typeof stock === "number" || typeof stock === "string") updateData.stock = Number(stock);
@@ -331,6 +371,7 @@ export async function PATCH(req: NextRequest) {
     if (additionalInfo !== undefined) updateData.additionalInfo = additionalInfo ? String(additionalInfo).trim() : null;
     if (Array.isArray(sizes)) updateData.sizes = sizes;
     if (Array.isArray(colors)) updateData.colors = colors;
+    if (Array.isArray(tags)) updateData.tags = tags;
 
     if (categoryId || categoryName) {
       let targetCat = null;
@@ -377,9 +418,12 @@ export async function PATCH(req: NextRequest) {
       discountPrice: true,
       sizes: true,
       colors: true,
+      tags: true,
       images: true,
       stock: true,
       isFeatured: true,
+      isNewArrival: true,
+      isBestSeller: true,
       isActive: true,
       isReturnable: true,
       productInformation: true,
@@ -398,17 +442,42 @@ export async function PATCH(req: NextRequest) {
         select: baseSelect,
       });
     } catch (updateError) {
-      if (!isMissingColumnError(updateError)) throw updateError;
+      console.warn("Admin Product PATCH primary update failed, attempting fallback:", updateError);
+      if (!isMissingColumnError(updateError)) {
+        console.error("Admin Product PATCH error details:", updateError);
+        return NextResponse.json({ error: "Failed to update product", details: String(updateError) }, { status: 500 });
+      }
       const fallbackData = { ...updateData };
       delete fallbackData.productInformation;
       delete fallbackData.deliveryTimelines;
       delete fallbackData.disclaimer;
       delete fallbackData.additionalInfo;
       delete fallbackData.sku;
+      delete fallbackData.tags;
+      delete fallbackData.isNewArrival;
+      delete fallbackData.isBestSeller;
+
+      const fallbackSelect = {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        price: true,
+        discountPrice: true,
+        sizes: true,
+        colors: true,
+        images: true,
+        stock: true,
+        isFeatured: true,
+        isActive: true,
+        createdAt: true,
+        category: { select: { name: true, slug: true } },
+      };
+
       updated = await prisma.product.update({
         where: { id },
         data: fallbackData,
-        select: baseSelect,
+        select: fallbackSelect,
       });
     }
 
@@ -416,7 +485,7 @@ export async function PATCH(req: NextRequest) {
       id: updated.id,
       name: updated.name,
       slug: updated.slug,
-      sku: updated.sku || "",
+      sku: (updated as { sku?: string }).sku || "",
       description: updated.description,
       price: Number(updated.price),
       discountPrice: updated.discountPrice ? Number(updated.discountPrice) : null,
@@ -424,11 +493,12 @@ export async function PATCH(req: NextRequest) {
       categorySlug: updated.category.slug,
       sizes: updated.sizes,
       colors: updated.colors,
+      tags: Array.isArray((updated as { tags?: string[] }).tags) ? (updated as { tags?: string[] }).tags : [],
       images: updated.images.length > 0 ? updated.images : ["/images/collections/dresses.png"],
       stock: updated.stock,
       isFeatured: updated.isFeatured,
       isActive: updated.isActive,
-      isReturnable: updated.isReturnable !== false,
+      isReturnable: (updated as { isReturnable?: boolean }).isReturnable !== false,
       productInformation: (updated as { productInformation?: string | null }).productInformation || "",
       deliveryTimelines: (updated as { deliveryTimelines?: string | null }).deliveryTimelines || "",
       disclaimer: (updated as { disclaimer?: string | null }).disclaimer || "",
@@ -439,7 +509,8 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ success: true, product: formattedProduct });
   } catch (error) {
     console.error("Admin Product PATCH Error:", error);
-    return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: "Failed to update product", details: msg }, { status: 500 });
   }
 }
 
@@ -467,10 +538,13 @@ export async function DELETE(req: NextRequest) {
 }
 
 function isMissingColumnError(error: unknown) {
+  if (typeof error !== "object" || error === null) return false;
+  const code = (error as { code?: string }).code;
+  const message = String((error as { message?: string }).message || "");
   return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: string }).code === "P2022"
+    code === "P2022" ||
+    message.includes("does not exist") ||
+    message.includes("Unknown field") ||
+    message.includes("column")
   );
 }

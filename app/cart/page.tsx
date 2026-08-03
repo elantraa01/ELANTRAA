@@ -25,10 +25,10 @@ export default function CartPage() {
   const [inputCode, setInputCode] = useState("");
   const [promoMessage, setPromoMessage] = useState<{ success: boolean; text: string } | null>(null);
 
-  const handleApplyPromo = (e: React.FormEvent) => {
+  const handleApplyPromo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputCode) return;
-    const res = applyPromoCode(inputCode);
+    const res = await applyPromoCode(inputCode);
     setPromoMessage({ success: res.success, text: res.message });
   };
 

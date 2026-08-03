@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Product } from "./mockData";
+import { Product, MOCK_PRODUCTS } from "./mockData";
 import ProductCard from "./ProductCard";
 
 interface NewArrivalsProps {
@@ -18,7 +18,14 @@ export default function NewArrivals({
   onToggleWishlist,
 }: NewArrivalsProps) {
   const [activeTab, setActiveTab] = useState("All");
-  const sourceProducts = products || [];
+
+  // Fallback to MOCK_PRODUCTS if provided products list is empty
+  const fallbackNewArrivals = MOCK_PRODUCTS.filter((p) => p.isNewArrival).length > 0
+    ? MOCK_PRODUCTS.filter((p) => p.isNewArrival)
+    : MOCK_PRODUCTS;
+
+  const sourceProducts =
+    products && products.length > 0 ? products : fallbackNewArrivals;
 
   // Extract unique category names from actual products dynamically
   const dynamicCategories = Array.from(
@@ -43,7 +50,7 @@ export default function NewArrivals({
   });
 
   return (
-    <section id="new-arrivals" className="py-16 sm:py-24 bg-[#FAF8F5] relative">
+    <section id="new-arrivals" className="py-16 sm:py-24 bg-white relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-10">
@@ -53,32 +60,34 @@ export default function NewArrivals({
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-gray-900 mt-2 tracking-tight">
             New Arrivals
           </h2>
-          <p className="text-sm text-gray-600 font-light mt-2">
+          <p className="text-sm text-gray-600 font-light mt-2 font-sans">
             Handcrafted luxury silhouettes designed for effortless sophistication.
           </p>
           <div className="w-12 h-[2px] bg-[#C9A648] mx-auto mt-4" />
         </div>
 
-        {/* Category Tabs (Fixed Flexbox left-clipping bug on mobile) */}
-        <div className="flex items-center justify-start sm:justify-center space-x-2 sm:space-x-4 mb-8 sm:mb-12 overflow-x-auto px-4 sm:px-0 pb-2 no-scrollbar w-full">
-          {categoryTabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 sm:px-5 py-2 text-xs uppercase tracking-widest rounded-full font-medium transition-all duration-300 whitespace-nowrap shrink-0 ${
-                activeTab === tab
-                  ? "bg-[#171717] text-[#D4AF37] shadow-md border border-[#C9A648]/40"
-                  : "bg-white text-gray-600 hover:text-gray-900 border border-gray-200"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+        {/* Category Tabs */}
+        {categoryTabs.length > 1 && (
+          <div className="flex items-center justify-start sm:justify-center space-x-2 sm:space-x-4 mb-8 sm:mb-12 overflow-x-auto px-4 sm:px-0 pb-2 no-scrollbar w-full">
+            {categoryTabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 sm:px-5 py-2 text-xs uppercase tracking-widest rounded-full font-medium transition-all duration-300 whitespace-nowrap shrink-0 ${
+                  activeTab === tab
+                    ? "bg-[#171717] text-[#D4AF37] shadow-md border border-[#C9A648]/40"
+                    : "bg-gray-100 text-gray-600 hover:text-gray-900 border border-gray-200"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Product Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
-          {filteredProducts.map((product) => (
+          {filteredProducts.slice(0, 4).map((product) => (
             <ProductCard
               key={product.id}
               product={product}

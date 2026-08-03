@@ -83,9 +83,12 @@ model Product {
   category      Category    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   sizes         String[]
   colors        String[]
+  tags          String[]
   images        String[]
   stock         Int         @default(0)
   isFeatured    Boolean     @default(false)
+  isNewArrival  Boolean     @default(true)
+  isBestSeller  Boolean     @default(false)
   isActive      Boolean     @default(true)
   isReturnable  Boolean     @default(true)
   productInformation String?

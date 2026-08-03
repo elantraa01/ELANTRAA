@@ -32,7 +32,7 @@ interface CartContextType {
   updateQuantity: (itemId: string, quantity: number) => void;
   removeItem: (itemId: string) => void;
   clearCart: () => void;
-  applyPromoCode: (code: string) => { success: boolean; message: string };
+  applyPromoCode: (code: string) => Promise<{ success: boolean; message: string }>;
   removePromoCode: () => void;
   mergeCartOnLogin: (userId: string) => Promise<void>;
   guestId: string;
@@ -301,44 +301,86 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const [promoDiscountAmount, setPromoDiscountAmount] = useState<number>(0);
+
   const subtotal = useMemo(
     () => items.reduce((acc, item) => acc + (item.discountPrice || item.price) * item.quantity, 0),
     [items]
   );
 
-  const promoDiscount = useMemo(() => {
-    if (!promoCode) return 0;
-    const clean = promoCode.trim().toUpperCase();
-    if (clean === "ELANTRAAGOLD") return Math.round((subtotal * 10) / 100) || 500;
-    if (clean === "FESTIVE15") return Math.round((subtotal * 15) / 100) || 750;
-    if (clean === "WELCOME10") return 500;
-    if (clean === "ELANTRAA10") return 300;
-    return 0;
-  }, [promoCode, subtotal]);
-
-  const applyPromoCode = (code: string) => {
-    const clean = code.trim().toUpperCase();
-    let msg = "";
-
-    if (clean === "ELANTRAAGOLD") {
-      msg = "Promo code ELANTRAAGOLD applied! 10% discount added.";
-    } else if (clean === "WELCOME10") {
-      msg = "Promo code WELCOME10 applied! Rs.500 discount added.";
-    } else if (clean === "FESTIVE15") {
-      msg = "Promo code FESTIVE15 applied! 15% festive discount added.";
-    } else if (clean === "ELANTRAA10") {
-      msg = "Promo code ELANTRAA10 applied! Rs.300 discount added.";
-    } else {
-      return { success: false, message: "Invalid code. Try ELANTRAAGOLD, WELCOME10, or FESTIVE15." };
+  useEffect(() => {
+    if (!promoCode || subtotal === 0) {
+      if (!promoCode) setPromoDiscountAmount(0);
+      return;
     }
 
-    setPromoCode(clean);
-    localStorage.setItem(PROMO_CODE_KEY, clean);
-    return { success: true, message: msg };
+    async function revalidatePromo() {
+      try {
+        const res = await fetch("/api/coupons/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: promoCode, subtotal }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.valid) {
+            setPromoDiscountAmount(Number(data.discountAmount) || 0);
+          } else {
+            setPromoCode("");
+            setPromoDiscountAmount(0);
+            localStorage.removeItem(PROMO_CODE_KEY);
+          }
+        }
+      } catch (err) {
+        console.warn("Error revalidating promo code:", err);
+      }
+    }
+
+    revalidatePromo();
+  }, [subtotal, promoCode]);
+
+  const promoDiscount = useMemo(() => {
+    if (!promoCode) return 0;
+    return promoDiscountAmount;
+  }, [promoCode, promoDiscountAmount]);
+
+  const applyPromoCode = async (code: string): Promise<{ success: boolean; message: string }> => {
+    const clean = code.trim().toUpperCase();
+    if (!clean) return { success: false, message: "Please enter a promo code" };
+
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: clean, subtotal }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.valid) {
+        return {
+          success: false,
+          message: data.error || "Invalid or expired promo code",
+        };
+      }
+
+      setPromoCode(clean);
+      setPromoDiscountAmount(Number(data.discountAmount) || 0);
+      localStorage.setItem(PROMO_CODE_KEY, clean);
+
+      return {
+        success: true,
+        message: data.message || `Promo code ${clean} applied successfully!`,
+      };
+    } catch (err) {
+      console.error("Failed to validate promo code:", err);
+      return { success: false, message: "Network error validating promo code" };
+    }
   };
 
   const removePromoCode = () => {
     setPromoCode("");
+    setPromoDiscountAmount(0);
     localStorage.removeItem(PROMO_CODE_KEY);
   };
 

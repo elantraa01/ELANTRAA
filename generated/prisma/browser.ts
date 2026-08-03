@@ -78,6 +78,11 @@ export type Collection = Prisma.CollectionModel
  */
 export type HeroBanner = Prisma.HeroBannerModel
 /**
+ * Model Coupon
+ * 
+ */
+export type Coupon = Prisma.CouponModel
+/**
  * Model StoreSetting
  * 
  */

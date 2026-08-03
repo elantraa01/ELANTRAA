@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
+import CartDrawer from "@/components/cart/CartDrawer";
 
 interface NavbarProps {
   cartCount?: number;
@@ -171,33 +172,16 @@ export default function Navbar({
           {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center space-x-6 text-xs font-medium tracking-[0.15em] text-gray-800 uppercase relative z-10">
             <Link href="/shop" className="hover:text-[#C9A648] transition-colors font-semibold text-[#C9A648] cursor-pointer">
-              Shop All
+              Shop
             </Link>
-            {navCategories.length > 0 ? (
-              navCategories.map((cat) => (
-                <Link
-                  key={cat.id}
-                  href={`/shop?category=${encodeURIComponent(cat.name)}`}
-                  className="hover:text-[#C9A648] transition-colors cursor-pointer"
-                >
-                  {cat.name}
-                </Link>
-              ))
-            ) : (
-              <>
-                <Link href="/category/women" className="hover:text-[#C9A648] transition-colors cursor-pointer">
-                  Women
-                </Link>
-                <Link href="/category/men" className="hover:text-[#C9A648] transition-colors cursor-pointer">
-                  Men
-                </Link>
-                <Link href="/category/accessories" className="hover:text-[#C9A648] transition-colors cursor-pointer">
-                  Accessories
-                </Link>
-              </>
-            )}
-            <Link href="/category/new-arrivals" className="hover:text-[#C9A648] transition-colors cursor-pointer">
-              New Arrivals
+            <Link href="/category/women" className="hover:text-[#C9A648] transition-colors cursor-pointer">
+              Women
+            </Link>
+            <Link href="/category/men" className="hover:text-[#C9A648] transition-colors cursor-pointer">
+              Men
+            </Link>
+            <Link href="/category/accessories" className="hover:text-[#C9A648] transition-colors cursor-pointer">
+              Accessories
             </Link>
             <Link href="/category/sale" className="hover:text-[#C9A648] transition-colors text-red-600 font-semibold cursor-pointer">
               Sale
@@ -622,6 +606,9 @@ export default function Navbar({
           </div>
         </div>
       )}
+
+      {/* Slide-over Shopping Cart Drawer */}
+      <CartDrawer />
     </>
   );
 }
