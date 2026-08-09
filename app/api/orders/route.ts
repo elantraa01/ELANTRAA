@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 import { sendOrderConfirmationEmail } from "@/lib/email";
+import { sendWhatsAppOrderNotification } from "@/lib/whatsapp";
 import { getCouponDiscount } from "@/lib/coupons";
 
 type IncomingOrderItem = {
@@ -273,6 +274,21 @@ export async function POST(req: NextRequest) {
         country: shippingAddress.country,
       },
     });
+
+    // 4. Send Automated WhatsApp Order Confirmation via Meta Cloud API
+    const customerPhone = shippingAddress.phone || shippingAddress.phoneNumber || shippingAddress.mobile;
+    if (customerPhone) {
+      await sendWhatsAppOrderNotification({
+        phone: customerPhone,
+        customerName: shippingAddress.fullName || "Valued Client",
+        orderId: orderSummary.orderId,
+        totalAmount: orderSummary.totalAmount,
+        paymentMethod,
+        itemsCount: orderSummary.items.length,
+      }).catch((wsErr) => {
+        console.error("WhatsApp notification background error:", wsErr);
+      });
+    }
 
     return NextResponse.json({
       success: true,
