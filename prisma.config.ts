@@ -7,7 +7,11 @@ dotenv.config({ path: ".env" });
 
 const dbUrl =
   process.env["DATABASE_URL"] ||
-  "postgresql://postgres:postgres@localhost:5432/elantraa?schema=public";
+  (process.env["NODE_ENV"] === "production"
+    ? (() => {
+        throw new Error("DATABASE_URL must be set in production.");
+      })()
+    : "postgresql://postgres:postgres@localhost:5432/elantraa?schema=public");
 
 export default defineConfig({
   schema: "prisma/schema.prisma",

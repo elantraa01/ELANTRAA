@@ -89,7 +89,12 @@ export async function POST(req: NextRequest) {
     try {
       razorpayOrder = await instance.orders.create(orderOptions);
     } catch (rzpErr) {
-      console.warn("Razorpay API order creation warning, using test order fallback:", rzpErr);
+      if (process.env.NODE_ENV === "production") {
+        console.error("Razorpay API order creation failed:", rzpErr);
+        return NextResponse.json({ error: "Unable to create payment order." }, { status: 502 });
+      }
+
+      console.warn("Razorpay API order creation warning, using development test order fallback:", rzpErr);
       razorpayOrder = {
         id: `order_rzp_test_${Date.now()}`,
         amount: amountInPaise,

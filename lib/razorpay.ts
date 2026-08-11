@@ -1,9 +1,26 @@
 import crypto from "crypto";
 import Razorpay from "razorpay";
 
+const PLACEHOLDER_RAZORPAY_KEY_ID = "rzp_test_elantraa_key_123";
+const PLACEHOLDER_RAZORPAY_KEY_SECRET = "rzp_test_elantraa_secret_456";
+
 export function getRazorpayKeys() {
-  const key_id = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_elantraa_key_123";
-  const key_secret = process.env.RAZORPAY_KEY_SECRET || "rzp_test_elantraa_secret_456";
+  const configuredKeyId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+  const configuredKeySecret = process.env.RAZORPAY_KEY_SECRET;
+
+  if (
+    process.env.NODE_ENV === "production" &&
+    (!configuredKeyId ||
+      !configuredKeySecret ||
+      configuredKeyId === PLACEHOLDER_RAZORPAY_KEY_ID ||
+      configuredKeySecret === PLACEHOLDER_RAZORPAY_KEY_SECRET)
+  ) {
+    throw new Error("Live Razorpay keys must be configured in production.");
+  }
+
+  const key_id = configuredKeyId || PLACEHOLDER_RAZORPAY_KEY_ID;
+  const key_secret = configuredKeySecret || PLACEHOLDER_RAZORPAY_KEY_SECRET;
+
   return { key_id, key_secret };
 }
 

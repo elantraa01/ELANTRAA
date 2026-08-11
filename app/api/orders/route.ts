@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { sendWhatsAppOrderNotification } from "@/lib/whatsapp";
 import { getCouponDiscount } from "@/lib/coupons";
-import { verifyRazorpayPaymentSignature } from "@/lib/razorpay";
+import { validateOrderPayment } from "@/lib/payment";
 
 type IncomingOrderItem = {
   productId?: string;
@@ -59,17 +59,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Razorpay signature verification if paymentMethod is ONLINE
-    if (paymentMethod !== "COD" && razorpay_order_id && razorpay_payment_id && razorpay_signature) {
-      const isValid = verifyRazorpayPaymentSignature({
+    let payment;
+    try {
+      payment = validateOrderPayment({
+        paymentMethod,
         razorpay_order_id,
         razorpay_payment_id,
         razorpay_signature,
       });
-
-      if (!isValid) {
-        console.warn("Razorpay payment signature mismatch or invalid verification.");
-      }
+    } catch (paymentError) {
+      const message = paymentError instanceof Error ? paymentError.message : "Invalid payment details.";
+      return NextResponse.json({ error: message }, { status: 400 });
     }
 
     // Robust user lookup: check by userId, userEmail, or shippingAddress.email
@@ -222,10 +222,10 @@ export async function POST(req: NextRequest) {
           userId: orderUserId,
           totalAmount: recalculatedTotal,
           status: "CONFIRMED",
-          paymentStatus: paymentMethod === "COD" ? "PENDING" : "PAID",
-          razorpayOrderId: razorpay_order_id || null,
-          razorpayPaymentId: razorpay_payment_id || null,
-          razorpaySignature: razorpay_signature || null,
+          paymentStatus: payment.paymentStatus,
+          razorpayOrderId: payment.razorpayOrderId,
+          razorpayPaymentId: payment.razorpayPaymentId,
+          razorpaySignature: payment.razorpaySignature,
           shippingAddress: {
             ...shippingAddress,
             pricing: {
@@ -260,7 +260,7 @@ export async function POST(req: NextRequest) {
       customerName: shippingAddress.fullName || "Valued Client",
       customerEmail: shippingAddress.email || userEmail,
       totalAmount: orderSummary.totalAmount,
-      paymentMethod,
+      paymentMethod: payment.paymentMethod,
       items: orderSummary.items.map((item) => ({
         name: item.name,
         size: item.size,
@@ -286,7 +286,7 @@ export async function POST(req: NextRequest) {
         customerName: shippingAddress.fullName || "Valued Client",
         orderId: orderSummary.orderId,
         totalAmount: orderSummary.totalAmount,
-        paymentMethod,
+        paymentMethod: payment.paymentMethod,
         itemsCount: orderSummary.items.length,
       }).catch((wsErr) => {
         console.error("WhatsApp notification background error:", wsErr);
