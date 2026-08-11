@@ -425,7 +425,7 @@ export default function AdminPanel() {
             disclaimer: product.disclaimer || "",
             additionalInfo: product.additionalInfo || "",
           }
-        : { ...emptyProduct, categoryName: categories[0]?.name || "Women's couture" }
+        : { ...emptyProduct, categoryName: categories[0]?.name || "" }
     );
   }
 

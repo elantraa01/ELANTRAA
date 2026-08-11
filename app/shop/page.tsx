@@ -47,19 +47,15 @@ function getFilteredProducts(products: Product[], filters: FilterState): Product
     const catSlugFromName = normalize(prodCategory);
     const parentSlugFromName = normalize(parentCategory);
 
-    // 1. Exact case-insensitive match with Category Name or Category Slug
-    if (
+    // Exact case-insensitive match with Category Name or Category Slug (including parent category)
+    return (
       catLower === selLower ||
       slugLower === selectedSlug ||
       catSlugFromName === selectedSlug ||
       parentLower === selLower ||
       parentSlugLower === selectedSlug ||
       parentSlugFromName === selectedSlug
-    ) {
-      return true;
-    }
-
-    return catSlugFromName === selectedSlug || slugLower === selectedSlug;
+    );
   });
 }
 

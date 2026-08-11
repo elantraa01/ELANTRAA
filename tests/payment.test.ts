@@ -73,15 +73,14 @@ test("getRazorpayKeys rejects placeholder keys in production", () => {
   const previousPublicKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
   const previousKeySecret = process.env.RAZORPAY_KEY_SECRET;
 
-  process.env.NODE_ENV = "production";
+  Object.defineProperty(process.env, "NODE_ENV", { value: "production", configurable: true, writable: true });
   process.env.RAZORPAY_KEY_ID = "rzp_test_elantraa_key_123";
   delete process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
   process.env.RAZORPAY_KEY_SECRET = "rzp_test_elantraa_secret_456";
 
   assert.throws(() => getRazorpayKeys(), /Live Razorpay keys must be configured/);
 
-  if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
-  else process.env.NODE_ENV = previousNodeEnv;
+  Object.defineProperty(process.env, "NODE_ENV", { value: previousNodeEnv, configurable: true, writable: true });
 
   if (previousKeyId === undefined) delete process.env.RAZORPAY_KEY_ID;
   else process.env.RAZORPAY_KEY_ID = previousKeyId;

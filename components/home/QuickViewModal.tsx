@@ -91,7 +91,7 @@ function QuickViewModalContent({
             <div className="flex items-center justify-between text-xs uppercase tracking-widest text-[#C9A648] font-semibold mb-2">
               <span>
                 {typeof product.category === "object"
-                  ? (product.category as { name?: string })?.name || "Couture"
+                  ? (product.category as { name?: string })?.name || ""
                   : product.category}
               </span>
               <span className="text-emerald-600 font-medium">In Stock ({product.stock})</span>

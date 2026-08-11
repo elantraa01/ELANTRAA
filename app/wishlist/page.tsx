@@ -123,7 +123,7 @@ export default function WishlistPage() {
                       <div>
                         <span className="text-[10px] text-[#C9A648] font-bold uppercase tracking-wider block mb-1">
                           {typeof product.category === "object"
-                            ? (product.category as { name?: string })?.name || "Couture"
+                            ? (product.category as { name?: string })?.name || ""
                             : product.category}
                         </span>
                         <Link href={`/products/${product.slug}`}>

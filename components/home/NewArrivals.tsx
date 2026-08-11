@@ -28,7 +28,7 @@ export default function NewArrivals({
     new Set(
       sourceProducts.map((p) =>
         typeof p.category === "object"
-          ? (p.category as { name?: string })?.name || "Couture"
+          ? (p.category as { name?: string })?.name || ""
           : p.category
       )
     )

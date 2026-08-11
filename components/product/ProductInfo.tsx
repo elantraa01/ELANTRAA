@@ -45,7 +45,7 @@ export default function ProductInfo({
         <div className="flex items-center justify-between text-xs uppercase tracking-widest mb-3">
           <span className="text-[#C9A648] font-bold">
             {typeof product.category === "object"
-              ? (product.category as { name?: string })?.name || "Couture"
+              ? (product.category as { name?: string })?.name || ""
               : product.category}
           </span>
           <div className="flex items-center text-amber-500">

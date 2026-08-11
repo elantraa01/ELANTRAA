@@ -18,7 +18,7 @@ interface ReviewSectionProps {
 export default function ReviewSection({ productId }: ReviewSectionProps) {
   const { data: session } = useSession();
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [averageRating, setAverageRating] = useState(4.8);
+  const [averageRating, setAverageRating] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [ratingInput, setRatingInput] = useState(5);
   const [commentInput, setCommentInput] = useState("");
@@ -31,7 +31,7 @@ export default function ReviewSection({ productId }: ReviewSectionProps) {
       if (res.ok) {
         const data = await res.json();
         setReviews(data.reviews || []);
-        if (data.averageRating) setAverageRating(data.averageRating);
+        if (data.averageRating !== undefined) setAverageRating(data.averageRating);
         if (data.totalReviewsCount !== undefined) setTotalCount(data.totalReviewsCount);
       }
     } catch (err) {

@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     const averageRating =
       reviews.length > 0
         ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-        : 4.8;
+        : 0;
 
     return NextResponse.json({
       reviews: reviews.map((r) => ({
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error("Reviews GET error:", error);
-    return NextResponse.json({ reviews: [], averageRating: 4.8, totalReviewsCount: 0 });
+    return NextResponse.json({ reviews: [], averageRating: 0, totalReviewsCount: 0 });
   }
 }
 

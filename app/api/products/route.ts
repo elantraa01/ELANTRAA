@@ -32,20 +32,14 @@ export async function GET(req: NextRequest) {
       const cleanSlug = categorySlug.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       const cleanName = cleanSlug.replace(/-/g, " ");
 
-      if (cleanSlug === "new-arrivals") {
-        whereClause.isNewArrival = true;
-      } else if (cleanSlug === "sale") {
-        whereClause.discountPrice = { not: null };
-      } else {
-        whereClause.category = {
-          OR: [
-            { slug: { equals: cleanSlug, mode: "insensitive" } },
-            { name: { equals: cleanName, mode: "insensitive" } },
-            { parentCategory: { slug: { equals: cleanSlug, mode: "insensitive" } } },
-            { parentCategory: { name: { equals: cleanName, mode: "insensitive" } } },
-          ],
-        };
-      }
+      whereClause.category = {
+        OR: [
+          { slug: { equals: cleanSlug, mode: "insensitive" } },
+          { name: { equals: cleanName, mode: "insensitive" } },
+          { parentCategory: { slug: { equals: cleanSlug, mode: "insensitive" } } },
+          { parentCategory: { name: { equals: cleanName, mode: "insensitive" } } },
+        ],
+      };
     }
 
     if (search) {
@@ -105,7 +99,7 @@ export async function GET(req: NextRequest) {
       const avgRating =
         p.reviews.length > 0
           ? p.reviews.reduce((acc, r) => acc + r.rating, 0) / p.reviews.length
-          : 4.8;
+          : 0;
 
       return {
         id: p.id,
