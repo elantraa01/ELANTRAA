@@ -15,18 +15,8 @@ export interface HeroData {
   bgVideo?: string;
 }
 
-const DEFAULT_HERO: HeroData = {
-  tagline: "AUTUMN / WINTER 2026 HAUTE COUTURE",
-  title: "Autumn/Winter",
-  highlight: "Curation",
-  description: "Discover bespoke hand-embroidered silks, sculpted silhouettes, and timeless Milanese tailoring.",
-  buttonText: "Shop Now",
-  buttonLink: "/shop",
-  bgImage: "/images/hero/hero_banner.png",
-};
-
 export default function HeroBanner() {
-  const [hero, setHero] = useState<HeroData>(DEFAULT_HERO);
+  const [hero, setHero] = useState<HeroData | null>(null);
 
   useEffect(() => {
     async function loadHero() {
@@ -34,15 +24,15 @@ export default function HeroBanner() {
         const res = await fetch("/api/hero");
         if (res.ok) {
           const data = await res.json();
-          if (data.hero?.bgImage || data.hero?.bgVideo) {
+          if (data.hero?.title && (data.hero?.bgImage || data.hero?.bgVideo)) {
             setHero({
-              tagline: data.hero.tagline || DEFAULT_HERO.tagline,
-              title: data.hero.title || DEFAULT_HERO.title,
-              highlight: data.hero.highlight || DEFAULT_HERO.highlight,
-              description: data.hero.description || DEFAULT_HERO.description,
-              buttonText: "Shop Now",
+              tagline: data.hero.tagline || "",
+              title: data.hero.title,
+              highlight: data.hero.highlight || "",
+              description: data.hero.description || "",
+              buttonText: data.hero.buttonText || "Shop",
               buttonLink: data.hero.buttonLink || "/shop",
-              bgImage: data.hero.bgImage || DEFAULT_HERO.bgImage,
+              bgImage: data.hero.bgImage || "",
               bgVideo: data.hero.bgVideo,
             });
           }
@@ -53,6 +43,8 @@ export default function HeroBanner() {
     }
     loadHero();
   }, []);
+
+  if (!hero) return null;
 
   const isVideoBg = Boolean(
     hero.bgVideo ||

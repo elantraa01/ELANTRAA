@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MOCK_COLLECTIONS } from "./mockData";
 
 interface DbCategory {
   id: string;
@@ -38,43 +37,22 @@ export default function CategoryTiles() {
   const rootCategories = dbCategories.filter((cat) => !cat.parentCategoryId);
   const categoriesToDisplay = rootCategories.length > 0 ? rootCategories : dbCategories;
 
-  // Image mapper for real categories missing explicit image URLs
-  const getCategoryImage = (catName: string, customImage?: string | null) => {
-    if (customImage && customImage.trim() !== "") return customImage;
-    const nameLower = catName.toLowerCase();
+  const tiles = categoriesToDisplay
+    .filter((cat) => Boolean(cat.image?.trim()))
+    .map((cat) => {
+      const subCount = cat.subcategories ? cat.subcategories.length : 0;
+      return {
+        id: cat.id,
+        title: cat.name,
+        subtitle: subCount > 0 ? `${subCount} Subcategories` : "",
+        slug: cat.slug,
+        image: cat.image as string,
+        itemCount: `Discover ${cat.name}`,
+        targetUrl: `/shop?category=${encodeURIComponent(cat.name)}`,
+      };
+    });
 
-    if (nameLower.includes("women") || nameLower.includes("couture") || nameLower.includes("saree") || nameLower.includes("gown") || nameLower.includes("dress")) {
-      return "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80";
-    }
-    if (nameLower.includes("men") || nameLower.includes("suit") || nameLower.includes("sherwani") || nameLower.includes("blazer")) {
-      return "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80";
-    }
-    if (nameLower.includes("access") || nameLower.includes("bag") || nameLower.includes("jewel") || nameLower.includes("watch")) {
-      return "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80";
-    }
-    if (nameLower.includes("sale") || nameLower.includes("offer") || nameLower.includes("discount")) {
-      return "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&q=80";
-    }
-
-    return "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=800&q=80";
-  };
-
-  // Convert real DB categories into tile format or use default MOCK_COLLECTIONS fallback
-  const tiles =
-    categoriesToDisplay.length > 0
-      ? categoriesToDisplay.map((cat) => {
-          const subCount = cat.subcategories ? cat.subcategories.length : 0;
-          return {
-            id: cat.id,
-            title: cat.name,
-            subtitle: subCount > 0 ? `${subCount} Subcategories` : "Explore Curated Catalogue",
-            slug: cat.slug,
-            image: getCategoryImage(cat.name, cat.image),
-            itemCount: `Discover ${cat.name}`,
-            targetUrl: `/shop?category=${encodeURIComponent(cat.name)}`,
-          };
-        })
-      : MOCK_COLLECTIONS;
+  if (tiles.length === 0) return null;
 
   return (
     <section id="category-tiles" className="py-14 sm:py-20 bg-white relative">

@@ -90,7 +90,7 @@ export default function Navbar({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const [announcementText, setAnnouncementText] = useState("COMPLIMENTARY WORLDWIDE EXPRESS SHIPPING ON ORDERS ABOVE ₹5,000");
+  const [announcementText, setAnnouncementText] = useState("");
 
   useEffect(() => {
     async function loadHeadline() {
@@ -123,13 +123,11 @@ export default function Navbar({
   return (
     <>
       {/* Top Announcement Bar */}
-      <div className="bg-[#171717] text-[#D4AF37] text-[10px] sm:text-xs py-1 px-3 sm:px-4 text-center font-medium tracking-wider uppercase border-b border-[#C9A648]/20 flex items-center justify-between sm:justify-center relative z-40">
-        <span className="hidden sm:inline">✦ {announcementText} ✦</span>
-        <span className="sm:hidden text-center w-full">{announcementText}</span>
-        <span className="hidden md:inline-block absolute right-6 text-[10px] text-gray-400 font-sans">
-          USE CODE: <strong className="text-[#C9A648]">ELANTRAAGOLD</strong>
-        </span>
-      </div>
+      {announcementText && (
+        <div className="bg-[#171717] text-[#D4AF37] text-[10px] sm:text-xs py-1 px-3 sm:px-4 text-center font-medium tracking-wider uppercase border-b border-[#C9A648]/20 flex items-center justify-center relative z-40">
+          <span className="text-center w-full">{announcementText}</span>
+        </div>
+      )}
 
       {/* Main Sticky Navigation Bar */}
       <header
@@ -174,18 +172,11 @@ export default function Navbar({
             <Link href="/shop" className="hover:text-[#C9A648] transition-colors font-semibold text-[#C9A648] cursor-pointer">
               Shop
             </Link>
-            <Link href="/category/women" className="hover:text-[#C9A648] transition-colors cursor-pointer">
-              Women
-            </Link>
-            <Link href="/category/men" className="hover:text-[#C9A648] transition-colors cursor-pointer">
-              Men
-            </Link>
-            <Link href="/category/accessories" className="hover:text-[#C9A648] transition-colors cursor-pointer">
-              Accessories
-            </Link>
-            <Link href="/category/sale" className="hover:text-[#C9A648] transition-colors text-red-600 font-semibold cursor-pointer">
-              Sale
-            </Link>
+            {navCategories.filter((cat) => !cat.parentCategoryId).slice(0, 4).map((cat) => (
+              <Link key={cat.id} href={`/shop?category=${encodeURIComponent(cat.name)}`} className="hover:text-[#C9A648] transition-colors cursor-pointer">
+                {cat.name}
+              </Link>
+            ))}
           </nav>
 
           {/* Center: Brand Logo */}
@@ -330,14 +321,6 @@ export default function Navbar({
                     </Link>
                   ))}
                   <Link
-                    href="/shop?featured=true"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-5 py-3.5 text-xs sm:text-sm font-medium tracking-wider text-gray-800 hover:bg-gray-50 transition-colors"
-                  >
-                    Best Seller
-                  </Link>
-
-                  <Link
                     href="/wishlist"
                     onClick={() => {
                       setMobileMenuOpen(false);
@@ -455,33 +438,7 @@ export default function Navbar({
                         )}
                       </div>
                     ))
-                  ) : (
-                    /* Fallback categories */
-                    [
-                      { name: "Women's Wear", href: "/category/women" },
-                      { name: "Men's Collection", href: "/category/men" },
-                      { name: "Lehenga Choli", href: "/shop?category=Lehenga%20choli" },
-                      { name: "Saree Collection", href: "/shop?category=Saree" },
-                      { name: "Dresses & Gowns", href: "/category/dresses" },
-                      { name: "Tops & Kurtas", href: "/category/tops" },
-                      { name: "Outerwear & Jackets", href: "/category/outerwear" },
-                      { name: "Luxury Accessories", href: "/category/accessories" },
-                      { name: "New Arrivals", href: "/category/new-arrivals" },
-                      { name: "Sale & Offers", href: "/category/sale" },
-                    ].map((cat, idx) => (
-                      <Link
-                        key={idx}
-                        href={cat.href}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block px-5 py-3.5 text-xs sm:text-sm font-medium tracking-wider text-gray-800 hover:text-[#C9A648] hover:bg-gray-50 transition-colors flex items-center justify-between"
-                      >
-                        <span>{cat.name}</span>
-                        <svg className="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </Link>
-                    ))
-                  )}
+                  ) : null}
                 </div>
               )}
             </div>
@@ -528,20 +485,20 @@ export default function Navbar({
                 Search
               </button>
             </div>
-            <div className="mt-4 flex flex-wrap gap-2 text-xs text-gray-500">
-              <span className="text-gray-400">Popular:</span>
-              {["Wrap Dress", "Embroidered Kurta", "Oxford Shirt", "Linen Co-ord", "Gold Accessories"].map(
-                (term) => (
+            {navCategories.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2 text-xs text-gray-500">
+                <span className="text-gray-400">Popular:</span>
+                {navCategories.slice(0, 5).map((cat) => (
                   <button
-                    key={term}
-                    onClick={() => setSearchQuery(term)}
+                    key={cat.id}
+                    onClick={() => setSearchQuery(cat.name)}
                     className="px-2.5 py-1 bg-gray-100 rounded-full hover:bg-[#C9A648]/10 hover:text-[#C9A648] transition-colors"
                   >
-                    {term}
+                    {cat.name}
                   </button>
-                )
-              )}
-            </div>
+                ))}
+              </div>
+            )}
 
             {/* Live Search Results List */}
             {searchQuery.trim() && (
@@ -612,3 +569,6 @@ export default function Navbar({
     </>
   );
 }
+
+
+

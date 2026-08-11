@@ -7,12 +7,10 @@ import CategoryTiles from "@/components/home/CategoryTiles";
 import TrendingProducts from "@/components/home/TrendingProducts";
 import NewArrivals from "@/components/home/NewArrivals";
 import BrandStory from "@/components/home/BrandStory";
-import EditorialCollection from "@/components/home/EditorialCollection";
-import Testimonials from "@/components/home/Testimonials";
 import Newsletter from "@/components/home/Newsletter";
 import Footer from "@/components/home/Footer";
 import QuickViewModal from "@/components/home/QuickViewModal";
-import { Product, MOCK_PRODUCTS } from "@/components/home/mockData";
+import { Product } from "@/components/home/mockData";
 import { useCart } from "@/context/CartContext";
 
 export default function Home() {
@@ -59,12 +57,9 @@ export default function Home() {
     showNotification(`Saved ${product.name} to your wishlist.`);
   };
 
-  // Combine DB products with MOCK_PRODUCTS fallback when no DB products exist
-  const allProducts = dbProducts.length > 0 ? dbProducts : MOCK_PRODUCTS;
-
   // Filter strictly by administrative flags so unchecking a flag instantly removes the product from the section
-  const trendingProductsList = allProducts.filter((p) => Boolean(p.isFeatured) || Boolean(p.isBestSeller)).slice(0, 6);
-  const newArrivalsList = allProducts.filter((p) => p.isNewArrival !== false).slice(0, 4);
+  const trendingProductsList = dbProducts.filter((p) => Boolean(p.isFeatured) || Boolean(p.isBestSeller)).slice(0, 6);
+  const newArrivalsList = dbProducts.filter((p) => p.isNewArrival !== false).slice(0, 4);
 
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-[#C9A648] selection:text-white overflow-x-hidden w-full max-w-full">
@@ -88,29 +83,27 @@ export default function Home() {
         <CategoryTiles />
 
         {/* 5. Trending Products (4-6 cards with price + quick-add + social proof) */}
-        <TrendingProducts
-          products={trendingProductsList}
-          onQuickView={(p) => setSelectedProduct(p)}
-          onAddToCart={handleAddToCart}
-          onToggleWishlist={handleToggleWishlist}
-        />
+        {trendingProductsList.length > 0 && (
+          <TrendingProducts
+            products={trendingProductsList}
+            onQuickView={(p) => setSelectedProduct(p)}
+            onAddToCart={handleAddToCart}
+            onToggleWishlist={handleToggleWishlist}
+          />
+        )}
 
         {/* 6. New Arrivals (Same card format as Trending, filtered by newest, non-empty grid) */}
-        <NewArrivals
-          products={newArrivalsList.length > 0 ? newArrivalsList : MOCK_PRODUCTS.slice(0, 4)}
-          onQuickView={(p) => setSelectedProduct(p)}
-          onAddToCart={handleAddToCart}
-          onToggleWishlist={handleToggleWishlist}
-        />
+        {newArrivalsList.length > 0 && (
+          <NewArrivals
+            products={newArrivalsList}
+            onQuickView={(p) => setSelectedProduct(p)}
+            onAddToCart={handleAddToCart}
+            onToggleWishlist={handleToggleWishlist}
+          />
+        )}
 
         {/* 7. Condensed Brand Story / Heritage Strip (1 image + quote + paragraph + 3 trust icons) */}
         <BrandStory />
-
-        {/* 8. Featured/Editorial Collection Lookbook Banner ("The Mulberry Silk Edit") */}
-        <EditorialCollection />
-
-        {/* 9. Testimonials / Reviews (Star ratings, real names, avatars/photos) */}
-        <Testimonials />
 
         {/* 10. Newsletter Privé Club (10% off hook) */}
         <Newsletter />

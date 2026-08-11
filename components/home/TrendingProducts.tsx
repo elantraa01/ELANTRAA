@@ -1,6 +1,6 @@
 "use client";
 
-import { Product, MOCK_PRODUCTS } from "./mockData";
+import { Product } from "./mockData";
 import ProductCard from "./ProductCard";
 
 interface TrendingProductsProps {
@@ -16,11 +16,9 @@ export default function TrendingProducts({
   onAddToCart,
   onToggleWishlist,
 }: TrendingProductsProps) {
-  // Use provided trending/bestseller products or fallback to MOCK_PRODUCTS
-  const displayProducts =
-    products !== undefined
-      ? products
-      : MOCK_PRODUCTS.filter((p) => p.isBestSeller || p.isFeatured).slice(0, 6);
+  const displayProducts = products || [];
+
+  if (displayProducts.length === 0) return null;
 
   return (
     <section id="trending" className="py-16 sm:py-24 bg-[#FAF8F5] relative border-t border-b border-[#C9A648]/15">

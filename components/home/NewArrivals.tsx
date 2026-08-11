@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Product, MOCK_PRODUCTS } from "./mockData";
+import { Product } from "./mockData";
 import ProductCard from "./ProductCard";
 
 interface NewArrivalsProps {
@@ -19,13 +19,9 @@ export default function NewArrivals({
 }: NewArrivalsProps) {
   const [activeTab, setActiveTab] = useState("All");
 
-  // Fallback to MOCK_PRODUCTS if provided products list is empty
-  const fallbackNewArrivals = MOCK_PRODUCTS.filter((p) => p.isNewArrival).length > 0
-    ? MOCK_PRODUCTS.filter((p) => p.isNewArrival)
-    : MOCK_PRODUCTS;
+  const sourceProducts = products || [];
 
-  const sourceProducts =
-    products && products.length > 0 ? products : fallbackNewArrivals;
+  if (sourceProducts.length === 0) return null;
 
   // Extract unique category names from actual products dynamically
   const dynamicCategories = Array.from(

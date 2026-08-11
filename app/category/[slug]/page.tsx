@@ -10,58 +10,19 @@ import QuickViewModal from "@/components/home/QuickViewModal";
 import { Product } from "@/components/home/mockData";
 import { useCart } from "@/context/CartContext";
 
-const CATEGORY_META: Record<
-  string,
-  { title: string; subtitle: string; description: string; bannerImage: string }
-> = {
-  women: {
-    title: "Women's Collection",
-    subtitle: "HAUTE COUTURE & EVENING WEAR",
-    description:
-      "Handcrafted gowns, silk sarees, tailored jackets, and luxurious evening wear crafted from the finest organic Mulberry silk and organza.",
-    bannerImage: "/images/collections/dresses.png",
-  },
-  men: {
-    title: "Men's Collection",
-    subtitle: "TAILORED MENSWEAR & ETHNIC COUTURE",
-    description:
-      "Impeccably tailored suits, classic Oxford shirts, and regal embroidered kurta sets designed for the modern gentleman.",
-    bannerImage: "/images/collections/menswear.png",
-  },
-  accessories: {
-    title: "Luxury Accessories",
-    subtitle: "STATEMENT HANDBAGS & FINE JEWELRY",
-    description:
-      "Sculptural handbags, handcrafted leather belts, and heirloom jewelry designed to elevate every silhouette.",
-    bannerImage: "/images/collections/dresses.png",
-  },
-  "new-arrivals": {
-    title: "New Arrivals",
-    subtitle: "THE LATEST HAUS COUTURE ADDITIONS",
-    description:
-      "Be the first to explore ELANTRAA's newest seasonal drops, handcrafted with innovative silhouettes and golden accents.",
-    bannerImage: "/images/hero/hero_fashion.png",
-  },
-  sale: {
-    title: "Exclusive Sale",
-    subtitle: "PRIVILEGE SAVINGS UP TO 40% OFF",
-    description:
-      "Complimentary access to limited-edition haute couture pieces with exclusive seasonal privilege pricing.",
-    bannerImage: "/images/collections/ethnic.png",
-  },
+type DbCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  image?: string | null;
 };
 
 export default function CategoryPage({ params }: { params: { slug: string } }) {
   const categorySlug = params.slug.toLowerCase();
-  const meta = CATEGORY_META[categorySlug] || {
-    title: `${params.slug.toUpperCase()} Collection`,
-    subtitle: "ELANTRAA LUXURY SELECTION",
-    description: "Explore bespoke fashion pieces curated exclusively by ELANTRAA.",
-    bannerImage: "/images/hero/hero_fashion.png",
-  };
 
   const { addItem } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
+  const [category, setCategory] = useState<DbCategory | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [sortBy, setSortBy] = useState<"newest" | "price-low" | "price-high">("newest");
@@ -71,15 +32,28 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
     async function fetchCategoryProducts() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/products?category=${categorySlug}&sortBy=${sortBy}`);
-        if (res.ok) {
-          const data = await res.json();
+        const [productRes, categoryRes] = await Promise.all([
+          fetch(`/api/products?category=${categorySlug}&sortBy=${sortBy}`, { cache: "no-store" }),
+          fetch("/api/categories", { cache: "no-store" }),
+        ]);
+
+        if (productRes.ok) {
+          const data = await productRes.json();
           setProducts(data.products || []);
         } else {
           setProducts([]);
         }
+
+        if (categoryRes.ok) {
+          const data = await categoryRes.json();
+          const categories = (data.categories || []) as DbCategory[];
+          setCategory(categories.find((item) => item.slug.toLowerCase() === categorySlug) || null);
+        } else {
+          setCategory(null);
+        }
       } catch {
         setProducts([]);
+        setCategory(null);
       } finally {
         setLoading(false);
       }
@@ -118,27 +92,25 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
                 Shop
               </Link>
               <span>/</span>
-              <span className="text-gray-900 font-medium capitalize">{meta.title}</span>
+              <span className="text-gray-900 font-medium capitalize">{category?.name || categorySlug}</span>
             </nav>
           </div>
         </div>
 
         {/* Category Hero Banner */}
         <div className="relative bg-[#171717] text-white py-16 sm:py-24 overflow-hidden border-b border-[#C9A648]/30">
-          <div className="absolute inset-0 opacity-20 mix-blend-overlay">
-            <Image src={meta.bannerImage} alt="" fill className="object-cover" />
-          </div>
-
+          {category?.image && (
+            <div className="absolute inset-0 opacity-20 mix-blend-overlay">
+              <Image src={category.image} alt="" fill className="object-cover" />
+            </div>
+          )}
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <span className="text-xs tracking-[0.3em] text-[#D4AF37] uppercase font-bold">
-              {meta.subtitle}
+              Category
             </span>
             <h1 className="text-4xl sm:text-6xl font-serif text-white mt-2 tracking-tight">
-              {meta.title}
+              {category?.name || categorySlug}
             </h1>
-            <p className="text-sm text-gray-300 font-light max-w-2xl mx-auto mt-3 leading-relaxed">
-              {meta.description}
-            </p>
           </div>
         </div>
 
@@ -146,7 +118,7 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <div className="flex items-center justify-between border-b border-gray-200 pb-4 mb-8">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-              Showing {products.length} {meta.title}
+              Showing {products.length} {category?.name || categorySlug}
             </span>
 
             {/* Sort Control */}
