@@ -7,11 +7,7 @@ const globalForPrisma = globalThis as unknown as {
 
 const connectionString =
   process.env.DATABASE_URL ||
-  (process.env.NODE_ENV === "production"
-    ? (() => {
-        throw new Error("DATABASE_URL must be set in production.");
-      })()
-    : "postgresql://postgres:postgres@localhost:5432/elantraa?schema=public");
+  "postgresql://postgres:postgres@localhost:5432/elantraa?schema=public";
 
 const adapter = new PrismaPg({ connectionString });
 
