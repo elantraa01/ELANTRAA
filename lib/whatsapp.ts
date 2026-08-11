@@ -27,8 +27,6 @@ export async function sendWhatsAppOrderNotification({
   customerName,
   orderId,
   totalAmount,
-  paymentMethod = "Prepaid",
-  itemsCount = 1,
 }: SendWhatsAppOrderOptions): Promise<boolean> {
   if (!phone) {
     console.warn("[WhatsApp] No phone number available, skipping WhatsApp notification.");

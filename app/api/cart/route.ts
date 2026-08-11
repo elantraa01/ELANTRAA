@@ -19,6 +19,12 @@ function isValidGuestId(guestId: unknown): guestId is string {
   return typeof guestId === "string" && /^guest_[a-zA-Z0-9_-]{8,80}$/.test(guestId);
 }
 
+function getCartQuantity(quantity: unknown) {
+  const parsed = Number(quantity || 1);
+  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 99) return null;
+  return parsed;
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const userId = await getSessionUserId();
@@ -70,7 +76,8 @@ export async function PATCH(req: NextRequest) {
     }
 
     const { itemId, quantity } = await req.json();
-    if (!itemId || !quantity || quantity < 1) {
+    const parsedQuantity = getCartQuantity(quantity);
+    if (!itemId || !parsedQuantity) {
       return NextResponse.json({ error: "Valid itemId and quantity are required" }, { status: 400 });
     }
 
@@ -87,7 +94,7 @@ export async function PATCH(req: NextRequest) {
 
     await prisma.cartItem.update({
       where: { id: item.id },
-      data: { quantity },
+      data: { quantity: parsedQuantity },
     });
 
     const cart = await prisma.cart.findUnique({
@@ -151,9 +158,14 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { guestId, productId, size, color, quantity } = body;
     const userId = await getSessionUserId();
+    const parsedQuantity = getCartQuantity(quantity);
 
     if (!productId) {
       return NextResponse.json({ error: "productId is required" }, { status: 400 });
+    }
+
+    if (!parsedQuantity) {
+      return NextResponse.json({ error: "Quantity must be an integer between 1 and 99" }, { status: 400 });
     }
 
     if (!userId && !isValidGuestId(guestId)) {
@@ -182,7 +194,7 @@ export async function POST(req: NextRequest) {
     if (existingItem) {
       await prisma.cartItem.update({
         where: { id: existingItem.id },
-        data: { quantity: existingItem.quantity + (quantity || 1) },
+        data: { quantity: Math.min(existingItem.quantity + parsedQuantity, 99) },
       });
     } else {
       await prisma.cartItem.create({
@@ -191,7 +203,7 @@ export async function POST(req: NextRequest) {
           productId,
           size: size || null,
           color: color || null,
-          quantity: quantity || 1,
+          quantity: parsedQuantity,
         },
       });
     }

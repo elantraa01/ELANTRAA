@@ -158,14 +158,15 @@ export default function CheckoutPage() {
         });
 
         const resData = await response.json();
+        if (!response.ok || !resData.success || !resData.orderId) {
+          throw new Error(resData.error || "Failed to place order");
+        }
+
         clearCart();
-        const orderId = resData.orderId || `ELN-2026-${Math.floor(100000 + Math.random() * 900000)}`;
-        router.push(`/checkout/success?orderId=${orderId}`);
+        router.push(`/checkout/success?orderId=${resData.orderId}`);
       } catch (err) {
         console.error("COD checkout error:", err);
-        const mockOrderId = `ELN-2026-${Math.floor(100000 + Math.random() * 900000)}`;
-        clearCart();
-        router.push(`/checkout/success?orderId=${mockOrderId}`);
+        alert(err instanceof Error ? err.message : "Could not place order. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -201,7 +202,24 @@ export default function CheckoutPage() {
             razorpay_signature: string;
           }) {
             try {
-              const verifyRes = await fetch("/api/orders", {
+              // 1. Verify Razorpay Payment Signature
+              const verifyRes = await fetch("/api/razorpay/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature,
+                }),
+              });
+
+              const verifyData = await verifyRes.json();
+              if (!verifyRes.ok || !verifyData.verified) {
+                console.warn("Payment verification API warning:", verifyData.error);
+              }
+
+              // 2. Create Order record with payment metadata
+              const createOrderRes = await fetch("/api/orders", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -211,13 +229,19 @@ export default function CheckoutPage() {
                   razorpay_signature: response.razorpay_signature,
                 }),
               });
-              const finalData = await verifyRes.json();
+
+              const finalData = await createOrderRes.json();
+              if (!createOrderRes.ok || !finalData.success) {
+                throw new Error(finalData.error || "Failed to finalize order after payment.");
+              }
+
               clearCart();
               const finalId = finalData.orderId || `ELN-2026-${Math.floor(100000 + Math.random() * 900000)}`;
               router.push(`/checkout/success?orderId=${finalId}`);
-            } catch {
-              clearCart();
-              router.push(`/checkout/success?orderId=ELN-2026-RZPTEST`);
+            } catch (err) {
+              console.error("Order completion error:", err);
+              alert(err instanceof Error ? err.message : "Payment succeeded but order creation failed. Please contact support.");
+              setLoading(false);
             }
           },
           prefill: {
@@ -240,18 +264,22 @@ export default function CheckoutPage() {
           const rzp = new win.Razorpay(options);
           rzp.open();
         } else {
-          // Fallback if script loading blocked by adblocker in dev
-          const verifyRes = await fetch("/api/orders", {
+          // Fallback if Razorpay SDK script is blocked in dev environment
+          const createOrderRes = await fetch("/api/orders", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(orderPayload),
           });
-          const finalData = await verifyRes.json();
+          const finalData = await createOrderRes.json();
+          if (!createOrderRes.ok || !finalData.success) {
+            throw new Error(finalData.error || "Failed to process order.");
+          }
           clearCart();
           router.push(`/checkout/success?orderId=${finalData.orderId}`);
         }
       } catch (err) {
         console.error("Razorpay Checkout Error:", err);
+        alert(err instanceof Error ? err.message : "Razorpay payment error occurred. Please try again.");
         setLoading(false);
       }
     }

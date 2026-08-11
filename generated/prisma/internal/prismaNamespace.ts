@@ -1580,6 +1580,9 @@ export const OrderScalarFieldEnum = {
   status: 'status',
   shippingAddress: 'shippingAddress',
   paymentStatus: 'paymentStatus',
+  razorpayOrderId: 'razorpayOrderId',
+  razorpayPaymentId: 'razorpayPaymentId',
+  razorpaySignature: 'razorpaySignature',
   createdAt: 'createdAt'
 } as const
 

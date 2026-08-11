@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { sendWhatsAppOrderNotification } from "@/lib/whatsapp";
 import { getCouponDiscount } from "@/lib/coupons";
+import { verifyRazorpayPaymentSignature } from "@/lib/razorpay";
 
 type IncomingOrderItem = {
   productId?: string;
@@ -59,16 +59,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Razorpay signature verification if paymentMethod is ONLINE / APPLEPAY
+    // Razorpay signature verification if paymentMethod is ONLINE
     if (paymentMethod !== "COD" && razorpay_order_id && razorpay_payment_id && razorpay_signature) {
-      const secret = process.env.RAZORPAY_KEY_SECRET || "rzp_test_elantraa_secret_456";
-      const generatedSignature = crypto
-        .createHmac("sha256", secret)
-        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-        .digest("hex");
+      const isValid = verifyRazorpayPaymentSignature({
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+      });
 
-      if (generatedSignature !== razorpay_signature) {
-        console.warn("Razorpay signature mismatch in test verification.");
+      if (!isValid) {
+        console.warn("Razorpay payment signature mismatch or invalid verification.");
       }
     }
 
@@ -223,6 +223,9 @@ export async function POST(req: NextRequest) {
           totalAmount: recalculatedTotal,
           status: "CONFIRMED",
           paymentStatus: paymentMethod === "COD" ? "PENDING" : "PAID",
+          razorpayOrderId: razorpay_order_id || null,
+          razorpayPaymentId: razorpay_payment_id || null,
+          razorpaySignature: razorpay_signature || null,
           shippingAddress: {
             ...shippingAddress,
             pricing: {

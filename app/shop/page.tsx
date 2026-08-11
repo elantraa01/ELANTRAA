@@ -108,8 +108,8 @@ function getSortedProducts(products: Product[], sortBy: string): Product[] {
 function ShopContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const catQuery = searchParams.get("category");
-  const productSearch = (searchParams.get("search") || "").trim();
+  const catQuery = searchParams?.get("category");
+  const productSearch = (searchParams?.get("search") || "").trim();
 
   const { addItem } = useCart();
   const [dbProducts, setDbProducts] = useState<Product[]>([]);

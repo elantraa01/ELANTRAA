@@ -48,7 +48,7 @@ function AccountPageContent() {
   const [activeTab, setActiveTab] = useState<"orders" | "addresses">("orders");
 
   useEffect(() => {
-    const tabParam = searchParams.get("tab");
+    const tabParam = searchParams?.get("tab");
     if (tabParam === "wishlist") {
       router.replace("/wishlist");
     } else if (tabParam === "addresses" || tabParam === "orders") {

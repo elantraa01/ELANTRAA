@@ -8,7 +8,7 @@ import Footer from "@/components/home/Footer";
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get("orderId") || `ELN-2026-${Math.floor(100000 + Math.random() * 900000)}`;
+  const orderId = searchParams?.get("orderId") || `ELN-2026-${Math.floor(100000 + Math.random() * 900000)}`;
 
   return (
     <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center">

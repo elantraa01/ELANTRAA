@@ -107,18 +107,22 @@ model Product {
 }
 
 model Order {
-  id              String        @id @default(cuid())
-  userId          String
-  totalAmount     Decimal       @db.Decimal(10, 2)
-  status          OrderStatus   @default(PENDING)
-  shippingAddress Json
-  paymentStatus   PaymentStatus @default(PENDING)
-  createdAt       DateTime      @default(now())
-  user            User          @relation(fields: [userId], references: [id], onDelete: Restrict)
-  items           OrderItem[]
+  id                String        @id @default(cuid())
+  userId            String
+  totalAmount       Decimal       @db.Decimal(10, 2)
+  status            OrderStatus   @default(PENDING)
+  shippingAddress   Json
+  paymentStatus     PaymentStatus @default(PENDING)
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  razorpaySignature String?
+  createdAt         DateTime      @default(now())
+  user              User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  items             OrderItem[]
 
   @@index([userId])
   @@index([status])
+  @@index([razorpayOrderId])
 }
 
 model OrderItem {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import Razorpay from "razorpay";
 import { prisma } from "@/lib/prisma";
 import { getCouponDiscount } from "@/lib/coupons";
+import { getRazorpayInstance, getRazorpayKeys } from "@/lib/razorpay";
 
 type IncomingOrderItem = {
   productId?: string;
@@ -72,14 +72,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Order items are required" }, { status: 400 });
     }
 
-    const key_id = process.env.RAZORPAY_KEY_ID || "rzp_test_elantraa_key_123";
-    const key_secret = process.env.RAZORPAY_KEY_SECRET || "rzp_test_elantraa_secret_456";
-
-    // Initialize Razorpay SDK instance in test mode
-    const instance = new Razorpay({
-      key_id,
-      key_secret,
-    });
+    const { key_id } = getRazorpayKeys();
+    const instance = getRazorpayInstance();
 
     const totalAmount = await calculateOrderTotal(items, promoCode);
     const amountInPaise = Math.round(totalAmount * 100);
@@ -95,9 +89,9 @@ export async function POST(req: NextRequest) {
     try {
       razorpayOrder = await instance.orders.create(orderOptions);
     } catch (rzpErr) {
-      console.warn("Razorpay API order creation warning, using mock order fallback:", rzpErr);
+      console.warn("Razorpay API order creation warning, using test order fallback:", rzpErr);
       razorpayOrder = {
-        id: `order_rzp_mock_${Date.now()}`,
+        id: `order_rzp_test_${Date.now()}`,
         amount: amountInPaise,
         currency,
         receipt: orderOptions.receipt,

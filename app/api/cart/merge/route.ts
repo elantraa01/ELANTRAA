@@ -14,24 +14,17 @@ export async function POST(req: NextRequest) {
     const sessionEmail = session?.user?.email;
 
     const body = await req.json().catch(() => ({}));
-    const { userId: bodyUserId, guestCartItems, guestId } = body;
+    const { guestCartItems, guestId } = body;
 
     let targetUser = null;
     if (sessionEmail || sessionUserId) {
       targetUser = await prisma.user.findFirst({
         where: sessionUserId ? { id: sessionUserId } : { email: sessionEmail! },
       });
-    } else if (bodyUserId) {
-      targetUser = await prisma.user.findFirst({
-        where: { OR: [{ id: bodyUserId }, { email: bodyUserId }] },
-      });
     }
 
     if (!targetUser) {
-      return NextResponse.json({
-        success: true,
-        message: "No database user found to merge cart into.",
-      });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const userId = targetUser.id;
