@@ -59,28 +59,6 @@ function getFilteredProducts(products: Product[], filters: FilterState): Product
       return true;
     }
 
-    // 2. Specific check for "Women"
-    if (selLower === "women") {
-      const isWomenParent = parentLower === "women" || parentSlugLower === "women";
-      const isWomenCategory = catLower === "women" || slugLower === "women";
-      const isWomenApparel =
-        ["dresses", "dress", "tops", "top", "saree", "sarees", "lehenga", "lehengacholi", "anarkali", "skirt", "blouse", "accessories"].includes(slugLower) ||
-        ["dresses", "dresses & evening gowns", "tops", "saree", "lehenga choli", "anarkali suits", "accessories"].includes(catLower);
-      return isWomenParent || isWomenCategory || isWomenApparel;
-    }
-
-    // 3. Specific check for "Men"
-    if (selLower === "men") {
-      const isMenParent = parentLower === "men" || parentSlugLower === "men";
-      const isMenCategory = catLower === "men" || slugLower === "men";
-      const isMenApparel =
-        ["shirts", "shirt", "kurtasets", "kurta-sets", "kurta", "chinos", "outerwear", "menswear"].includes(slugLower) ||
-        ["shirts", "kurta sets", "chinos", "outerwear", "menswear couture"].includes(catLower);
-      return isMenParent || isMenCategory || isMenApparel;
-    }
-
-    // 4. Fallback for other specific categories. Keep this exact so "Men Dress"
-    // does not match "Women Dress".
     return catSlugFromName === selectedSlug || slugLower === selectedSlug;
   });
 }

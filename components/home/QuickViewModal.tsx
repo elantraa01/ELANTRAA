@@ -52,13 +52,19 @@ function QuickViewModalContent({
         {/* Left: Product Images */}
         <div className="md:w-1/2 relative bg-[#FAF8F5] p-6 flex flex-col items-center justify-center">
           <div className="relative w-full aspect-[3/4] rounded-xl overflow-hidden shadow-sm">
-            <Image
-              src={activeImage}
-              alt={product.name}
-              fill
-              onError={() => setActiveImage("/images/collections/dresses.png")}
-              className="object-cover object-center"
-            />
+            {activeImage ? (
+              <Image
+                src={activeImage}
+                alt={product.name}
+                fill
+                onError={() => setActiveImage("")}
+                className="object-cover object-center"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-gray-100 text-xs uppercase tracking-widest text-gray-400">
+                No image
+              </div>
+            )}
           </div>
 
           {/* Thumbnail Strip */}

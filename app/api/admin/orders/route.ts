@@ -43,7 +43,7 @@ export async function GET() {
         id: item.id,
         productId: item.productId,
         productName: item.product.name,
-        productImage: item.product.images[0] || "/images/collections/dresses.png",
+        productImage: item.product.images[0] || "",
         quantity: item.quantity,
         price: Number(item.price),
         size: item.size,

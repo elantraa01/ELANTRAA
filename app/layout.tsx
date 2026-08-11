@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     template: "%s | ELANTRAA",
   },
   description:
-    "Discover timeless elegance, Mulberry silk gowns, hand-embroidered kurta sets, and bespoke menswear at ELANTRAA.",
+    "Discover the latest ELANTRAA catalogue, collections, and bespoke fashion services.",
   keywords: [
     "ELANTRAA",
     "Luxury Fashion",
@@ -25,12 +25,12 @@ export const metadata: Metadata = {
   openGraph: {
     title: "ELANTRAA | Luxury Fashion & Bespoke Apparel",
     description:
-      "Handcrafted evening gowns, Mulberry silk sarees, and tailored menswear designed for timeless elegance.",
+      "Explore ELANTRAA products, collections, and fashion services.",
     url: "https://elantraa.com",
     siteName: "ELANTRAA",
     images: [
       {
-        url: "/images/hero/hero_fashion.png",
+        url: "/images/logo/logo.png",
         width: 1200,
         height: 630,
         alt: "ELANTRAA Luxury Collection Banner",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "ELANTRAA | Luxury Fashion",
     description: "Discover timeless elegance and luxury fashion at ELANTRAA.",
-    images: ["/images/hero/hero_fashion.png"],
+    images: ["/images/logo/logo.png"],
   },
   robots: {
     index: true,
@@ -71,5 +71,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-

@@ -162,15 +162,14 @@ const emptyCategory = {
 };
 
 const emptyHero: HeroBannerData = {
-  announcement: "COMPLIMENTARY WORLDWIDE EXPRESS SHIPPING ON ORDERS ABOVE ₹5,000",
-  tagline: "AUTUMN / WINTER 2026 COLLECTION",
-  title: "ELANTRAA",
-  highlight: "& Timeless Elegance",
-  description:
-    "Immerse yourself in handcrafted silk gowns, tailored silhouettes, and intricate metallic embroidery designed for the discerning individual.",
-  buttonText: "Explore Collection",
+  announcement: "",
+  tagline: "",
+  title: "",
+  highlight: "",
+  description: "",
+  buttonText: "Shop",
   buttonLink: "/shop",
-  bgImage: "/images/hero/hero_banner.png",
+  bgImage: "",
   bgVideo: "",
 };
 
@@ -840,7 +839,11 @@ export default function AdminPanel() {
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex items-center gap-3">
                               <div className="relative h-14 w-14 overflow-hidden rounded-lg bg-slate-100 shrink-0 border border-slate-200">
-                                <Image src={product.images[0] || "/images/collections/dresses.png"} alt={product.name} fill className="object-cover" />
+                                {product.images[0] ? (
+                                  <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                                ) : (
+                                  <div className="flex h-full w-full items-center justify-center text-[9px] uppercase tracking-widest text-slate-400">No image</div>
+                                )}
                               </div>
                               <div>
                                 <h3 className="font-semibold text-slate-900 text-sm leading-snug">{product.name}</h3>
@@ -1224,7 +1227,7 @@ export default function AdminPanel() {
                     <input
                       type="text"
                       required
-                      placeholder="Mulberry silk evening gown"
+                      placeholder="Product name"
                       value={productForm.name}
                       onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
                       className="w-full bg-[#FAF8F5] border border-gray-300 focus:border-[#C9A648] focus:bg-white rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition-all"
@@ -1629,7 +1632,7 @@ export default function AdminPanel() {
       {couponModal.open && (
         <Modal title={couponModal.id ? "Edit Promo Code" : "Add Promo Code"} onClose={() => setCouponModal({ open: false })}>
           <form onSubmit={saveCoupon} className="space-y-4">
-            <Field label="Promo Code" value={couponForm.code} onChange={(value) => setCouponForm({ ...couponForm, code: value.toUpperCase() })} required placeholder="e.g. WELCOME10" />
+            <Field label="Promo Code" value={couponForm.code} onChange={(value) => setCouponForm({ ...couponForm, code: value.toUpperCase() })} required placeholder="Promo code" />
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Discount Type</label>
@@ -2026,7 +2029,11 @@ function ProductCell({ product }: { product: Product }) {
   return (
     <div className="flex items-center gap-3">
       <div className="relative h-11 w-11 overflow-hidden rounded-md bg-slate-100">
-        <Image src={product.images[0] || "/images/collections/dresses.png"} alt={product.name} fill className="object-cover" />
+        {product.images[0] ? (
+          <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-[8px] uppercase tracking-widest text-slate-400">No image</div>
+        )}
       </div>
       <span className="font-medium text-slate-900">{product.name}</span>
     </div>

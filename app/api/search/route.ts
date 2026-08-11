@@ -38,8 +38,8 @@ export async function GET(req: NextRequest) {
         slug: p.slug,
         price: Number(p.price),
         discountPrice: p.discountPrice ? Number(p.discountPrice) : null,
-        image: p.images && p.images.length > 0 ? p.images[0] : "/images/placeholder.jpg",
-        categoryName: p.category?.name || "Luxury",
+        image: p.images && p.images.length > 0 ? p.images[0] : "",
+        categoryName: p.category?.name || "",
       })),
     });
   } catch (error) {

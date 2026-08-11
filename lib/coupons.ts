@@ -7,13 +7,6 @@ export type CouponDiscount = {
   discountAmount: number;
 };
 
-const fallbackCoupons: Record<string, { type: "percentage" | "fixed"; value: number; minSpend?: number }> = {
-  ELANTRAAGOLD: { type: "percentage", value: 10 },
-  WELCOME10: { type: "fixed", value: 500, minSpend: 2500 },
-  FESTIVE15: { type: "percentage", value: 15, minSpend: 4000 },
-  ELANTRAA10: { type: "fixed", value: 300 },
-};
-
 export async function getCouponDiscount(code: unknown, subtotal: number): Promise<CouponDiscount | null> {
   if (!code || typeof code !== "string") return null;
 
@@ -24,9 +17,7 @@ export async function getCouponDiscount(code: unknown, subtotal: number): Promis
   try {
     const couponModel = (prisma as unknown as Record<string, { findUnique?: (args: unknown) => Promise<Record<string, unknown> | null> }>).coupon;
     if (!couponModel || typeof couponModel.findUnique !== "function") {
-      const fallback = fallbackCoupons[cleanCode];
-      if (!fallback || (fallback.minSpend && subtotal < fallback.minSpend)) return null;
-      return calculateDiscount(cleanCode, fallback.type, fallback.value, subtotal);
+      return null;
     }
 
     const coupon = await couponModel.findUnique({ where: { code: cleanCode } });
@@ -46,11 +37,8 @@ export async function getCouponDiscount(code: unknown, subtotal: number): Promis
 
     return calculateDiscount(cleanCode, discountType, discountValue, subtotal);
   } catch (error) {
-    console.warn("Coupon discount calculation fallback warning:", error);
-
-    const fallback = fallbackCoupons[cleanCode];
-    if (!fallback || (fallback.minSpend && subtotal < fallback.minSpend)) return null;
-    return calculateDiscount(cleanCode, fallback.type, fallback.value, subtotal);
+    console.warn("Coupon discount calculation warning:", error);
+    return null;
   }
 }
 
@@ -66,12 +54,7 @@ export async function getCouponValidation(
   try {
     const couponModel = (prisma as unknown as Record<string, { findUnique?: (args: unknown) => Promise<Record<string, unknown> | null> }>).coupon;
     if (!couponModel || typeof couponModel.findUnique !== "function") {
-      const fallback = fallbackCoupons[cleanCode];
-      if (!fallback) return { discount: null };
-      if (fallback.minSpend && subtotal < fallback.minSpend) return { discount: null, minSpend: fallback.minSpend };
-      return {
-        discount: calculateDiscount(cleanCode, fallback.type, fallback.value, subtotal),
-      };
+      return { discount: null };
     }
 
     const coupon = await couponModel.findUnique({ where: { code: cleanCode } });
@@ -92,14 +75,8 @@ export async function getCouponValidation(
       discount: calculateDiscount(cleanCode, discountType, Number(coupon.value), subtotal),
     };
   } catch (error) {
-    console.warn("Coupon validation fallback warning:", error);
-
-    const fallback = fallbackCoupons[cleanCode];
-    if (!fallback) return { discount: null };
-    if (fallback.minSpend && subtotal < fallback.minSpend) return { discount: null, minSpend: fallback.minSpend };
-    return {
-      discount: calculateDiscount(cleanCode, fallback.type, fallback.value, subtotal),
-    };
+    console.warn("Coupon validation warning:", error);
+    return { discount: null };
   }
 }
 

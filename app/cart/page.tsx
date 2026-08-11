@@ -188,7 +188,7 @@ export default function CartPage() {
                     <form onSubmit={handleApplyPromo} className="flex gap-2">
                       <input
                         type="text"
-                        placeholder="e.g. ELANTRAAGOLD"
+                        placeholder="Enter promo code"
                         value={inputCode}
                         onChange={(e) => setInputCode(e.target.value)}
                         className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded text-xs focus:outline-none focus:border-[#C9A648] uppercase tracking-wider"
@@ -210,9 +210,6 @@ export default function CartPage() {
                       {promoMessage.text}
                     </p>
                   )}
-                  <p className="text-[10px] text-gray-400 mt-1">
-                    Try code <strong className="text-[#C9A648]">ELANTRAAGOLD</strong> for &#8377;500 discount
-                  </p>
                 </div>
 
                 {/* Price Calculation Lines */}

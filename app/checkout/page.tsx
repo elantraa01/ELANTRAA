@@ -171,7 +171,7 @@ export default function CheckoutPage() {
         setLoading(false);
       }
     } else {
-      // Razorpay Test Mode Online Payment Checkout
+      // Razorpay online payment checkout
       try {
         const rzpOrderRes = await fetch("/api/razorpay/order", {
           method: "POST",
@@ -194,7 +194,7 @@ export default function CheckoutPage() {
           currency: rzpOrder.currency || "INR",
           name: "ELANTRAA Haute Couture",
           description: `Haute Couture Selection (${items.length} Items)`,
-          image: "/images/hero/hero_fashion.png",
+          image: "/images/logo/logo.png",
           order_id: rzpOrder.id,
           handler: async function (response: {
             razorpay_payment_id: string;
@@ -374,7 +374,7 @@ export default function CheckoutPage() {
               SECURE CHECKOUT
             </span>
             <h1 className="text-3xl sm:text-4xl font-serif text-gray-900 mt-1 tracking-tight">
-              Razorpay Test Checkout
+              Checkout
             </h1>
           </div>
 
@@ -591,7 +591,7 @@ export default function CheckoutPage() {
                 <h3 className="text-sm font-serif font-semibold uppercase tracking-wider text-gray-900 border-b border-gray-200 pb-3 flex items-center justify-between">
                   <span>3. Payment Gateway</span>
                   <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded uppercase font-bold">
-                    Razorpay Test Mode Active
+                    Razorpay Active
                   </span>
                 </h3>
 
@@ -600,7 +600,7 @@ export default function CheckoutPage() {
                     {
                       id: "ONLINE",
                       label: "Razorpay Secure (UPI, Cards, Netbanking)",
-                      desc: "Instant payment authorization via Razorpay 256-Bit Test Mode Gateway",
+                      desc: "Instant payment authorization via Razorpay",
                     },
                     {
                       id: "COD",
@@ -702,7 +702,7 @@ export default function CheckoutPage() {
               </button>
 
               <div className="text-[10px] text-center text-gray-400 space-y-1">
-                <p>✦ Razorpay Test Mode & Stock Reservation Enabled</p>
+                <p>&#10022; Razorpay Payment & Stock Reservation Enabled</p>
                 <p>✦ Instant Order Confirmation Email Notification</p>
               </div>
             </div>

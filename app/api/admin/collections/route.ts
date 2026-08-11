@@ -7,53 +7,9 @@ export async function GET() {
   if (authError) return authError;
 
   try {
-    let collections = await prisma.collection.findMany({
+    const collections = await prisma.collection.findMany({
       orderBy: { createdAt: "desc" },
     });
-
-    if (collections.length === 0) {
-      await prisma.collection.createMany({
-        data: [
-          {
-            title: "Dresses & Evening Gowns",
-            subtitle: "Handcrafted Silk & Satin Silhouettes",
-            image: "/images/collections/dresses.png",
-            slug: "dresses",
-            itemCount: "12 PIECES",
-            isFeatured: true,
-          },
-          {
-            title: "Luxury Ethnic Wear",
-            subtitle: "Royal Embroidered Sarees & Lehengas",
-            image: "/images/collections/ethnic.png",
-            slug: "ethnic-wear",
-            itemCount: "15 PIECES",
-            isFeatured: true,
-          },
-          {
-            title: "Menswear Couture",
-            subtitle: "Bespoke Royal Sherwanis & Jackets",
-            image: "/images/collections/menswear.png",
-            slug: "menswear",
-            itemCount: "8 PIECES",
-            isFeatured: true,
-          },
-          {
-            title: "Accessories & Jewelry",
-            subtitle: "Fine Metallic Clutches & Artisan Pieces",
-            image: "/images/collections/accessories.png",
-            slug: "accessories",
-            itemCount: "20 PIECES",
-            isFeatured: true,
-          },
-        ],
-        skipDuplicates: true,
-      });
-
-      collections = await prisma.collection.findMany({
-        orderBy: { createdAt: "desc" },
-      });
-    }
 
     return NextResponse.json({ collections });
   } catch (error) {
@@ -70,7 +26,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { title, subtitle, image, itemCount, slug, isFeatured, targetUrl } = body;
 
-    if (!title) {
+    if (!title?.trim()) {
       return NextResponse.json({ error: "Collection title is required" }, { status: 400 });
     }
 
@@ -85,9 +41,9 @@ export async function POST(req: NextRequest) {
       data: {
         title,
         slug: generatedSlug,
-        subtitle: subtitle || "Curated Luxury Silhouette Collection",
-        image: image || "/images/collections/dresses.png",
-        itemCount: itemCount || "10 PIECES",
+        subtitle: subtitle || "",
+        image: image || "",
+        itemCount: itemCount || "",
         targetUrl: targetUrl || null,
         isFeatured: isFeatured !== undefined ? isFeatured : true,
       },

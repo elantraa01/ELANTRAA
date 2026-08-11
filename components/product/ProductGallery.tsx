@@ -14,11 +14,11 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
-  const initialImg = images[selectedImageIndex] || images[0] || "/images/collections/dresses.png";
+  const initialImg = images[selectedImageIndex] || images[0] || "";
   const [currentImage, setCurrentImage] = useState(initialImg);
 
   useEffect(() => {
-    setCurrentImage(images[selectedImageIndex] || images[0] || "/images/collections/dresses.png");
+    setCurrentImage(images[selectedImageIndex] || images[0] || "");
   }, [images, selectedImageIndex]);
 
   const activeImage = currentImage;
@@ -60,20 +60,26 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
           onMouseMove={handleMouseMove}
           onClick={() => setLightboxOpen(true)}
         >
-          <Image
-            src={activeImage}
-            alt={productName}
-            fill
-            priority
-            onError={() => setCurrentImage("/images/collections/dresses.png")}
-            className={`object-cover object-center transition-transform duration-300 ease-out ${
-              isZoomed ? "scale-150" : "scale-100"
-            }`}
-            style={{
-              transformOrigin: isZoomed ? `${mousePos.x}% ${mousePos.y}%` : "center center",
-            }}
-            sizes="(max-width: 1024px) 100vw, 50vw"
-          />
+          {activeImage ? (
+            <Image
+              src={activeImage}
+              alt={productName}
+              fill
+              priority
+              onError={() => setCurrentImage("")}
+              className={`object-cover object-center transition-transform duration-300 ease-out ${
+                isZoomed ? "scale-150" : "scale-100"
+              }`}
+              style={{
+                transformOrigin: isZoomed ? `${mousePos.x}% ${mousePos.y}%` : "center center",
+              }}
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gray-100 text-xs uppercase tracking-widest text-gray-400">
+              No image
+            </div>
+          )}
         </div>
 
         {/* Zoom Hint / Lightbox Trigger */}
@@ -113,13 +119,15 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
           <div
             className="relative max-w-4xl max-h-[85vh] w-full h-full flex items-center justify-center p-2 pointer-events-none"
           >
-            <Image
-              src={activeImage}
-              alt={productName}
-              fill
-              className="object-contain pointer-events-auto"
-              sizes="100vw"
-            />
+            {activeImage && (
+              <Image
+                src={activeImage}
+                alt={productName}
+                fill
+                className="object-contain pointer-events-auto"
+                sizes="100vw"
+              />
+            )}
           </div>
         </div>
       )}

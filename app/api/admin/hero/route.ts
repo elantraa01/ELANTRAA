@@ -7,23 +7,7 @@ export async function GET() {
   if (authError) return authError;
 
   try {
-    let hero = await prisma.heroBanner.findUnique({ where: { id: "default" } });
-    if (!hero) {
-      hero = await prisma.heroBanner.create({
-        data: {
-          id: "default",
-          announcement: "COMPLIMENTARY WORLDWIDE EXPRESS SHIPPING ON ORDERS ABOVE ₹5,000",
-          tagline: "AUTUMN / WINTER 2026 COLLECTION",
-          title: "ELANTRAA",
-          highlight: "& Timeless Elegance",
-          description:
-            "Immerse yourself in handcrafted silk gowns, tailored silhouettes, and intricate metallic embroidery designed for the discerning individual.",
-          buttonText: "Explore Collection",
-          buttonLink: "/shop",
-          bgImage: "/images/hero/hero_banner.png",
-        },
-      });
-    }
+    const hero = await prisma.heroBanner.findUnique({ where: { id: "default" } });
     return NextResponse.json({ hero });
   } catch (error) {
     console.error("GET /api/admin/hero error:", error);
@@ -39,31 +23,33 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json();
     const { announcement, tagline, title, highlight, description, buttonText, buttonLink, bgImage, bgVideo } = body;
 
+    if (!title?.trim() || !bgImage?.trim()) {
+      return NextResponse.json({ error: "Hero title and background image are required." }, { status: 400 });
+    }
+
     const updated = await prisma.heroBanner.upsert({
       where: { id: "default" },
       update: {
-        ...(announcement !== undefined && { announcement }),
-        ...(tagline !== undefined && { tagline }),
-        ...(title !== undefined && { title }),
-        ...(highlight !== undefined && { highlight }),
-        ...(description !== undefined && { description }),
-        ...(buttonText !== undefined && { buttonText }),
-        ...(buttonLink !== undefined && { buttonLink }),
-        ...(bgImage !== undefined && { bgImage }),
-        ...(bgVideo !== undefined && { bgVideo: bgVideo || null }),
+        announcement: announcement || "",
+        tagline: tagline || "",
+        title,
+        highlight: highlight || "",
+        description: description || "",
+        buttonText: buttonText || "Shop",
+        buttonLink: buttonLink || "/shop",
+        bgImage,
+        bgVideo: bgVideo || null,
       },
       create: {
         id: "default",
-        announcement: announcement || "COMPLIMENTARY WORLDWIDE EXPRESS SHIPPING ON ORDERS ABOVE ₹5,000",
-        tagline: tagline || "AUTUMN / WINTER 2026 COLLECTION",
-        title: title || "ELANTRAA",
-        highlight: highlight || "& Timeless Elegance",
-        description:
-          description ||
-          "Immerse yourself in handcrafted silk gowns, tailored silhouettes, and intricate metallic embroidery designed for the discerning individual.",
-        buttonText: buttonText || "Explore Collection",
+        announcement: announcement || "",
+        tagline: tagline || "",
+        title,
+        highlight: highlight || "",
+        description: description || "",
+        buttonText: buttonText || "Shop",
         buttonLink: buttonLink || "/shop",
-        bgImage: bgImage || "/images/hero/hero_banner.png",
+        bgImage,
         bgVideo: bgVideo || null,
       },
     });

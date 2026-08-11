@@ -79,12 +79,18 @@ export default function WishlistPage() {
                   >
                     {/* Image & Remove Button */}
                     <div className="relative aspect-[3/4] bg-gray-50 overflow-hidden">
-                      <Image
-                        src={product.images[0] || "/images/collections/dresses.png"}
-                        alt={product.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
+                      {product.images[0] ? (
+                        <Image
+                          src={product.images[0]}
+                          alt={product.name}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-gray-100 text-[10px] uppercase tracking-widest text-gray-400">
+                          No image
+                        </div>
+                      )}
                       
                       {/* Remove from wishlist button */}
                       <button

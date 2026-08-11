@@ -54,15 +54,15 @@ export async function GET() {
       slug: item.product.slug,
       price: Number(item.product.price),
       discountPrice: item.product.discountPrice ? Number(item.product.discountPrice) : null,
-      images: item.product.images.length > 0 ? item.product.images : ["/images/collections/dresses.png"],
-      category: item.product.category?.name || "Couture",
+      images: item.product.images,
+      category: item.product.category?.name || "",
       sizes: item.product.sizes.length > 0 ? item.product.sizes : ["S", "M", "L"],
       colors: item.product.colors.length > 0 ? item.product.colors : [],
       isNewArrival: item.product.isFeatured,
       isBestSeller: item.product.isFeatured,
       description: item.product.description || "",
-      rating: 5.0,
-      reviewCount: 1,
+      rating: 0,
+      reviewCount: 0,
     }));
 
     return NextResponse.json({ wishlist: products });
@@ -153,15 +153,15 @@ export async function POST(req: NextRequest) {
       slug: item.product.slug,
       price: Number(item.product.price),
       discountPrice: item.product.discountPrice ? Number(item.product.discountPrice) : null,
-      images: item.product.images.length > 0 ? item.product.images : ["/images/collections/dresses.png"],
-      category: item.product.category?.name || "Couture",
+      images: item.product.images,
+      category: item.product.category?.name || "",
       sizes: item.product.sizes.length > 0 ? item.product.sizes : ["S", "M", "L"],
       colors: item.product.colors.length > 0 ? item.product.colors : [],
       isNewArrival: item.product.isFeatured,
       isBestSeller: item.product.isFeatured,
       description: item.product.description || "",
-      rating: 5.0,
-      reviewCount: 1,
+      rating: 0,
+      reviewCount: 0,
     }));
 
     return NextResponse.json({ wishlist: products, isWishlisted: !existing });

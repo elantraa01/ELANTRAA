@@ -36,25 +36,6 @@ export async function GET(req: NextRequest) {
         whereClause.isNewArrival = true;
       } else if (cleanSlug === "sale") {
         whereClause.discountPrice = { not: null };
-      } else if (cleanSlug === "ethnic" || cleanSlug === "ethnic-wear") {
-        whereClause.category = {
-          OR: [
-            { slug: { in: ["lehenga-choli", "saree", "anarkali-suits", "kurta-sets"] } },
-            { name: { contains: "Lehenga", mode: "insensitive" } },
-            { name: { contains: "Saree", mode: "insensitive" } },
-            { name: { contains: "Anarkali", mode: "insensitive" } },
-            { name: { contains: "Kurta", mode: "insensitive" } },
-          ],
-        };
-      } else if (cleanSlug === "menswear") {
-        whereClause.category = {
-          OR: [
-            { slug: "men" },
-            { parentCategory: { slug: "men" } },
-            { slug: "shirts" },
-            { slug: "kurta-sets" },
-          ],
-        };
       } else {
         whereClause.category = {
           OR: [
@@ -133,20 +114,20 @@ export async function GET(req: NextRequest) {
         description: p.description,
         price: Number(p.price),
         discountPrice: p.discountPrice ? Number(p.discountPrice) : null,
-        category: p.category?.name || "Couture",
-        categorySlug: p.category?.slug || "couture",
+        category: p.category?.name || "",
+        categorySlug: p.category?.slug || "",
         parentCategory: p.category?.parentCategory?.name || null,
         parentCategorySlug: p.category?.parentCategory?.slug || null,
         sizes: p.sizes,
         colors: p.colors,
         tags: p.tags,
-        images: p.images.length > 0 ? p.images : ["/images/collections/dresses.png"],
+        images: p.images,
         stock: p.stock,
         isFeatured: Boolean(p.isFeatured),
         isNewArrival: p.isNewArrival !== false,
         isBestSeller: Boolean(p.isBestSeller),
-        rating: Math.round(avgRating * 10) / 10,
-        reviewCount: p.reviews.length || 12,
+        rating: p.reviews.length > 0 ? Math.round(avgRating * 10) / 10 : 0,
+        reviewCount: p.reviews.length,
         createdAt: p.createdAt.toISOString(),
       };
     });
@@ -189,20 +170,20 @@ export async function GET(req: NextRequest) {
         description: p.description,
         price: Number(p.price),
         discountPrice: p.discountPrice ? Number(p.discountPrice) : null,
-        category: p.category?.name || "Couture",
-        categorySlug: p.category?.slug || "couture",
+        category: p.category?.name || "",
+        categorySlug: p.category?.slug || "",
         parentCategory: null,
         parentCategorySlug: null,
         sizes: p.sizes,
         colors: p.colors,
         tags: [],
-        images: p.images.length > 0 ? p.images : ["/images/collections/dresses.png"],
+        images: p.images,
         stock: p.stock,
         isFeatured: Boolean(p.isFeatured),
         isNewArrival: true,
         isBestSeller: false,
-        rating: 4.8,
-        reviewCount: 12,
+        rating: 0,
+        reviewCount: 0,
         createdAt: p.createdAt.toISOString(),
       }));
 

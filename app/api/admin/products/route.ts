@@ -54,7 +54,7 @@ export async function GET() {
       sizes: p.sizes,
       colors: p.colors,
       tags: Array.isArray(p.tags) ? p.tags : [],
-      images: p.images.length > 0 ? p.images : ["/images/collections/dresses.png"],
+      images: p.images,
       stock: p.stock,
       isFeatured: Boolean(p.isFeatured),
       isNewArrival: p.isNewArrival !== false,
@@ -109,7 +109,7 @@ export async function GET() {
           categorySlug: p.category.slug,
           sizes: p.sizes,
           colors: p.colors,
-          images: p.images.length > 0 ? p.images : ["/images/collections/dresses.png"],
+          images: p.images,
           stock: p.stock,
           isFeatured: p.isFeatured,
           isActive: p.isActive,
@@ -143,14 +143,14 @@ export async function POST(req: NextRequest) {
       discountPrice,
       sku,
       categoryId,
-      categoryName = "Dresses",
-      sizes = ["XS", "S", "M", "L", "XL"],
+      categoryName,
+      sizes = [],
       colors = [],
       tags = [],
-      images = ["/images/collections/dresses.png"],
-      stock = 25,
-      isFeatured = true,
-      isNewArrival = true,
+      images = [],
+      stock = 0,
+      isFeatured = false,
+      isNewArrival = false,
       isBestSeller = false,
       isActive = true,
       isReturnable = true,
@@ -202,29 +202,20 @@ export async function POST(req: NextRequest) {
     }
 
     if (!cat) {
-      cat = await prisma.category.findFirst();
-    }
-
-    if (!cat) {
-      cat = await prisma.category.create({
-        data: {
-          name: categoryName || "Dresses",
-          slug: (categoryName || "Dresses").toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-        },
-      });
+      return NextResponse.json({ error: "A real category is required before creating a product." }, { status: 400 });
     }
 
     const createData = {
         name,
         slug: cleanSlug,
-        description: description || "Bespoke luxury silhouette.",
+        description: description || "",
         price: Number(price),
         discountPrice: discountPrice ? Number(discountPrice) : null,
         categoryId: cat.id,
-        sizes: Array.isArray(sizes) && sizes.length > 0 ? sizes : ["XS", "S", "M", "L", "XL"],
+        sizes: Array.isArray(sizes) ? sizes : [],
         colors: Array.isArray(colors) ? colors : [],
         tags: Array.isArray(tags) ? tags : [],
-        images: Array.isArray(images) && images.length > 0 ? images : ["/images/collections/dresses.png"],
+        images: Array.isArray(images) ? images : [],
         stock: Number(stock),
         isFeatured: Boolean(isFeatured),
         isNewArrival: Boolean(isNewArrival),
@@ -321,7 +312,7 @@ export async function POST(req: NextRequest) {
       sizes: newProduct.sizes,
       colors: newProduct.colors,
       tags: Array.isArray((newProduct as { tags?: string[] }).tags) ? (newProduct as { tags?: string[] }).tags : [],
-      images: newProduct.images.length > 0 ? newProduct.images : ["/images/collections/dresses.png"],
+      images: newProduct.images,
       stock: newProduct.stock,
       isFeatured: newProduct.isFeatured,
       isActive: newProduct.isActive,
@@ -494,7 +485,7 @@ export async function PATCH(req: NextRequest) {
       sizes: updated.sizes,
       colors: updated.colors,
       tags: Array.isArray((updated as { tags?: string[] }).tags) ? (updated as { tags?: string[] }).tags : [],
-      images: updated.images.length > 0 ? updated.images : ["/images/collections/dresses.png"],
+      images: updated.images,
       stock: updated.stock,
       isFeatured: updated.isFeatured,
       isActive: updated.isActive,
@@ -548,3 +539,4 @@ function isMissingColumnError(error: unknown) {
     message.includes("column")
   );
 }
+

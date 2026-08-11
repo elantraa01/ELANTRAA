@@ -23,7 +23,7 @@ export default function ProductCard({
   const { toggleWishlist, isInWishlist } = useCart();
   const liked = isInWishlist(product.id);
 
-  const initialImg = product.images && product.images[0] ? product.images[0] : "/images/collections/dresses.png";
+  const initialImg = product.images && product.images[0] ? product.images[0] : "";
   const [imgSrc, setImgSrc] = useState(initialImg);
 
   const handleWishlistClick = (e: React.MouseEvent) => {
@@ -39,14 +39,20 @@ export default function ProductCard({
     <div className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col justify-between">
       {/* Product Image Box - Links to dedicated PDP */}
       <Link href={`/products/${product.slug}`} className="block relative w-full aspect-[3/4] bg-[#FAF8F5] overflow-hidden">
-        <Image
-          src={imgSrc}
-          alt={product.name}
-          fill
-          onError={() => setImgSrc("/images/collections/dresses.png")}
-          className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-        />
+        {imgSrc ? (
+          <Image
+            src={imgSrc}
+            alt={product.name}
+            fill
+            onError={() => setImgSrc("")}
+            className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gray-100 text-[10px] uppercase tracking-widest text-gray-400">
+            No image
+          </div>
+        )}
 
         {/* Badges - Rendered ONLY when added in Admin with Luxury Glassmorphism Styling */}
         {Array.isArray(product.tags) && product.tags.length > 0 && (
@@ -123,7 +129,7 @@ export default function ProductCard({
           <div className="flex items-center justify-between text-[11px] text-gray-500 mb-1">
             <span className="uppercase tracking-wider text-[#C9A648] font-medium">
               {typeof product.category === "object"
-                ? (product.category as { name?: string })?.name || "Couture"
+                ? (product.category as { name?: string })?.name || ""
                 : product.category}
             </span>
             <div className="flex items-center text-amber-500">

@@ -51,7 +51,7 @@ export async function GET() {
         totalAmount: Number(order.totalAmount),
         status: order.status,
         itemsCount: order.items.length,
-        sampleImage: firstItem?.product.images[0] || "/images/collections/dresses.png",
+        sampleImage: firstItem?.product.images[0] || "",
         itemsSummary: summary || "Custom Order Item",
       };
     });

@@ -59,7 +59,7 @@ export async function GET(
     const avgRating =
       p.reviews.length > 0
         ? p.reviews.reduce((acc, r) => acc + r.rating, 0) / p.reviews.length
-        : 4.9;
+        : 0;
 
     const formattedProduct = {
       id: p.id,
@@ -72,30 +72,26 @@ export async function GET(
       categorySlug: p.category.slug,
       sizes: p.sizes,
       colors: p.colors,
-      images: p.images.length > 0 ? p.images : ["/images/collections/dresses.png"],
+      images: p.images,
       stock: p.stock,
       isFeatured: p.isFeatured,
       isReturnable: p.isReturnable !== false,
-      rating: Math.round(avgRating * 10) / 10,
-      reviewCount: p.reviews.length || 38,
-      productInformation: (p as { productInformation?: string | null }).productInformation || p.description || "Handcrafted luxury garment designed with meticulous attention to detail and premium craftsmanship.",
-      deliveryTimelines: (p as { deliveryTimelines?: string | null }).deliveryTimelines || "Standard Shipping: Delivered within 3-5 business days across India.\nExpress Shipping: 2 business days.\nInternational Orders: 5-7 business days via worldwide express delivery.",
-      disclaimer: (p as { disclaimer?: string | null }).disclaimer || "Colors of the product may slightly vary due to photographic lighting sources or display screen resolution settings. Handcrafted items feature unique weave patterns and hand embellishments.",
-      additionalInfo: (p as { additionalInfo?: string | null }).additionalInfo || "Custom fitting and size adjustments available on request.\nCare: Professional dry clean only.\nOrigin: Proudly designed and handcrafted in India.",
-      details: [
-        "Handcrafted luxury silhouette",
-        "Designed for evening and formal couture occasions",
-        "Bespoke tailored fit",
-      ],
-      materials: "100% Pure Organic Mulberry Silk",
-      careInstructions: "Dry clean only. Cool iron on reverse using press cloth.",
+      rating: p.reviews.length > 0 ? Math.round(avgRating * 10) / 10 : 0,
+      reviewCount: p.reviews.length,
+      productInformation: (p as { productInformation?: string | null }).productInformation || "",
+      deliveryTimelines: (p as { deliveryTimelines?: string | null }).deliveryTimelines || "",
+      disclaimer: (p as { disclaimer?: string | null }).disclaimer || "",
+      additionalInfo: (p as { additionalInfo?: string | null }).additionalInfo || "",
+      details: [],
+      materials: "",
+      careInstructions: "",
       reviews: p.reviews.map((r) => ({
         id: r.id,
         productId: r.productId,
         userName: r.user?.name || "Client",
         rating: r.rating,
-        title: r.rating >= 4 ? "Exquisite Quality & Fit" : "Satisfactory",
-        comment: r.comment || "Beautiful garment, exquisite quality.",
+        title: "",
+        comment: r.comment || "",
         date: new Date(r.createdAt).toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
