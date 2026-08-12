@@ -3,12 +3,15 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 
+import { useCart } from "@/context/CartContext";
+
 export default function WhatsAppButton() {
   const pathname = usePathname();
   const [isHovered, setIsHovered] = useState(false);
+  const { cartOpen } = useCart();
 
-  // Hide on admin routes
-  if (pathname?.startsWith("/admin")) {
+  // Hide on admin routes or when shop cart drawer is open
+  if (pathname?.startsWith("/admin") || cartOpen) {
     return null;
   }
 

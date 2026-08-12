@@ -36,7 +36,7 @@ function QuickViewModalContent({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden relative flex flex-col md:flex-row my-8">
         {/* Close Button */}
         <button
@@ -74,8 +74,8 @@ function QuickViewModalContent({
                 <button
                   key={i}
                   onClick={() => setActiveImage(img)}
-                  className={`w-14 h-18 relative rounded-md overflow-hidden border-2 transition-all ${
-                    activeImage === img ? "border-[#C9A648]" : "border-transparent opacity-70"
+                  className={`w-16 h-20 relative rounded-md overflow-hidden border-2 transition-all shrink-0 ${
+                    activeImage === img ? "border-[#C9A648] ring-2 ring-[#C9A648]/40 scale-105" : "border-gray-200 opacity-70 hover:opacity-100"
                   }`}
                 >
                   <Image src={img} alt="" fill className="object-cover" />

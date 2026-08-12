@@ -46,6 +46,11 @@ export default function SplashScreen() {
             priority
           />
         </div>
+
+        {/* Shimmer Bar */}
+        <div className="w-32 sm:w-48 h-1 rounded-full overflow-hidden mt-2">
+          <div className="w-full h-full animate-shimmer" />
+        </div>
       </div>
     </div>
   );

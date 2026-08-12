@@ -12,6 +12,7 @@ import { useCart } from "@/context/CartContext";
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
+import { ProductGridSkeleton } from "@/components/ui/LuxurySkeleton";
 
 const DEFAULT_FILTERS: FilterState = {
   category: "All",
@@ -265,11 +266,7 @@ function ShopContent() {
           {/* Product Grid */}
           <div className="lg:col-span-3">
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="h-96 bg-gray-100 rounded-xl" />
-                ))}
-              </div>
+              <ProductGridSkeleton count={6} />
             ) : finalProducts.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
                 {finalProducts.map((product) => (

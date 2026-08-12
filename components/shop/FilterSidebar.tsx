@@ -130,7 +130,7 @@ export default function FilterSidebar({
   if (isMobileDrawer !== undefined) {
     if (!isMobileDrawer) return null; // Closed drawer renders nothing
     return (
-      <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden flex justify-end">
+      <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm lg:hidden flex justify-end">
         <div className="w-4/5 max-w-sm bg-white h-full shadow-2xl flex flex-col justify-between p-6 overflow-y-auto animate-in slide-in-from-right duration-300">
           <div>
             <div className="flex items-center justify-between pb-4 mb-4 border-b border-gray-100">

@@ -253,7 +253,7 @@ export default function Navbar({
 
       {/* Mobile Drawer Navigation (Tabbed like screenshot) */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden flex">
+        <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm lg:hidden flex">
           <div className="w-[85%] max-w-xs sm:max-w-sm bg-white h-full shadow-2xl flex flex-col justify-between overflow-hidden animate-in slide-in-from-left duration-300">
             {/* Drawer Header Tabs: MENU & CATEGORIES + Close Button */}
             <div className="border-b border-gray-200 bg-gray-50 flex items-center justify-between sticky top-0 z-10">
@@ -450,7 +450,7 @@ export default function Navbar({
 
       {/* Interactive Search Modal */}
       {searchOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start justify-center pt-20 px-4">
+        <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-start justify-center pt-20 px-4">
           <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl p-6 relative">
             <button
               onClick={() => setSearchOpen(false)}

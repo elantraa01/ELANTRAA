@@ -12,6 +12,8 @@ import QuickViewModal from "@/components/home/QuickViewModal";
 import { Product } from "@/components/home/mockData";
 import { useCart } from "@/context/CartContext";
 
+import { ProductDetailSkeleton } from "@/components/ui/LuxurySkeleton";
+
 export default function ProductDetailPage({
   params,
 }: {
@@ -65,10 +67,10 @@ export default function ProductDetailPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white text-gray-900 font-sans">
+      <div className="min-h-screen bg-white text-gray-900 font-sans flex flex-col justify-between">
         <Navbar />
-        <main className="max-w-7xl mx-auto px-4 py-32 text-center">
-          <p className="text-gray-500 animate-pulse text-sm uppercase tracking-widest">Loading Product Details...</p>
+        <main className="flex-1">
+          <ProductDetailSkeleton />
         </main>
         <Footer />
       </div>
