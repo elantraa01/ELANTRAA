@@ -511,20 +511,35 @@ export async function DELETE(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
+    let id = searchParams.get("id");
+
+    if (!id) {
+      try {
+        const body = await req.json();
+        id = body.id;
+      } catch {
+        // Optional body parsing fallback
+      }
+    }
 
     if (!id) {
       return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
     }
 
-    await prisma.product.delete({
-      where: { id },
-    });
+    // Safely delete associated records first to avoid Foreign Key constraint violations
+    await prisma.$transaction([
+      prisma.cartItem.deleteMany({ where: { productId: id } }),
+      prisma.wishlist.deleteMany({ where: { productId: id } }),
+      prisma.review.deleteMany({ where: { productId: id } }),
+      prisma.orderItem.deleteMany({ where: { productId: id } }),
+      prisma.product.delete({ where: { id } }),
+    ]);
 
-    return NextResponse.json({ success: true, message: "Product deleted" });
+    return NextResponse.json({ success: true, message: "Product deleted successfully" });
   } catch (error) {
     console.error("Admin Product DELETE Error:", error);
-    return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: "Failed to delete product", details: msg }, { status: 500 });
   }
 }
 

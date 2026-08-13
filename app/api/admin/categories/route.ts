@@ -162,11 +162,26 @@ export async function PATCH(req: NextRequest) {
 
     const updateData: Record<string, unknown> = {};
     if (name && name.trim()) {
-      updateData.name = name.trim();
+      const cleanName = name.trim();
+      updateData.name = cleanName;
+
+      // Auto-generate or update unique slug if name changed
+      const baseSlug = slug && slug.trim()
+        ? slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "")
+        : cleanName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+
+      const existingSlug = await prisma.category.findFirst({
+        where: { slug: baseSlug, NOT: { id } },
+      });
+      updateData.slug = existingSlug ? `${baseSlug}-${Date.now().toString().slice(-4)}` : baseSlug;
+    } else if (slug && slug.trim()) {
+      const cleanSlug = slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+      const existingSlug = await prisma.category.findFirst({
+        where: { slug: cleanSlug, NOT: { id } },
+      });
+      updateData.slug = existingSlug ? `${cleanSlug}-${Date.now().toString().slice(-4)}` : cleanSlug;
     }
-    if (slug && slug.trim()) {
-      updateData.slug = slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
-    }
+
     if (parentCategoryId !== undefined) {
       updateData.parentCategoryId = parentCategoryId || null;
     }
@@ -219,7 +234,8 @@ export async function PATCH(req: NextRequest) {
     });
   } catch (error) {
     console.error("Admin Category PATCH Error:", error);
-    return NextResponse.json({ error: "Failed to update category" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: "Failed to update category", details: msg }, { status: 500 });
   }
 }
 
@@ -229,20 +245,35 @@ export async function DELETE(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
+    let id = searchParams.get("id");
+
+    if (!id) {
+      try {
+        const body = await req.json();
+        id = body.id;
+      } catch {
+        // Optional body parsing fallback
+      }
+    }
 
     if (!id) {
       return NextResponse.json({ error: "Category ID is required" }, { status: 400 });
     }
 
-    // Check if category has products
+    // Check if category has products assigned
     const prodCount = await prisma.product.count({ where: { categoryId: id } });
     if (prodCount > 0) {
       return NextResponse.json(
-        { error: `Cannot delete category containing ${prodCount} active product(s). Please reassign or delete products first.` },
+        { error: `Cannot delete category containing ${prodCount} active product(s). Please reassign or delete the products first.` },
         { status: 400 }
       );
     }
+
+    // Unlink subcategories to prevent foreign key errors
+    await prisma.category.updateMany({
+      where: { parentCategoryId: id },
+      data: { parentCategoryId: null },
+    });
 
     await prisma.category.delete({
       where: { id },
@@ -251,7 +282,8 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: true, message: "Category deleted successfully" });
   } catch (error) {
     console.error("Admin Category DELETE Error:", error);
-    return NextResponse.json({ error: "Failed to delete category" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: "Failed to delete category", details: msg }, { status: 500 });
   }
 }
 
