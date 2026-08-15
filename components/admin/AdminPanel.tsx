@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Image from "next/image";
@@ -32,6 +33,8 @@ type Product = {
   deliveryTimelines?: string;
   disclaimer?: string;
   additionalInfo?: string;
+  sizeChart?: string | null;
+  sizeChartCm?: string | null;
   createdAt?: string;
 };
 
@@ -153,6 +156,8 @@ const emptyProduct = {
   deliveryTimelines: "",
   disclaimer: "",
   additionalInfo: "",
+  sizeChart: "",
+  sizeChartCm: "",
 };
 
 const emptyCategory = {
@@ -233,6 +238,9 @@ export default function AdminPanel() {
 
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  const [uploadingSizeChartIn, setUploadingSizeChartIn] = useState(false);
+  const [uploadingSizeChartCm, setUploadingSizeChartCm] = useState(false);
+  const [sizeChartError, setSizeChartError] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
   async function handleFilesUpload(files: FileList | File[]) {
@@ -263,6 +271,44 @@ export default function AdminPanel() {
       setUploadError(err instanceof Error ? err.message : "Upload failed.");
     } finally {
       setUploadingMedia(false);
+    }
+  }
+
+  async function handleSizeChartUpload(file: File, unit: "in" | "cm") {
+    if (!file) return;
+    if (unit === "in") setUploadingSizeChartIn(true);
+    else setUploadingSizeChartCm(true);
+    setSizeChartError("");
+
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: form });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        if (unit === "in") {
+          setProductForm((prev) => ({ ...prev, sizeChart: data.url }));
+          try {
+            localStorage.setItem("elantraa_default_size_chart_in", data.url);
+          } catch {}
+          notify("success", "Inches (\") size chart uploaded & saved as default for new products.");
+        } else {
+          setProductForm((prev) => ({ ...prev, sizeChartCm: data.url }));
+          try {
+            localStorage.setItem("elantraa_default_size_chart_cm", data.url);
+          } catch {}
+          notify("success", "Centimeters (cm) size chart uploaded & saved as default for new products.");
+        }
+      } else {
+        throw new Error(data.error || "Failed to upload size chart");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Size chart upload failed.";
+      setSizeChartError(msg);
+      notify("error", msg);
+    } finally {
+      if (unit === "in") setUploadingSizeChartIn(false);
+      else setUploadingSizeChartCm(false);
     }
   }
 
@@ -395,7 +441,11 @@ export default function AdminPanel() {
   const visibleInventory = paginate(inventoryProducts, page, pageSize);
 
   function openProduct(product?: Product) {
+    const savedDefaultChartIn = typeof window !== "undefined" ? localStorage.getItem("elantraa_default_size_chart_in") || localStorage.getItem("elantraa_default_size_chart") || "" : "";
+    const savedDefaultChartCm = typeof window !== "undefined" ? localStorage.getItem("elantraa_default_size_chart_cm") || "" : "";
+
     setProductModal({ open: true, id: product?.id });
+    setSizeChartError("");
     setProductForm(
       product
         ? {
@@ -424,8 +474,15 @@ export default function AdminPanel() {
             deliveryTimelines: product.deliveryTimelines || "",
             disclaimer: product.disclaimer || "",
             additionalInfo: product.additionalInfo || "",
+            sizeChart: product.sizeChart !== undefined && product.sizeChart !== null ? product.sizeChart : savedDefaultChartIn,
+            sizeChartCm: product.sizeChartCm !== undefined && product.sizeChartCm !== null ? product.sizeChartCm : savedDefaultChartCm,
           }
-        : { ...emptyProduct, categoryName: categories[0]?.name || "" }
+        : {
+            ...emptyProduct,
+            categoryName: categories[0]?.name || "",
+            sizeChart: savedDefaultChartIn,
+            sizeChartCm: savedDefaultChartCm,
+          }
     );
   }
 
@@ -458,6 +515,8 @@ export default function AdminPanel() {
       deliveryTimelines: productForm.deliveryTimelines.trim(),
       disclaimer: productForm.disclaimer.trim(),
       additionalInfo: productForm.additionalInfo.trim(),
+      sizeChart: productForm.sizeChart.trim() || null,
+      sizeChartCm: productForm.sizeChartCm.trim() || null,
       sizes: productForm.sizesStr.split(",").map((s) => s.trim()).filter(Boolean),
       colors: productForm.colorsStr.split(",").map((c) => c.trim()).filter(Boolean),
     };
@@ -470,6 +529,16 @@ export default function AdminPanel() {
           body: JSON.stringify(payload),
         }
       );
+      if (productForm.sizeChart && productForm.sizeChart.trim()) {
+        try {
+          localStorage.setItem("elantraa_default_size_chart_in", productForm.sizeChart.trim());
+        } catch {}
+      }
+      if (productForm.sizeChartCm && productForm.sizeChartCm.trim()) {
+        try {
+          localStorage.setItem("elantraa_default_size_chart_cm", productForm.sizeChartCm.trim());
+        } catch {}
+      }
       setProducts((prev) =>
         productModal.id ? prev.map((item) => (item.id === data.product.id ? data.product : item)) : [data.product, ...prev]
       );
@@ -1538,6 +1607,255 @@ export default function AdminPanel() {
                       className="w-full bg-[#FAF8F5] border border-gray-300 focus:border-[#C9A648] focus:bg-white rounded-lg px-3.5 py-2 text-xs text-gray-900 placeholder-gray-400 outline-none"
                     />
                   </div>
+                </div>
+
+                {/* 6. Product Specific Size Chart Card (Dual Inches & CM Images) */}
+                <div className="bg-white p-5 rounded-xl border border-gray-200/80 shadow-sm space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-3">
+                    <div>
+                      <h3 className="text-sm sm:text-base font-serif font-bold text-gray-900 flex items-center gap-2">
+                        <span>Product Size Charts (Inches &amp; CM)</span>
+                        <span className="text-[10px] uppercase font-sans font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-[#9b7a1d] border border-amber-200/60">
+                          2 Images
+                        </span>
+                      </h3>
+                      <p className="text-[11px] text-gray-500 mt-0.5">
+                        Upload 2 dedicated chart images for this product (1 for Inches and 1 for Centimeters).
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const defIn = typeof window !== "undefined" ? localStorage.getItem("elantraa_default_size_chart_in") || localStorage.getItem("elantraa_default_size_chart") : null;
+                          const defCm = typeof window !== "undefined" ? localStorage.getItem("elantraa_default_size_chart_cm") : null;
+                          if (defIn || defCm) {
+                            setProductForm((prev) => ({
+                              ...prev,
+                              sizeChart: defIn || prev.sizeChart,
+                              sizeChartCm: defCm || prev.sizeChartCm,
+                            }));
+                            notify("success", "Loaded default size charts.");
+                          } else {
+                            notify("error", "No default size charts saved yet. Upload charts first!");
+                          }
+                        }}
+                        className="px-2.5 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded text-[11px] font-semibold transition-colors flex items-center gap-1 shadow-2xs"
+                        title="Load your default size charts"
+                      >
+                        <span>⚡</span>
+                        <span>Load Defaults</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          let savedCount = 0;
+                          if (productForm.sizeChart.trim()) {
+                            try { localStorage.setItem("elantraa_default_size_chart_in", productForm.sizeChart.trim()); savedCount++; } catch {}
+                          }
+                          if (productForm.sizeChartCm.trim()) {
+                            try { localStorage.setItem("elantraa_default_size_chart_cm", productForm.sizeChartCm.trim()); savedCount++; } catch {}
+                          }
+                          if (savedCount > 0) {
+                            notify("success", "Current charts saved as defaults for upcoming new products!");
+                          } else {
+                            notify("error", "Please upload or enter at least one size chart URL first.");
+                          }
+                        }}
+                        className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-[#9b7a1d] border border-[#C9A648]/40 rounded text-[11px] font-semibold transition-colors shadow-2xs"
+                        title="Save both as the default for next newly created products"
+                      >
+                        Save As Defaults
+                      </button>
+                    </div>
+                  </div>
+
+                  {sizeChartError && (
+                    <p className="text-xs font-semibold text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200">
+                      {sizeChartError}
+                    </p>
+                  )}
+
+                  {/* 2-Column Grid for Inches Chart and CM Chart */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    {/* CHART 1: INCHES */}
+                    <div className="p-4 rounded-xl border border-gray-200 bg-[#FAF8F5]/60 space-y-3 flex flex-col justify-between">
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-[#C9A648]" />
+                            1. Inches (&quot;) Chart
+                          </span>
+                          {productForm.sizeChart ? (
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                              Attached
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                              Not set
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Preview Box */}
+                        {productForm.sizeChart ? (
+                          <div className="relative w-full h-36 rounded-lg overflow-hidden border border-gray-200 bg-white flex items-center justify-center p-1.5 shadow-inner group">
+                            <img
+                              src={productForm.sizeChart}
+                              alt="Inches size chart preview"
+                              className="w-full h-full object-contain"
+                            />
+                            <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-90 group-hover:opacity-100">
+                              <a
+                                href={productForm.sizeChart}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-black/75 hover:bg-black text-white text-[10px] px-2 py-0.5 rounded"
+                              >
+                                View ↗
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => setProductForm((prev) => ({ ...prev, sizeChart: "" }))}
+                                className="bg-red-600 hover:bg-red-700 text-white text-[10px] px-1.5 py-0.5 rounded"
+                                title="Remove chart"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-full h-36 rounded-lg border-2 border-dashed border-gray-300 bg-white flex flex-col items-center justify-center text-gray-400 p-2 text-center">
+                            <span className="text-xl mb-1">📏</span>
+                            <span className="text-[11px] font-medium text-gray-600">No Inches Chart</span>
+                            <span className="text-[10px] text-gray-400">Upload image or enter URL</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-2 pt-2 border-t border-gray-200/70">
+                        {/* File Upload Button for Inches */}
+                        <label className="flex items-center justify-center gap-1.5 w-full py-2 bg-slate-900 hover:bg-[#C9A648] text-[#D4AF37] hover:text-white text-xs font-semibold uppercase tracking-wider rounded-lg cursor-pointer transition-all shadow-xs text-center">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                          </svg>
+                          <span>{uploadingSizeChartIn ? "Uploading..." : "Upload Inches Chart"}</span>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp,image/avif"
+                            disabled={uploadingSizeChartIn}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleSizeChartUpload(file, "in");
+                            }}
+                            className="hidden"
+                          />
+                        </label>
+
+                        {/* Direct URL Input for Inches */}
+                        <input
+                          type="text"
+                          placeholder="Direct URL for Inches chart..."
+                          value={productForm.sizeChart}
+                          onChange={(e) => setProductForm({ ...productForm, sizeChart: e.target.value })}
+                          className="w-full bg-white border border-gray-300 focus:border-[#C9A648] rounded-lg px-2.5 py-1.5 text-xs text-gray-900 placeholder-gray-400 outline-none font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    {/* CHART 2: CENTIMETERS (CM) */}
+                    <div className="p-4 rounded-xl border border-gray-200 bg-[#FAF8F5]/60 space-y-3 flex flex-col justify-between">
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                            2. Centimeters (cm) Chart
+                          </span>
+                          {productForm.sizeChartCm ? (
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                              Attached
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                              Not set
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Preview Box */}
+                        {productForm.sizeChartCm ? (
+                          <div className="relative w-full h-36 rounded-lg overflow-hidden border border-gray-200 bg-white flex items-center justify-center p-1.5 shadow-inner group">
+                            <img
+                              src={productForm.sizeChartCm}
+                              alt="Centimeters size chart preview"
+                              className="w-full h-full object-contain"
+                            />
+                            <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-90 group-hover:opacity-100">
+                              <a
+                                href={productForm.sizeChartCm}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-black/75 hover:bg-black text-white text-[10px] px-2 py-0.5 rounded"
+                              >
+                                View ↗
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => setProductForm((prev) => ({ ...prev, sizeChartCm: "" }))}
+                                className="bg-red-600 hover:bg-red-700 text-white text-[10px] px-1.5 py-0.5 rounded"
+                                title="Remove chart"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-full h-36 rounded-lg border-2 border-dashed border-gray-300 bg-white flex flex-col items-center justify-center text-gray-400 p-2 text-center">
+                            <span className="text-xl mb-1">📐</span>
+                            <span className="text-[11px] font-medium text-gray-600">No CM Chart</span>
+                            <span className="text-[10px] text-gray-400">Upload image or enter URL</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-2 pt-2 border-t border-gray-200/70">
+                        {/* File Upload Button for CM */}
+                        <label className="flex items-center justify-center gap-1.5 w-full py-2 bg-slate-900 hover:bg-[#C9A648] text-[#D4AF37] hover:text-white text-xs font-semibold uppercase tracking-wider rounded-lg cursor-pointer transition-all shadow-xs text-center">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                          </svg>
+                          <span>{uploadingSizeChartCm ? "Uploading..." : "Upload CM Chart"}</span>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp,image/avif"
+                            disabled={uploadingSizeChartCm}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleSizeChartUpload(file, "cm");
+                            }}
+                            className="hidden"
+                          />
+                        </label>
+
+                        {/* Direct URL Input for CM */}
+                        <input
+                          type="text"
+                          placeholder="Direct URL for CM chart..."
+                          value={productForm.sizeChartCm}
+                          onChange={(e) => setProductForm({ ...productForm, sizeChartCm: e.target.value })}
+                          className="w-full bg-white border border-gray-300 focus:border-[#C9A648] rounded-lg px-2.5 py-1.5 text-xs text-gray-900 placeholder-gray-400 outline-none font-mono"
+                        />
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <p className="text-[11px] text-gray-600 bg-amber-50/70 p-2.5 rounded-lg border border-amber-200/60 leading-relaxed">
+                    ✨ <strong>Smart Defaulting:</strong> Once uploaded, these 2 chart images are remembered and will automatically default for newly added products, while you can easily upload new custom charts for any specific product.
+                  </p>
                 </div>
 
               </div>

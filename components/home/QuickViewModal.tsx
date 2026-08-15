@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Product } from "./mockData";
+import SizeGuideModal from "@/components/product/SizeGuideModal";
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -23,6 +24,7 @@ function QuickViewModalContent({
   const selectedColor = "Default";
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(product.images[0]);
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
 
   useEffect(() => {
     setSelectedSize(product.sizes[0] || "M");
@@ -122,7 +124,13 @@ function QuickViewModalContent({
                 <label className="text-xs font-semibold uppercase tracking-wider text-gray-700">
                   Size: <span className="text-[#C9A648]">{selectedSize}</span>
                 </label>
-                <button className="text-[11px] text-[#C9A648] underline">Size Guide</button>
+                <button
+                  type="button"
+                  onClick={() => setShowSizeGuide(true)}
+                  className="text-[11px] text-[#C9A648] underline hover:text-gray-900 transition-colors font-medium"
+                >
+                  Size Guide
+                </button>
               </div>
               <div className="flex flex-wrap gap-2">
                 {product.sizes.map((size) => (
@@ -175,6 +183,15 @@ function QuickViewModalContent({
           </div>
         </div>
       </div>
+
+      {/* Interactive Size Guide Modal */}
+      <SizeGuideModal
+        isOpen={showSizeGuide}
+        onClose={() => setShowSizeGuide(false)}
+        sizeChartImage={product.sizeChart}
+        sizeChartCm={product.sizeChartCm}
+        productName={product.name}
+      />
     </div>
   );
 }

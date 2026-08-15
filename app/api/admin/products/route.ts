@@ -30,6 +30,8 @@ export async function GET() {
         deliveryTimelines: true,
         disclaimer: true,
         additionalInfo: true,
+        sizeChart: true,
+        sizeChartCm: true,
         createdAt: true,
         category: {
           select: {
@@ -65,6 +67,8 @@ export async function GET() {
       deliveryTimelines: p.deliveryTimelines || "",
       disclaimer: p.disclaimer || "",
       additionalInfo: p.additionalInfo || "",
+      sizeChart: (p as { sizeChart?: string | null }).sizeChart || null,
+      sizeChartCm: (p as { sizeChartCm?: string | null }).sizeChartCm || null,
       createdAt: p.createdAt.toISOString(),
     }));
 
@@ -158,6 +162,8 @@ export async function POST(req: NextRequest) {
       deliveryTimelines,
       disclaimer,
       additionalInfo,
+      sizeChart,
+      sizeChartCm,
     } = body;
 
     if (!name || price === undefined || price === null) {
@@ -226,6 +232,8 @@ export async function POST(req: NextRequest) {
         deliveryTimelines: deliveryTimelines ? String(deliveryTimelines).trim() : null,
         disclaimer: disclaimer ? String(disclaimer).trim() : null,
         additionalInfo: additionalInfo ? String(additionalInfo).trim() : null,
+        sizeChart: sizeChart ? String(sizeChart).trim() : null,
+        sizeChartCm: sizeChartCm ? String(sizeChartCm).trim() : null,
       };
 
     const baseSelect = {
@@ -250,6 +258,8 @@ export async function POST(req: NextRequest) {
       deliveryTimelines: true,
       disclaimer: true,
       additionalInfo: true,
+      sizeChart: true,
+      sizeChartCm: true,
       createdAt: true,
       category: { select: { name: true, slug: true } },
     };
@@ -271,6 +281,8 @@ export async function POST(req: NextRequest) {
       delete (fallbackCreate as Record<string, unknown>).deliveryTimelines;
       delete (fallbackCreate as Record<string, unknown>).disclaimer;
       delete (fallbackCreate as Record<string, unknown>).additionalInfo;
+      delete (fallbackCreate as Record<string, unknown>).sizeChart;
+      delete (fallbackCreate as Record<string, unknown>).sizeChartCm;
       delete (fallbackCreate as Record<string, unknown>).sku;
       delete (fallbackCreate as Record<string, unknown>).tags;
       delete (fallbackCreate as Record<string, unknown>).isNewArrival;
@@ -321,6 +333,8 @@ export async function POST(req: NextRequest) {
       deliveryTimelines: (newProduct as { deliveryTimelines?: string | null }).deliveryTimelines || "",
       disclaimer: (newProduct as { disclaimer?: string | null }).disclaimer || "",
       additionalInfo: (newProduct as { additionalInfo?: string | null }).additionalInfo || "",
+      sizeChart: (newProduct as { sizeChart?: string | null }).sizeChart || null,
+      sizeChartCm: (newProduct as { sizeChartCm?: string | null }).sizeChartCm || null,
       createdAt: newProduct.createdAt.toISOString(),
     };
 
@@ -337,7 +351,7 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { id, isFeatured, isNewArrival, isBestSeller, isActive, isReturnable, stock, name, price, discountPrice, images, description, sizes, colors, tags, categoryId, categoryName, sku, productInformation, deliveryTimelines, disclaimer, additionalInfo } = body;
+    const { id, isFeatured, isNewArrival, isBestSeller, isActive, isReturnable, stock, name, price, discountPrice, images, description, sizes, colors, tags, categoryId, categoryName, sku, productInformation, deliveryTimelines, disclaimer, additionalInfo, sizeChart, sizeChartCm } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
@@ -360,6 +374,8 @@ export async function PATCH(req: NextRequest) {
     if (deliveryTimelines !== undefined) updateData.deliveryTimelines = deliveryTimelines ? String(deliveryTimelines).trim() : null;
     if (disclaimer !== undefined) updateData.disclaimer = disclaimer ? String(disclaimer).trim() : null;
     if (additionalInfo !== undefined) updateData.additionalInfo = additionalInfo ? String(additionalInfo).trim() : null;
+    if (sizeChart !== undefined) updateData.sizeChart = sizeChart ? String(sizeChart).trim() : null;
+    if (sizeChartCm !== undefined) updateData.sizeChartCm = sizeChartCm ? String(sizeChartCm).trim() : null;
     if (Array.isArray(sizes)) updateData.sizes = sizes;
     if (Array.isArray(colors)) updateData.colors = colors;
     if (Array.isArray(tags)) updateData.tags = tags;
@@ -421,6 +437,8 @@ export async function PATCH(req: NextRequest) {
       deliveryTimelines: true,
       disclaimer: true,
       additionalInfo: true,
+      sizeChart: true,
+      sizeChartCm: true,
       createdAt: true,
       category: { select: { name: true, slug: true } },
     };
@@ -443,6 +461,8 @@ export async function PATCH(req: NextRequest) {
       delete fallbackData.deliveryTimelines;
       delete fallbackData.disclaimer;
       delete fallbackData.additionalInfo;
+      delete fallbackData.sizeChart;
+      delete fallbackData.sizeChartCm;
       delete fallbackData.sku;
       delete fallbackData.tags;
       delete fallbackData.isNewArrival;
@@ -494,6 +514,8 @@ export async function PATCH(req: NextRequest) {
       deliveryTimelines: (updated as { deliveryTimelines?: string | null }).deliveryTimelines || "",
       disclaimer: (updated as { disclaimer?: string | null }).disclaimer || "",
       additionalInfo: (updated as { additionalInfo?: string | null }).additionalInfo || "",
+      sizeChart: (updated as { sizeChart?: string | null }).sizeChart || null,
+      sizeChartCm: (updated as { sizeChartCm?: string | null }).sizeChartCm || null,
       createdAt: updated.createdAt.toISOString(),
     };
 

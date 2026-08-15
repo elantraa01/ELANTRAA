@@ -18,7 +18,9 @@ async function main() {
   await client.$executeRawUnsafe(`ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "deliveryTimelines" TEXT;`);
   await client.$executeRawUnsafe(`ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "disclaimer" TEXT;`);
   await client.$executeRawUnsafe(`ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "additionalInfo" TEXT;`);
-  console.log("SUCCESSFULLY added productInformation, deliveryTimelines, disclaimer, additionalInfo columns to Product table!");
+  await client.$executeRawUnsafe(`ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "sizeChart" TEXT;`);
+  await client.$executeRawUnsafe(`ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "sizeChartCm" TEXT;`);
+  console.log("SUCCESSFULLY added sizeChart and sizeChartCm columns to Product table!");
 }
 
 main()

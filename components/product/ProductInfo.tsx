@@ -335,40 +335,6 @@ export default function ProductInfo({
         </div>
       </div>
 
-      {/* Size Guide Modal */}
-      {showSizeGuide && (
-        <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 relative">
-            <button
-              onClick={() => setShowSizeGuide(false)}
-              className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-900"
-            >
-              &times;
-            </button>
-            <h3 className="text-lg font-serif text-gray-900 mb-4 border-b pb-2">
-              ELANTRAA Size Guide (Inches)
-            </h3>
-            <table className="w-full text-xs text-left text-gray-700 border-collapse">
-              <thead>
-                <tr className="border-b bg-gray-50 text-gray-900 font-semibold uppercase">
-                  <th className="p-2">Size</th>
-                  <th className="p-2">Bust</th>
-                  <th className="p-2">Waist</th>
-                  <th className="p-2">Hips</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                <tr><td className="p-2 font-bold">XS</td><td className="p-2">32&quot;</td><td className="p-2">25&quot;</td><td className="p-2">35&quot;</td></tr>
-                <tr><td className="p-2 font-bold">S</td><td className="p-2">34&quot;</td><td className="p-2">27&quot;</td><td className="p-2">37&quot;</td></tr>
-                <tr><td className="p-2 font-bold">M</td><td className="p-2">36&quot;</td><td className="p-2">29&quot;</td><td className="p-2">39&quot;</td></tr>
-                <tr><td className="p-2 font-bold">L</td><td className="p-2">38&quot;</td><td className="p-2">31&quot;</td><td className="p-2">41&quot;</td></tr>
-                <tr><td className="p-2 font-bold">XL</td><td className="p-2">40&quot;</td><td className="p-2">33&quot;</td><td className="p-2">43&quot;</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
       {/* Sticky Mobile Bottom Quick Buy Bar */}
       <div className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md p-3 border-t border-gray-200 shadow-2xl flex items-center justify-between gap-3 sm:hidden">
         <div>
@@ -391,7 +357,13 @@ export default function ProductInfo({
       </div>
 
       {/* Interactive Size Guide Modal */}
-      <SizeGuideModal isOpen={showSizeGuide} onClose={() => setShowSizeGuide(false)} />
+      <SizeGuideModal
+        isOpen={showSizeGuide}
+        onClose={() => setShowSizeGuide(false)}
+        sizeChartImage={product.sizeChart}
+        sizeChartCm={product.sizeChartCm}
+        productName={product.name}
+      />
     </div>
   );
 }

@@ -29,6 +29,8 @@ export interface Product {
   deliveryTimelines?: string | null;
   disclaimer?: string | null;
   additionalInfo?: string | null;
+  sizeChart?: string | null;
+  sizeChartCm?: string | null;
 }
 
 export interface Review {

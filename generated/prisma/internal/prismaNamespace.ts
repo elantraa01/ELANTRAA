@@ -1567,6 +1567,8 @@ export const ProductScalarFieldEnum = {
   deliveryTimelines: 'deliveryTimelines',
   disclaimer: 'disclaimer',
   additionalInfo: 'additionalInfo',
+  sizeChart: 'sizeChart',
+  sizeChartCm: 'sizeChartCm',
   createdAt: 'createdAt'
 } as const
 

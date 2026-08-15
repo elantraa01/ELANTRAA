@@ -27,6 +27,8 @@ export async function GET(
         deliveryTimelines: true,
         disclaimer: true,
         additionalInfo: true,
+        sizeChart: true,
+        sizeChartCm: true,
         createdAt: true,
         category: {
           select: {
@@ -82,6 +84,8 @@ export async function GET(
       deliveryTimelines: (p as { deliveryTimelines?: string | null }).deliveryTimelines || "",
       disclaimer: (p as { disclaimer?: string | null }).disclaimer || "",
       additionalInfo: (p as { additionalInfo?: string | null }).additionalInfo || "",
+      sizeChart: (p as { sizeChart?: string | null }).sizeChart || null,
+      sizeChartCm: (p as { sizeChartCm?: string | null }).sizeChartCm || null,
       details: [],
       materials: "",
       careInstructions: "",

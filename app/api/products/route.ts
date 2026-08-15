@@ -76,6 +76,8 @@ export async function GET(req: NextRequest) {
         isBestSeller: true,
         isActive: true,
         isReturnable: true,
+        sizeChart: true,
+        sizeChartCm: true,
         createdAt: true,
         category: {
           select: {
@@ -120,6 +122,8 @@ export async function GET(req: NextRequest) {
         isFeatured: Boolean(p.isFeatured),
         isNewArrival: p.isNewArrival !== false,
         isBestSeller: Boolean(p.isBestSeller),
+        sizeChart: (p as { sizeChart?: string | null }).sizeChart || null,
+        sizeChartCm: (p as { sizeChartCm?: string | null }).sizeChartCm || null,
         rating: p.reviews.length > 0 ? Math.round(avgRating * 10) / 10 : 0,
         reviewCount: p.reviews.length,
         createdAt: p.createdAt.toISOString(),
