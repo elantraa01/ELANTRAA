@@ -21,35 +21,64 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { announcement, tagline, title, highlight, description, buttonText, buttonLink, bgImage, bgVideo } = body;
+    const {
+      announcement,
+      tagline,
+      title,
+      highlight,
+      description,
+      buttonText,
+      buttonLink,
+      bgImage,
+      bgImages,
+      bgVideo,
+    } = body;
 
-    if (!title?.trim() || !bgImage?.trim()) {
-      return NextResponse.json({ error: "Hero title and background image are required." }, { status: 400 });
+    const sanitizedBgImages: string[] = Array.isArray(bgImages)
+      ? bgImages.map((img: unknown) => (typeof img === "string" ? img.trim() : "")).filter(Boolean)
+      : [];
+
+    const primaryImage =
+      sanitizedBgImages.length > 0
+        ? sanitizedBgImages[0]
+        : typeof bgImage === "string" && bgImage.trim()
+        ? bgImage.trim()
+        : "";
+
+    if (!title?.trim() || !primaryImage) {
+      return NextResponse.json(
+        { error: "Hero title and at least one background image are required." },
+        { status: 400 }
+      );
     }
+
+    const finalBgImages = sanitizedBgImages.length > 0 ? sanitizedBgImages : [primaryImage];
 
     const updated = await prisma.heroBanner.upsert({
       where: { id: "default" },
       update: {
         announcement: announcement || "",
         tagline: tagline || "",
-        title,
+        title: title.trim(),
         highlight: highlight || "",
         description: description || "",
         buttonText: buttonText || "Shop",
         buttonLink: buttonLink || "/shop",
-        bgImage,
+        bgImage: primaryImage,
+        bgImages: finalBgImages,
         bgVideo: bgVideo || null,
       },
       create: {
         id: "default",
         announcement: announcement || "",
         tagline: tagline || "",
-        title,
+        title: title.trim(),
         highlight: highlight || "",
         description: description || "",
         buttonText: buttonText || "Shop",
         buttonLink: buttonLink || "/shop",
-        bgImage,
+        bgImage: primaryImage,
+        bgImages: finalBgImages,
         bgVideo: bgVideo || null,
       },
     });

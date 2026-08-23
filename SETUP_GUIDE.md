@@ -117,7 +117,13 @@ SMTP_USER="your_smtp_username"
 SMTP_PASS="your_smtp_password"
 EMAIL_FROM="ELANTRAA Concierge <elantraa.01@gmail.com>"
 
-# Persistent Upload Storage (Cloudinary)
+# Supabase Storage (Recommended for Product Photos)
+NEXT_PUBLIC_SUPABASE_URL="https://rcrukibwtmdmtbzbbbbo.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your_supabase_anon_key"
+SUPABASE_SERVICE_ROLE_KEY="your_supabase_service_role_key"
+SUPABASE_STORAGE_BUCKET="products"
+
+# Persistent Upload Storage (Cloudinary alternative)
 CLOUDINARY_CLOUD_NAME="your_cloudinary_cloud_name"
 CLOUDINARY_UPLOAD_PRESET="your_unsigned_upload_preset"
 # Or use signed uploads instead:
@@ -125,8 +131,11 @@ CLOUDINARY_UPLOAD_PRESET="your_unsigned_upload_preset"
 # CLOUDINARY_API_SECRET="your_cloudinary_api_secret"
 ```
 
-Production uploads require persistent storage. If Cloudinary is not configured,
-the admin upload button will ask you to paste an externally hosted image URL instead.
+### Supabase Storage Setup:
+1. In your Supabase Dashboard (`https://supabase.com/dashboard`), go to **Storage**.
+2. Click **New bucket**, name it **`products`**, and check **Public bucket** (so product image URLs are publicly viewable).
+3. Copy your project URL and `anon` / `service_role` key from **Project Settings > API**, and add them to [`.env.local`](file:///d:/ELANTRAA/.env.local).
+4. When you upload photos from the Admin Panel (`/admin`), images are saved directly to Supabase Storage and their public URLs are automatically populated into the product images fields.
 
 ---
 

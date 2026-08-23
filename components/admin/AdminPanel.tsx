@@ -100,6 +100,7 @@ type HeroBannerData = {
   buttonText: string;
   buttonLink: string;
   bgImage: string;
+  bgImages?: string[];
   bgVideo?: string | null;
 };
 
@@ -175,6 +176,7 @@ const emptyHero: HeroBannerData = {
   buttonText: "Shop",
   buttonLink: "/shop",
   bgImage: "",
+  bgImages: [],
   bgVideo: "",
 };
 
@@ -243,6 +245,140 @@ export default function AdminPanel() {
   const [sizeChartError, setSizeChartError] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
+  const [uploadingHeroMedia, setUploadingHeroMedia] = useState(false);
+  const [uploadingHeroVideo, setUploadingHeroVideo] = useState(false);
+  const [isHeroDragging, setIsHeroDragging] = useState(false);
+  const [heroManualUrl, setHeroManualUrl] = useState("");
+
+  async function handleHeroVideoUpload(file: File) {
+    if (!file) return;
+    setUploadingHeroVideo(true);
+
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("folder", "hero");
+      const res = await fetch("/api/upload", { method: "POST", body: form });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setHeroForm((prev) => ({ ...prev, bgVideo: data.url }));
+        notify("success", "Hero background video uploaded successfully.");
+      } else {
+        throw new Error(data.error || "Failed to upload video");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Video upload failed.";
+      notify("error", msg);
+    } finally {
+      setUploadingHeroVideo(false);
+    }
+  }
+
+  async function handleHeroFilesUpload(files: FileList | File[]) {
+    if (!files || files.length === 0) return;
+    setUploadingHeroMedia(true);
+
+    try {
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const form = new FormData();
+        form.append("file", file);
+        form.append("folder", "hero");
+        const res = await fetch("/api/upload", { method: "POST", body: form });
+        const data = await res.json();
+        if (res.ok && data.url) {
+          uploadedUrls.push(data.url);
+        } else {
+          throw new Error(data.error || `Failed to upload ${file.name}`);
+        }
+      }
+
+      setHeroForm((prev) => {
+        const currentList = Array.isArray(prev.bgImages) && prev.bgImages.length > 0
+          ? prev.bgImages.filter(Boolean)
+          : prev.bgImage ? [prev.bgImage] : [];
+        const nextList = [...currentList, ...uploadedUrls];
+        return {
+          ...prev,
+          bgImage: nextList[0] || "",
+          bgImages: nextList,
+        };
+      });
+      notify("success", `Uploaded ${uploadedUrls.length} hero image(s).`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Upload failed.";
+      notify("error", msg);
+    } finally {
+      setUploadingHeroMedia(false);
+    }
+  }
+
+  function addHeroManualUrl() {
+    const trimmed = heroManualUrl.trim();
+    if (!trimmed) return;
+    setHeroForm((prev) => {
+      const currentList = Array.isArray(prev.bgImages) && prev.bgImages.length > 0
+        ? prev.bgImages.filter(Boolean)
+        : prev.bgImage ? [prev.bgImage] : [];
+      const nextList = [...currentList, trimmed];
+      return {
+        ...prev,
+        bgImage: nextList[0] || "",
+        bgImages: nextList,
+      };
+    });
+    setHeroManualUrl("");
+  }
+
+  function removeHeroImage(index: number) {
+    setHeroForm((prev) => {
+      const currentList = Array.isArray(prev.bgImages) && prev.bgImages.length > 0
+        ? prev.bgImages.filter(Boolean)
+        : prev.bgImage ? [prev.bgImage] : [];
+      const nextList = currentList.filter((_, i) => i !== index);
+      return {
+        ...prev,
+        bgImage: nextList[0] || "",
+        bgImages: nextList,
+      };
+    });
+  }
+
+  function moveHeroImage(index: number, direction: "left" | "right") {
+    setHeroForm((prev) => {
+      const currentList = Array.isArray(prev.bgImages) && prev.bgImages.length > 0
+        ? [...prev.bgImages.filter(Boolean)]
+        : prev.bgImage ? [prev.bgImage] : [];
+      const targetIndex = direction === "left" ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= currentList.length) return prev;
+      const temp = currentList[index];
+      currentList[index] = currentList[targetIndex];
+      currentList[targetIndex] = temp;
+      return {
+        ...prev,
+        bgImage: currentList[0] || "",
+        bgImages: currentList,
+      };
+    });
+  }
+
+  function setPrimaryHeroImage(index: number) {
+    setHeroForm((prev) => {
+      const currentList = Array.isArray(prev.bgImages) && prev.bgImages.length > 0
+        ? [...prev.bgImages.filter(Boolean)]
+        : prev.bgImage ? [prev.bgImage] : [];
+      if (index <= 0 || index >= currentList.length) return prev;
+      const [chosen] = currentList.splice(index, 1);
+      currentList.unshift(chosen);
+      return {
+        ...prev,
+        bgImage: currentList[0] || "",
+        bgImages: currentList,
+      };
+    });
+  }
+
   async function handleFilesUpload(files: FileList | File[]) {
     if (!files || files.length === 0) return;
     setUploadingMedia(true);
@@ -254,6 +390,7 @@ export default function AdminPanel() {
         const file = files[i];
         const form = new FormData();
         form.append("file", file);
+        form.append("folder", "products");
         const res = await fetch("/api/upload", { method: "POST", body: form });
         const data = await res.json();
         if (res.ok && data.url) {
@@ -267,8 +404,11 @@ export default function AdminPanel() {
         ...prev,
         images: [...prev.images.filter(Boolean), ...uploadedUrls],
       }));
+      notify("success", `Uploaded ${uploadedUrls.length} image(s) to Supabase Storage & updated product photo fields.`);
     } catch (err) {
-      setUploadError(err instanceof Error ? err.message : "Upload failed.");
+      const msg = err instanceof Error ? err.message : "Upload failed.";
+      setUploadError(msg);
+      notify("error", msg);
     } finally {
       setUploadingMedia(false);
     }
@@ -357,7 +497,16 @@ export default function AdminPanel() {
         setSettingsForm(settingsRes.value.settings);
       }
       if (heroRes.status === "fulfilled" && heroRes.value.hero) {
-        setHeroForm({ ...emptyHero, ...heroRes.value.hero });
+        const h = heroRes.value.hero;
+        const list = Array.isArray(h.bgImages) && h.bgImages.length > 0
+          ? h.bgImages.filter(Boolean)
+          : h.bgImage ? [h.bgImage] : [];
+        setHeroForm({
+          ...emptyHero,
+          ...h,
+          bgImage: list[0] || h.bgImage || "",
+          bgImages: list,
+        });
       }
       if (couponRes.status === "fulfilled") setCoupons(couponRes.value.coupons || []);
 
@@ -639,17 +788,36 @@ export default function AdminPanel() {
 
   async function saveHero(e: React.FormEvent) {
     e.preventDefault();
-    if (!heroForm.title.trim() || !heroForm.bgImage.trim()) {
-      notify("error", "Hero title and background image are required.");
+    const currentList = Array.isArray(heroForm.bgImages) && heroForm.bgImages.length > 0
+      ? heroForm.bgImages.map((s) => s.trim()).filter(Boolean)
+      : heroForm.bgImage?.trim() ? [heroForm.bgImage.trim()] : [];
+
+    const primaryImage = currentList[0] || heroForm.bgImage.trim();
+
+    if (!heroForm.title.trim() || !primaryImage) {
+      notify("error", "Hero title and at least one background image are required.");
       return;
     }
 
     try {
       const data = await request<{ hero: HeroBannerData }>("/api/admin/hero", {
         method: "PATCH",
-        body: JSON.stringify(heroForm),
+        body: JSON.stringify({
+          ...heroForm,
+          bgImage: primaryImage,
+          bgImages: currentList,
+        }),
       });
-      setHeroForm({ ...emptyHero, ...data.hero });
+      const h = data.hero;
+      const list = Array.isArray(h.bgImages) && h.bgImages.length > 0
+        ? h.bgImages.filter(Boolean)
+        : h.bgImage ? [h.bgImage] : [];
+      setHeroForm({
+        ...emptyHero,
+        ...h,
+        bgImage: list[0] || h.bgImage || "",
+        bgImages: list,
+      });
       notify("success", "Hero banner updated.");
     } catch (err) {
       notify("error", err instanceof Error ? err.message : "Unable to save hero banner.");
@@ -1180,10 +1348,257 @@ export default function AdminPanel() {
                         placeholder="Immerse yourself in handcrafted silk gowns..."
                       />
                     </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <ImageUpload label="Background Banner Image" value={heroForm.bgImage} onChange={(value) => setHeroForm({ ...heroForm, bgImage: value })} />
-                      <Field label="Background Video URL (MP4)" value={heroForm.bgVideo || ""} onChange={(value) => setHeroForm({ ...heroForm, bgVideo: value })} placeholder="https://..." />
+
+                    {/* Multi-Hero Images Management */}
+                    <div className="rounded-xl border border-[#C9A648]/30 bg-gradient-to-br from-amber-50/40 via-white to-slate-50/50 p-5 space-y-4 shadow-sm">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200/50 pb-3">
+                        <div>
+                          <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <span>Hero Banner Slides & Background Images</span>
+                            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#C9A648]/15 text-[#916b15]">
+                              {(heroForm.bgImages?.length || (heroForm.bgImage ? 1 : 0))} {(heroForm.bgImages?.length || (heroForm.bgImage ? 1 : 0)) === 1 ? "Slide" : "Slides"}
+                            </span>
+                          </h4>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            Upload multiple hero images for the automated cross-fade homepage slideshow. The 1st slide is the primary hero cover.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Dropzone for Multi-Upload */}
+                      <div
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          setIsHeroDragging(true);
+                        }}
+                        onDragLeave={() => setIsHeroDragging(false)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setIsHeroDragging(false);
+                          if (e.dataTransfer.files?.length) {
+                            handleHeroFilesUpload(e.dataTransfer.files);
+                          }
+                        }}
+                        className={`relative rounded-lg border-2 border-dashed p-6 text-center transition-all ${
+                          isHeroDragging
+                            ? "border-[#C9A648] bg-amber-50/80 scale-[1.01]"
+                            : "border-slate-300 bg-white hover:border-[#C9A648]/70 hover:bg-slate-50/50"
+                        }`}
+                      >
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={(e) => {
+                            if (e.target.files?.length) {
+                              handleHeroFilesUpload(e.target.files);
+                            }
+                          }}
+                          className="absolute inset-0 z-10 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        <div className="flex flex-col items-center justify-center gap-2 pointer-events-none">
+                          <div className="w-10 h-10 rounded-full bg-amber-100/70 text-[#C9A648] flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                          <span className="text-xs font-semibold text-slate-800">
+                            {uploadingHeroMedia ? "Uploading hero image(s)..." : "Click to select multiple images or drag & drop here"}
+                          </span>
+                          <span className="text-[11px] text-slate-400">PNG, JPG, WebP, AVIF up to 5MB each</span>
+                        </div>
+                      </div>
+
+                      {/* Manual Image URL Adder */}
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={heroManualUrl}
+                          onChange={(e) => setHeroManualUrl(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              addHeroManualUrl();
+                            }
+                          }}
+                          placeholder="Or paste direct image URL (https://...) and press Add"
+                          className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-xs outline-none focus:border-[#C9A648]"
+                        />
+                        <button
+                          type="button"
+                          onClick={addHeroManualUrl}
+                          className="px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium transition-colors shrink-0"
+                        >
+                          + Add Image URL
+                        </button>
+                      </div>
+
+                      {/* Gallery of Uploaded Slides */}
+                      {((heroForm.bgImages && heroForm.bgImages.length > 0) || Boolean(heroForm.bgImage)) && (
+                        <div className="space-y-2 pt-2">
+                          <div className="text-xs font-semibold text-slate-700">Hero Slides Sequence:</div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                            {(heroForm.bgImages && heroForm.bgImages.length > 0
+                              ? heroForm.bgImages
+                              : heroForm.bgImage ? [heroForm.bgImage] : []
+                            ).map((url, idx, arr) => (
+                              <div
+                                key={`${url}-${idx}`}
+                                className={`relative group rounded-lg border overflow-hidden bg-slate-900/90 transition-all ${
+                                  idx === 0
+                                    ? "border-[#C9A648] shadow-md ring-1 ring-[#C9A648]/40"
+                                    : "border-slate-300 hover:border-slate-400"
+                                }`}
+                              >
+                                <div className="relative aspect-[16/9] w-full bg-slate-800">
+                                  <img
+                                    src={url}
+                                    alt={`Hero Slide ${idx + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
+
+                                <div className="p-2.5 bg-white flex items-center justify-between text-xs border-t border-slate-100">
+                                  <div className="flex items-center gap-1.5 truncate mr-2">
+                                    <span
+                                      className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                        idx === 0
+                                          ? "bg-amber-100 text-[#916b15]"
+                                          : "bg-slate-100 text-slate-600"
+                                      }`}
+                                    >
+                                      {idx === 0 ? "Primary Slide" : `Slide ${idx + 1}`}
+                                    </span>
+                                  </div>
+
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    {idx > 0 && (
+                                      <button
+                                        type="button"
+                                        title="Make Primary"
+                                        onClick={() => setPrimaryHeroImage(idx)}
+                                        className="p-1 rounded hover:bg-amber-50 text-[#C9A648] font-bold text-[11px]"
+                                      >
+                                        ★ Set Primary
+                                      </button>
+                                    )}
+
+                                    {idx > 0 && (
+                                      <button
+                                        type="button"
+                                        title="Move Left"
+                                        onClick={() => moveHeroImage(idx, "left")}
+                                        className="p-1 rounded hover:bg-slate-100 text-slate-600"
+                                      >
+                                        ←
+                                      </button>
+                                    )}
+
+                                    {idx < arr.length - 1 && (
+                                      <button
+                                        type="button"
+                                        title="Move Right"
+                                        onClick={() => moveHeroImage(idx, "right")}
+                                        className="p-1 rounded hover:bg-slate-100 text-slate-600"
+                                      >
+                                        →
+                                      </button>
+                                    )}
+
+                                    <button
+                                      type="button"
+                                      title="Remove Slide"
+                                      onClick={() => removeHeroImage(idx)}
+                                      className="p-1 rounded hover:bg-red-50 text-red-600 font-bold"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Video Upload & URL Field */}
+                      <div className="pt-3 border-t border-slate-200/80 space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <label className="block text-xs font-semibold text-slate-700">
+                            Optional Background Video (MP4 / WebM / MOV)
+                          </label>
+                          {heroForm.bgVideo && (
+                            <button
+                              type="button"
+                              onClick={() => setHeroForm({ ...heroForm, bgVideo: "" })}
+                              className="text-[11px] text-red-600 hover:text-red-700 font-semibold"
+                            >
+                              ✕ Remove Video
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="grid gap-3 sm:grid-cols-2 items-start">
+                          <div>
+                            <div className="relative rounded-lg border border-dashed border-slate-300 p-4 text-center hover:border-[#C9A648] bg-white transition-colors">
+                              <input
+                                type="file"
+                                accept="video/mp4,video/webm,video/quicktime,video/ogg,video/x-matroska"
+                                onChange={(e) => {
+                                  if (e.target.files?.[0]) {
+                                    handleHeroVideoUpload(e.target.files[0]);
+                                  }
+                                }}
+                                className="absolute inset-0 z-10 w-full h-full opacity-0 cursor-pointer"
+                              />
+                              <div className="flex flex-col items-center justify-center gap-1.5 pointer-events-none">
+                                <div className="w-8 h-8 rounded-full bg-amber-100/80 text-[#C9A648] flex items-center justify-center">
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                  </svg>
+                                </div>
+                                <span className="text-xs font-semibold text-slate-800">
+                                  {uploadingHeroVideo ? "Uploading video..." : "Click to upload video file"}
+                                </span>
+                                <span className="text-[10px] text-slate-400">MP4, WebM, MOV up to 100MB</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <input
+                              type="text"
+                              value={heroForm.bgVideo || ""}
+                              onChange={(e) => setHeroForm({ ...heroForm, bgVideo: e.target.value })}
+                              placeholder="Or paste video URL (https://...)"
+                              className="w-full rounded-md border border-slate-300 px-3 py-2 text-xs outline-none focus:border-[#C9A648]"
+                            />
+                            <p className="text-[10px] text-slate-500">
+                              When a video is provided, it will automatically play as the looping cinematic background.
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Video Live Preview */}
+                        {heroForm.bgVideo && (
+                          <div className="rounded-lg overflow-hidden border border-slate-300 bg-black aspect-[16/7] max-h-48 relative">
+                            <video
+                              src={heroForm.bgVideo}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/60 backdrop-blur-sm text-[10px] font-mono text-[#F3E5AB]">
+                              Active Video Preview
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
+
                     <div className="pt-2">
                       <Button type="submit">Save Hero Banner</Button>
                     </div>
@@ -1413,7 +1828,7 @@ export default function AdminPanel() {
                   {/* Direct URL Input Fallback */}
                   <div className="space-y-2 pt-2 border-t border-gray-100">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-gray-600">Or enter Direct Image URLs</span>
+                      <span className="text-xs font-semibold text-gray-600">Product Image URLs (Supabase / External)</span>
                       <button
                         type="button"
                         onClick={() => setProductForm({ ...productForm, images: [...productForm.images, ""] })}
@@ -1426,7 +1841,7 @@ export default function AdminPanel() {
                       <div key={index} className="flex items-center gap-2">
                         <input
                           type="text"
-                          placeholder="https://..."
+                          placeholder="https://...supabase.co/storage/v1/object/public/products/..."
                           value={image}
                           onChange={(e) => setProductForm({
                             ...productForm,
@@ -1434,6 +1849,19 @@ export default function AdminPanel() {
                           })}
                           className="flex-1 bg-[#FAF8F5] border border-gray-300 focus:border-[#C9A648] focus:bg-white rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 outline-none"
                         />
+                        {image ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(image);
+                              notify("success", "Image link copied to clipboard!");
+                            }}
+                            title="Copy link"
+                            className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded font-medium transition-colors"
+                          >
+                            Copy
+                          </button>
+                        ) : null}
                         {productForm.images.length > 1 && (
                           <button
                             type="button"
@@ -1442,6 +1870,7 @@ export default function AdminPanel() {
                               images: productForm.images.filter((_, i) => i !== index)
                             })}
                             className="text-red-500 hover:text-red-700 text-xs px-2 py-1"
+                            title="Remove field"
                           >
                             ✕
                           </button>

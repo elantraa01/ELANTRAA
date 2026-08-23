@@ -1674,6 +1674,7 @@ export const HeroBannerScalarFieldEnum = {
   buttonText: 'buttonText',
   buttonLink: 'buttonLink',
   bgImage: 'bgImage',
+  bgImages: 'bgImages',
   bgVideo: 'bgVideo',
   updatedAt: 'updatedAt'
 } as const
