@@ -10,6 +10,7 @@ import Footer from "@/components/home/Footer";
 import QuickViewModal from "@/components/home/QuickViewModal";
 import { Product } from "@/components/home/mockData";
 import { useCart } from "@/context/CartContext";
+import { LogoShimmer } from "@/components/ui/LuxurySkeleton";
 
 import { useSearchParams } from "next/navigation";
 
@@ -153,8 +154,8 @@ function AccountPageContent() {
 
   if (status === "loading" || !session?.user) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center font-sans text-xs uppercase tracking-widest text-gray-500">
-        Loading ELANTRAA Account...
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <LogoShimmer size="lg" />
       </div>
     );
   }
@@ -684,8 +685,8 @@ export default function AccountPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-white flex items-center justify-center font-sans text-xs uppercase tracking-widest text-gray-500">
-          Loading ELANTRAA Account...
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <LogoShimmer size="lg" />
         </div>
       }
     >

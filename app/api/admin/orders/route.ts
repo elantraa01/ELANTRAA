@@ -16,6 +16,7 @@ export async function GET() {
               select: {
                 id: true,
                 name: true,
+                sku: true,
                 images: true,
                 price: true,
               },
@@ -29,9 +30,11 @@ export async function GET() {
     const formatted = orders.map((order) => ({
       id: order.id,
       totalAmount: Number(order.totalAmount),
+      advanceAmount: order.advanceAmount ? Number(order.advanceAmount) : null,
+      balanceAmount: order.balanceAmount ? Number(order.balanceAmount) : null,
       status: order.status,
       paymentStatus: order.paymentStatus,
-      paymentMethod: "Online",
+      paymentMethod: order.paymentMethod || "ONLINE",
       createdAt: order.createdAt.toISOString(),
       customer: {
         id: order.user.id,
@@ -43,6 +46,7 @@ export async function GET() {
         id: item.id,
         productId: item.productId,
         productName: item.product.name,
+        productSku: item.product.sku || "",
         productImage: item.product.images[0] || "",
         quantity: item.quantity,
         price: Number(item.price),

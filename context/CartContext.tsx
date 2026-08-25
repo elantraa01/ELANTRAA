@@ -15,6 +15,7 @@ export interface CartItemType {
   size: string;
   color: string;
   quantity: number;
+  stock?: number;
 }
 
 interface CartContextType {
@@ -23,6 +24,7 @@ interface CartContextType {
   subtotal: number;
   discount: number;
   shipping: number;
+  freeShippingThreshold: number;
   promoCode: string;
   promoDiscount: number;
   total: number;
@@ -54,6 +56,7 @@ type DbCartItem = {
     price: string | number;
     discountPrice?: string | number | null;
     images: string[];
+    stock?: number;
   };
 };
 
@@ -88,6 +91,7 @@ function mapDbCart(cart: DbCart): CartItemType[] {
     size: item.size || "M",
     color: item.color || "Default",
     quantity: item.quantity,
+    stock: typeof item.product.stock === "number" ? item.product.stock : 99,
   }));
 }
 
@@ -108,6 +112,7 @@ function createLocalCartItem(
     size,
     color,
     quantity,
+    stock: typeof product.stock === "number" ? product.stock : 99,
   };
 }
 
@@ -122,6 +127,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [guestId, setGuestId] = useState("");
   const [isHydrated, setIsHydrated] = useState(false);
   const [storeShippingCharge, setStoreShippingCharge] = useState<number>(0);
+  const [storeFreeShippingThreshold, setStoreFreeShippingThreshold] = useState<number>(900);
 
   useEffect(() => {
     async function fetchStoreSettings() {
@@ -131,6 +137,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           const data = await res.json();
           if (data.settings?.shippingCharge !== undefined) {
             setStoreShippingCharge(Number(data.settings.shippingCharge));
+          }
+          if (data.settings?.freeShippingThreshold !== undefined) {
+            setStoreFreeShippingThreshold(Number(data.settings.freeShippingThreshold));
           }
         }
       } catch (err) {
@@ -155,35 +164,52 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const mergeCartOnLogin = useCallback(
-    async (_userId: string) => {
-      const guestCartItems = JSON.parse(localStorage.getItem(GUEST_CART_KEY) || "[]");
-      const response = await fetch("/api/cart/merge", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ guestCartItems, guestId }),
-      });
+    async (userEmail: string) => {
+      const localGuestItems = JSON.parse(localStorage.getItem(GUEST_CART_KEY) || "[]") as CartItemType[];
+      if (localGuestItems.length === 0) return;
 
-      if (response.ok) {
-        localStorage.removeItem(GUEST_CART_KEY);
-        const data = await response.json();
-        setItems(mapDbCart(data.cart));
+      try {
+        const res = await fetch("/api/cart/merge", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userEmail,
+            guestItems: localGuestItems.map((item) => ({
+              productId: item.productId,
+              size: item.size,
+              color: item.color,
+              quantity: item.quantity,
+            })),
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.cart) {
+            setItems(mapDbCart(data.cart));
+            localStorage.removeItem(GUEST_CART_KEY);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to merge guest cart on login", err);
       }
     },
-    [guestId]
+    []
   );
 
   useEffect(() => {
-    let gid = localStorage.getItem(GUEST_ID_KEY);
-    if (!gid) {
-      gid = createGuestId();
-      localStorage.setItem(GUEST_ID_KEY, gid);
+    setIsHydrated(true);
+    const existingGuestId = localStorage.getItem(GUEST_ID_KEY);
+    if (existingGuestId) {
+      setGuestId(existingGuestId);
+    } else {
+      const newGuestId = createGuestId();
+      localStorage.setItem(GUEST_ID_KEY, newGuestId);
+      setGuestId(newGuestId);
     }
-    setGuestId(gid);
 
     const savedPromo = localStorage.getItem(PROMO_CODE_KEY);
     if (savedPromo) setPromoCode(savedPromo);
-
-    setIsHydrated(true);
   }, []);
 
   useEffect(() => {
@@ -232,28 +258,39 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     color: string = "Default",
     quantity: number = 1
   ) => {
+    const maxStock = typeof product.stock === "number" ? Math.max(0, product.stock) : 99;
+    if (maxStock <= 0) return;
+
+    let finalQuantity = quantity;
+
     setItems((prevItems) => {
       const existingIndex = prevItems.findIndex(
         (item) => item.productId === product.id && item.size === size && item.color === color
       );
 
       if (existingIndex > -1) {
+        const currentQty = prevItems[existingIndex].quantity;
+        const newQty = Math.min(currentQty + quantity, maxStock);
+        finalQuantity = newQty;
         const next = [...prevItems];
         next[existingIndex] = {
           ...next[existingIndex],
-          quantity: next[existingIndex].quantity + quantity,
+          quantity: newQty,
+          stock: maxStock,
         };
         return next;
       }
 
-      return [...prevItems, createLocalCartItem(product, size, color, quantity)];
+      const initialQty = Math.min(quantity, maxStock);
+      finalQuantity = initialQty;
+      return [...prevItems, createLocalCartItem(product, size, color, initialQty)];
     });
 
     if (isLoggedIn) {
       fetch("/api/cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: product.id, size, color, quantity }),
+        body: JSON.stringify({ productId: product.id, size, color, quantity: finalQuantity }),
       })
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
@@ -269,13 +306,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    setItems((prev) => prev.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)));
+    let clampedQuantity = newQuantity;
+
+    setItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== itemId) return item;
+        const maxStock = typeof item.stock === "number" ? item.stock : 99;
+        clampedQuantity = Math.min(newQuantity, maxStock);
+        return { ...item, quantity: clampedQuantity };
+      })
+    );
 
     if (isLoggedIn) {
       fetch("/api/cart", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemId, quantity: newQuantity }),
+        body: JSON.stringify({ itemId, quantity: clampedQuantity }),
       }).catch((error) => console.error("Failed to update cart quantity", error));
     }
   };
@@ -284,18 +330,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prev) => prev.filter((item) => item.id !== itemId));
 
     if (isLoggedIn) {
-      fetch(`/api/cart?itemId=${encodeURIComponent(itemId)}`, {
+      fetch("/api/cart", {
         method: "DELETE",
-      }).catch((error) => console.error("Failed to remove cart item", error));
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId }),
+      }).catch((error) => console.error("Failed to delete cart item", error));
     }
   };
 
   const clearCart = () => {
     setItems([]);
+    setPromoCode("");
     localStorage.removeItem(GUEST_CART_KEY);
+    localStorage.removeItem(PROMO_CODE_KEY);
 
     if (isLoggedIn) {
-      fetch("/api/cart?all=true", { method: "DELETE" }).catch((error) =>
+      fetch("/api/cart", { method: "DELETE" }).catch((error) =>
         console.error("Failed to clear cart", error)
       );
     }
@@ -303,8 +353,63 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const [promoDiscountAmount, setPromoDiscountAmount] = useState<number>(0);
 
+  const applyPromoCode = async (code: string) => {
+    const cleanCode = code.trim().toUpperCase();
+    if (!cleanCode) {
+      return { success: false, message: "Please enter a promo code." };
+    }
+
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: cleanCode, subtotal }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.valid) {
+        setPromoCode(cleanCode);
+        setPromoDiscountAmount(Number(data.discountAmount) || 0);
+        localStorage.setItem(PROMO_CODE_KEY, cleanCode);
+        return { success: true, message: data.message || `Promo code ${cleanCode} applied!` };
+      }
+
+      return { success: false, message: data.message || "Invalid or expired promo code." };
+    } catch {
+      return { success: false, message: "Failed to validate promo code." };
+    }
+  };
+
+  const removePromoCode = () => {
+    setPromoCode("");
+    setPromoDiscountAmount(0);
+    localStorage.removeItem(PROMO_CODE_KEY);
+  };
+
+  const toggleWishlist = (product: Product) => {
+    setWishlistItems((prev) => {
+      const exists = prev.some((item) => item.id === product.id);
+      const next = exists ? prev.filter((item) => item.id !== product.id) : [...prev, product];
+
+      if (isLoggedIn) {
+        fetch("/api/wishlist", {
+          method: exists ? "DELETE" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId: product.id }),
+        }).catch((err) => console.error("Wishlist sync error", err));
+      }
+
+      return next;
+    });
+  };
+
   const subtotal = useMemo(
-    () => items.reduce((acc, item) => acc + (item.discountPrice || item.price) * item.quantity, 0),
+    () =>
+      items.reduce((acc, item) => {
+        const itemPrice = item.discountPrice ?? item.price;
+        return acc + itemPrice * item.quantity;
+      }, 0),
     [items]
   );
 
@@ -344,72 +449,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return promoDiscountAmount;
   }, [promoCode, promoDiscountAmount]);
 
-  const applyPromoCode = async (code: string): Promise<{ success: boolean; message: string }> => {
-    const clean = code.trim().toUpperCase();
-    if (!clean) return { success: false, message: "Please enter a promo code" };
-
-    try {
-      const res = await fetch("/api/coupons/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: clean, subtotal }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.valid) {
-        return {
-          success: false,
-          message: data.error || "Invalid or expired promo code",
-        };
-      }
-
-      setPromoCode(clean);
-      setPromoDiscountAmount(Number(data.discountAmount) || 0);
-      localStorage.setItem(PROMO_CODE_KEY, clean);
-
-      return {
-        success: true,
-        message: data.message || `Promo code ${clean} applied successfully!`,
-      };
-    } catch (err) {
-      console.error("Failed to validate promo code:", err);
-      return { success: false, message: "Network error validating promo code" };
-    }
-  };
-
-  const removePromoCode = () => {
-    setPromoCode("");
-    setPromoDiscountAmount(0);
-    localStorage.removeItem(PROMO_CODE_KEY);
-  };
-
-  const toggleWishlist = (product: Product) => {
-    setWishlistItems((prev) => {
-      const exists = prev.some((item) => item.id === product.id);
-      return exists ? prev.filter((item) => item.id !== product.id) : [...prev, product];
-    });
-
-    if (isLoggedIn) {
-      fetch("/api/wishlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: product.id }),
-      })
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (data?.wishlist) setWishlistItems(data.wishlist);
-        })
-        .catch((error) => console.error("Failed to update wishlist", error));
-    }
-  };
-
   const isInWishlist = (productId: string) => wishlistItems.some((item) => item.id === productId);
   const wishlistCount = wishlistItems.length;
   const cartCount = useMemo(() => items.reduce((acc, item) => acc + item.quantity, 0), [items]);
   const shipping = useMemo(
-    () => (subtotal > 5000 || subtotal === 0 ? 0 : storeShippingCharge),
-    [subtotal, storeShippingCharge]
+    () => (subtotal >= storeFreeShippingThreshold || subtotal === 0 ? 0 : storeShippingCharge),
+    [subtotal, storeFreeShippingThreshold, storeShippingCharge]
   );
   const discount = promoDiscount;
   const total = Math.max(0, subtotal - discount + shipping);
@@ -422,6 +467,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         subtotal,
         discount,
         shipping,
+        freeShippingThreshold: storeFreeShippingThreshold,
         promoCode,
         promoDiscount,
         total,

@@ -18,11 +18,15 @@ export default function ProductInfo({
 }: ProductInfoProps) {
   const { toggleWishlist, isInWishlist } = useCart();
   const isWishlisted = isInWishlist(product.id);
+  const stock = typeof product.stock === "number" ? Math.max(0, product.stock) : 0;
+  const isOutOfStock = stock <= 0;
 
   const [selectedSize, setSelectedSize] = useState(product.sizes[0] || "M");
   const selectedColor = "Default";
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(isOutOfStock ? 0 : 1);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
+
+  const isMaxStockReached = quantity >= stock;
 
   // Accordion open states
   const [activeTab, setActiveTab] = useState<"productInfo" | "delivery" | "disclaimer" | "additionalInfo" | "none">("none");
@@ -125,15 +129,21 @@ export default function ProductInfo({
             {/* Quantity Controls */}
             <div className="inline-flex flex-1 sm:flex-initial items-center justify-between border border-gray-300 rounded-md p-1 bg-gray-50 sm:w-36">
               <button
+                type="button"
+                disabled={isOutOfStock || quantity <= 1}
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-9 h-9 text-gray-600 hover:bg-white rounded font-bold text-lg flex items-center justify-center transition-colors"
+                className="w-9 h-9 text-gray-600 hover:bg-white rounded font-bold text-lg flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Decrease quantity"
               >
                 -
               </button>
-              <span className="font-semibold text-sm px-2 text-gray-900">{quantity}</span>
+              <span className="font-semibold text-sm px-2 text-gray-900">{isOutOfStock ? 0 : quantity}</span>
               <button
-                onClick={() => setQuantity(quantity + 1)}
-                className="w-9 h-9 text-gray-600 hover:bg-white rounded font-bold text-lg flex items-center justify-center transition-colors"
+                type="button"
+                disabled={isOutOfStock || isMaxStockReached}
+                onClick={() => setQuantity((prev) => (prev < stock ? prev + 1 : prev))}
+                className="w-9 h-9 text-gray-600 hover:bg-white rounded font-bold text-lg flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Increase quantity"
               >
                 +
               </button>
@@ -141,6 +151,7 @@ export default function ProductInfo({
 
             {/* Wishlist Button (Mobile) */}
             <button
+              type="button"
               onClick={handleWishlist}
               className={`p-3.5 rounded-md border transition-all flex items-center justify-center shadow-sm sm:hidden ${isWishlisted
                   ? "bg-red-50 border-red-200 text-red-500"
@@ -156,17 +167,28 @@ export default function ProductInfo({
 
           {/* Add to Bag Main Button */}
           <button
+            type="button"
+            disabled={isOutOfStock || quantity > stock}
             onClick={() => onAddToCart(product, selectedSize, selectedColor, quantity)}
-            className="flex-1 py-3.5 sm:py-4 px-6 sm:px-8 bg-gradient-to-r from-[#D4AF37] via-[#C9A648] to-[#AA771C] text-white font-medium text-xs sm:text-sm tracking-[0.2em] uppercase rounded-md shadow-lg hover:shadow-[#C9A648]/40 hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center space-x-2"
+            className={`flex-1 py-3.5 sm:py-4 px-6 sm:px-8 font-medium text-xs sm:text-sm tracking-[0.2em] uppercase rounded-md shadow-lg transition-all duration-300 flex items-center justify-center space-x-2 ${
+              isOutOfStock || quantity > stock
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
+                : "bg-gradient-to-r from-[#D4AF37] via-[#C9A648] to-[#AA771C] text-white hover:shadow-[#C9A648]/40 hover:scale-[1.01] active:scale-[0.99]"
+            }`}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
-            <span>Add To Bag • &#8377;{(effectivePrice * quantity).toLocaleString("en-IN")}</span>
+            <span>
+              {isOutOfStock
+                ? "Out Of Stock"
+                : `Add To Bag • ₹${(effectivePrice * quantity).toLocaleString("en-IN")}`}
+            </span>
           </button>
 
           {/* Wishlist Button (Desktop) */}
           <button
+            type="button"
             onClick={handleWishlist}
             className={`hidden sm:flex p-4 rounded-md border transition-all items-center justify-center shadow-sm ${isWishlisted
                 ? "bg-red-50 border-red-200 text-red-500"
@@ -179,6 +201,14 @@ export default function ProductInfo({
             </svg>
           </button>
         </div>
+
+        {/* Stock Status Notification (No stock numbers displayed) */}
+        {isOutOfStock ? (
+          <p className="text-xs text-rose-600 font-semibold mb-4 flex items-center gap-1.5">
+            <span className="inline-block w-2 h-2 rounded-full bg-rose-600" />
+            Currently Unavailable
+          </p>
+        ) : null}
 
         {/* Inquire About Customization Button */}
         <button
@@ -346,13 +376,19 @@ export default function ProductInfo({
           </span>
         </div>
         <button
+          type="button"
+          disabled={isOutOfStock || quantity > stock}
           onClick={() => onAddToCart(product, selectedSize, selectedColor, quantity)}
-          className="py-2.5 px-5 bg-gradient-to-r from-[#D4AF37] via-[#C9A648] to-[#AA771C] text-white text-xs uppercase tracking-widest font-semibold rounded shadow-md flex items-center space-x-1.5"
+          className={`py-2.5 px-5 text-xs uppercase tracking-widest font-semibold rounded shadow-md flex items-center space-x-1.5 ${
+            isOutOfStock || quantity > stock
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
+              : "bg-gradient-to-r from-[#D4AF37] via-[#C9A648] to-[#AA771C] text-white"
+          }`}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
           </svg>
-          <span>+ Add To Bag</span>
+          <span>{isOutOfStock ? "Out Of Stock" : "+ Add To Bag"}</span>
         </button>
       </div>
 

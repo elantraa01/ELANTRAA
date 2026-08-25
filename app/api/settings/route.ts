@@ -14,6 +14,7 @@ export async function GET() {
         settings: {
           storeName: "ELANTRAA",
           shippingCharge: 0,
+          freeShippingThreshold: 900,
           taxPercentage: 0,
           currency: "INR",
         },
@@ -27,6 +28,7 @@ export async function GET() {
         contactEmail: settings.contactEmail,
         currency: settings.currency,
         shippingCharge: Number(settings.shippingCharge),
+        freeShippingThreshold: Number(settings.freeShippingThreshold ?? 900),
         taxPercentage: Number(settings.taxPercentage),
       },
     });
@@ -36,6 +38,7 @@ export async function GET() {
       settings: {
         storeName: "ELANTRAA",
         shippingCharge: 0,
+        freeShippingThreshold: 900,
         taxPercentage: 0,
         currency: "INR",
       },

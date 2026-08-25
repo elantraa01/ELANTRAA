@@ -28,11 +28,13 @@ export type AggregateStoreSetting = {
 
 export type StoreSettingAvgAggregateOutputType = {
   shippingCharge: runtime.Decimal | null
+  freeShippingThreshold: runtime.Decimal | null
   taxPercentage: runtime.Decimal | null
 }
 
 export type StoreSettingSumAggregateOutputType = {
   shippingCharge: runtime.Decimal | null
+  freeShippingThreshold: runtime.Decimal | null
   taxPercentage: runtime.Decimal | null
 }
 
@@ -43,6 +45,7 @@ export type StoreSettingMinAggregateOutputType = {
   contactEmail: string | null
   currency: string | null
   shippingCharge: runtime.Decimal | null
+  freeShippingThreshold: runtime.Decimal | null
   taxPercentage: runtime.Decimal | null
   updatedAt: Date | null
 }
@@ -54,6 +57,7 @@ export type StoreSettingMaxAggregateOutputType = {
   contactEmail: string | null
   currency: string | null
   shippingCharge: runtime.Decimal | null
+  freeShippingThreshold: runtime.Decimal | null
   taxPercentage: runtime.Decimal | null
   updatedAt: Date | null
 }
@@ -65,6 +69,7 @@ export type StoreSettingCountAggregateOutputType = {
   contactEmail: number
   currency: number
   shippingCharge: number
+  freeShippingThreshold: number
   taxPercentage: number
   updatedAt: number
   _all: number
@@ -73,11 +78,13 @@ export type StoreSettingCountAggregateOutputType = {
 
 export type StoreSettingAvgAggregateInputType = {
   shippingCharge?: true
+  freeShippingThreshold?: true
   taxPercentage?: true
 }
 
 export type StoreSettingSumAggregateInputType = {
   shippingCharge?: true
+  freeShippingThreshold?: true
   taxPercentage?: true
 }
 
@@ -88,6 +95,7 @@ export type StoreSettingMinAggregateInputType = {
   contactEmail?: true
   currency?: true
   shippingCharge?: true
+  freeShippingThreshold?: true
   taxPercentage?: true
   updatedAt?: true
 }
@@ -99,6 +107,7 @@ export type StoreSettingMaxAggregateInputType = {
   contactEmail?: true
   currency?: true
   shippingCharge?: true
+  freeShippingThreshold?: true
   taxPercentage?: true
   updatedAt?: true
 }
@@ -110,6 +119,7 @@ export type StoreSettingCountAggregateInputType = {
   contactEmail?: true
   currency?: true
   shippingCharge?: true
+  freeShippingThreshold?: true
   taxPercentage?: true
   updatedAt?: true
   _all?: true
@@ -208,6 +218,7 @@ export type StoreSettingGroupByOutputType = {
   contactEmail: string
   currency: string
   shippingCharge: runtime.Decimal
+  freeShippingThreshold: runtime.Decimal
   taxPercentage: runtime.Decimal
   updatedAt: Date
   _count: StoreSettingCountAggregateOutputType | null
@@ -242,6 +253,7 @@ export type StoreSettingWhereInput = {
   contactEmail?: Prisma.StringFilter<"StoreSetting"> | string
   currency?: Prisma.StringFilter<"StoreSetting"> | string
   shippingCharge?: Prisma.DecimalFilter<"StoreSetting"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  freeShippingThreshold?: Prisma.DecimalFilter<"StoreSetting"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   taxPercentage?: Prisma.DecimalFilter<"StoreSetting"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Prisma.DateTimeFilter<"StoreSetting"> | Date | string
 }
@@ -253,6 +265,7 @@ export type StoreSettingOrderByWithRelationInput = {
   contactEmail?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   shippingCharge?: Prisma.SortOrder
+  freeShippingThreshold?: Prisma.SortOrder
   taxPercentage?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -267,6 +280,7 @@ export type StoreSettingWhereUniqueInput = Prisma.AtLeast<{
   contactEmail?: Prisma.StringFilter<"StoreSetting"> | string
   currency?: Prisma.StringFilter<"StoreSetting"> | string
   shippingCharge?: Prisma.DecimalFilter<"StoreSetting"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  freeShippingThreshold?: Prisma.DecimalFilter<"StoreSetting"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   taxPercentage?: Prisma.DecimalFilter<"StoreSetting"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Prisma.DateTimeFilter<"StoreSetting"> | Date | string
 }, "id">
@@ -278,6 +292,7 @@ export type StoreSettingOrderByWithAggregationInput = {
   contactEmail?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   shippingCharge?: Prisma.SortOrder
+  freeShippingThreshold?: Prisma.SortOrder
   taxPercentage?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.StoreSettingCountOrderByAggregateInput
@@ -297,6 +312,7 @@ export type StoreSettingScalarWhereWithAggregatesInput = {
   contactEmail?: Prisma.StringWithAggregatesFilter<"StoreSetting"> | string
   currency?: Prisma.StringWithAggregatesFilter<"StoreSetting"> | string
   shippingCharge?: Prisma.DecimalWithAggregatesFilter<"StoreSetting"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  freeShippingThreshold?: Prisma.DecimalWithAggregatesFilter<"StoreSetting"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   taxPercentage?: Prisma.DecimalWithAggregatesFilter<"StoreSetting"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"StoreSetting"> | Date | string
 }
@@ -308,6 +324,7 @@ export type StoreSettingCreateInput = {
   contactEmail?: string
   currency?: string
   shippingCharge?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  freeShippingThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   taxPercentage?: runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Date | string
 }
@@ -319,6 +336,7 @@ export type StoreSettingUncheckedCreateInput = {
   contactEmail?: string
   currency?: string
   shippingCharge?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  freeShippingThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   taxPercentage?: runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Date | string
 }
@@ -330,6 +348,7 @@ export type StoreSettingUpdateInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   shippingCharge?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  freeShippingThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   taxPercentage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -341,6 +360,7 @@ export type StoreSettingUncheckedUpdateInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   shippingCharge?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  freeShippingThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   taxPercentage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -352,6 +372,7 @@ export type StoreSettingCreateManyInput = {
   contactEmail?: string
   currency?: string
   shippingCharge?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  freeShippingThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   taxPercentage?: runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Date | string
 }
@@ -363,6 +384,7 @@ export type StoreSettingUpdateManyMutationInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   shippingCharge?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  freeShippingThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   taxPercentage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -374,6 +396,7 @@ export type StoreSettingUncheckedUpdateManyInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   shippingCharge?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  freeShippingThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   taxPercentage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -385,12 +408,14 @@ export type StoreSettingCountOrderByAggregateInput = {
   contactEmail?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   shippingCharge?: Prisma.SortOrder
+  freeShippingThreshold?: Prisma.SortOrder
   taxPercentage?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type StoreSettingAvgOrderByAggregateInput = {
   shippingCharge?: Prisma.SortOrder
+  freeShippingThreshold?: Prisma.SortOrder
   taxPercentage?: Prisma.SortOrder
 }
 
@@ -401,6 +426,7 @@ export type StoreSettingMaxOrderByAggregateInput = {
   contactEmail?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   shippingCharge?: Prisma.SortOrder
+  freeShippingThreshold?: Prisma.SortOrder
   taxPercentage?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -412,12 +438,14 @@ export type StoreSettingMinOrderByAggregateInput = {
   contactEmail?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   shippingCharge?: Prisma.SortOrder
+  freeShippingThreshold?: Prisma.SortOrder
   taxPercentage?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type StoreSettingSumOrderByAggregateInput = {
   shippingCharge?: Prisma.SortOrder
+  freeShippingThreshold?: Prisma.SortOrder
   taxPercentage?: Prisma.SortOrder
 }
 
@@ -430,6 +458,7 @@ export type StoreSettingSelect<ExtArgs extends runtime.Types.Extensions.Internal
   contactEmail?: boolean
   currency?: boolean
   shippingCharge?: boolean
+  freeShippingThreshold?: boolean
   taxPercentage?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["storeSetting"]>
@@ -441,6 +470,7 @@ export type StoreSettingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   contactEmail?: boolean
   currency?: boolean
   shippingCharge?: boolean
+  freeShippingThreshold?: boolean
   taxPercentage?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["storeSetting"]>
@@ -452,6 +482,7 @@ export type StoreSettingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   contactEmail?: boolean
   currency?: boolean
   shippingCharge?: boolean
+  freeShippingThreshold?: boolean
   taxPercentage?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["storeSetting"]>
@@ -463,11 +494,12 @@ export type StoreSettingSelectScalar = {
   contactEmail?: boolean
   currency?: boolean
   shippingCharge?: boolean
+  freeShippingThreshold?: boolean
   taxPercentage?: boolean
   updatedAt?: boolean
 }
 
-export type StoreSettingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "storeName" | "storeLogo" | "contactEmail" | "currency" | "shippingCharge" | "taxPercentage" | "updatedAt", ExtArgs["result"]["storeSetting"]>
+export type StoreSettingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "storeName" | "storeLogo" | "contactEmail" | "currency" | "shippingCharge" | "freeShippingThreshold" | "taxPercentage" | "updatedAt", ExtArgs["result"]["storeSetting"]>
 
 export type $StoreSettingPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "StoreSetting"
@@ -479,6 +511,7 @@ export type $StoreSettingPayload<ExtArgs extends runtime.Types.Extensions.Intern
     contactEmail: string
     currency: string
     shippingCharge: runtime.Decimal
+    freeShippingThreshold: runtime.Decimal
     taxPercentage: runtime.Decimal
     updatedAt: Date
   }, ExtArgs["result"]["storeSetting"]>
@@ -910,6 +943,7 @@ export interface StoreSettingFieldRefs {
   readonly contactEmail: Prisma.FieldRef<"StoreSetting", 'String'>
   readonly currency: Prisma.FieldRef<"StoreSetting", 'String'>
   readonly shippingCharge: Prisma.FieldRef<"StoreSetting", 'Decimal'>
+  readonly freeShippingThreshold: Prisma.FieldRef<"StoreSetting", 'Decimal'>
   readonly taxPercentage: Prisma.FieldRef<"StoreSetting", 'Decimal'>
   readonly updatedAt: Prisma.FieldRef<"StoreSetting", 'DateTime'>
 }

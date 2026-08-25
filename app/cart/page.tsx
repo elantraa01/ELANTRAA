@@ -16,6 +16,7 @@ export default function CartPage() {
     subtotal,
     discount,
     shipping,
+    freeShippingThreshold,
     total,
     promoCode,
     applyPromoCode,
@@ -131,8 +132,10 @@ export default function CartPage() {
                         <div className="sm:col-span-3 flex items-center justify-center w-full sm:w-auto">
                           <div className="inline-flex items-center border border-gray-300 rounded p-1 bg-gray-50">
                             <button
+                              type="button"
                               onClick={() => updateQuantity(item.id, item.quantity - 1)}
                               className="w-7 h-7 text-gray-600 hover:bg-white rounded font-bold text-sm flex items-center justify-center"
+                              aria-label="Decrease quantity"
                             >
                               -
                             </button>
@@ -140,8 +143,11 @@ export default function CartPage() {
                               {item.quantity}
                             </span>
                             <button
+                              type="button"
+                              disabled={typeof item.stock === "number" && item.quantity >= item.stock}
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              className="w-7 h-7 text-gray-600 hover:bg-white rounded font-bold text-sm flex items-center justify-center"
+                              className="w-7 h-7 text-gray-600 hover:bg-white rounded font-bold text-sm flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+                              aria-label="Increase quantity"
                             >
                               +
                             </button>
@@ -166,6 +172,30 @@ export default function CartPage() {
                 <h3 className="text-lg font-serif font-semibold text-gray-900 border-b border-gray-200 pb-3">
                   Order Summary
                 </h3>
+
+                {/* Free Delivery Threshold Progress Bar */}
+                {freeShippingThreshold > 0 && (
+                  <div className="p-3.5 bg-white rounded-xl border border-gray-200 text-xs">
+                    {subtotal >= freeShippingThreshold ? (
+                      <div className="flex items-center gap-2 text-emerald-700 font-medium">
+                        <span className="text-base">✨</span>
+                        <span>You qualify for <strong>COMPLIMENTARY Delivery</strong>!</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <p className="text-gray-700">
+                          Add <strong className="text-[#9b7a1d]">₹{(freeShippingThreshold - subtotal).toLocaleString("en-IN")}</strong> more for <strong>FREE Delivery</strong>
+                        </p>
+                        <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-[#D4AF37] to-[#AA771C] transition-all duration-300 rounded-full"
+                            style={{ width: `${Math.min(100, (subtotal / freeShippingThreshold) * 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Promo Code Input */}
                 <div>

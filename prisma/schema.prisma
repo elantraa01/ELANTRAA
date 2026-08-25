@@ -23,6 +23,7 @@ enum OrderStatus {
 
 enum PaymentStatus {
   PENDING
+  PARTIALLY_PAID
   PAID
   FAILED
   REFUNDED
@@ -45,6 +46,8 @@ model User {
 model Address {
   id        String  @id @default(cuid())
   userId    String
+  name      String?
+  phone     String?
   line1     String
   line2     String?
   city      String
@@ -112,6 +115,9 @@ model Order {
   id                String        @id @default(cuid())
   userId            String
   totalAmount       Decimal       @db.Decimal(10, 2)
+  advanceAmount     Decimal?      @db.Decimal(10, 2)
+  balanceAmount     Decimal?      @db.Decimal(10, 2)
+  paymentMethod     String        @default("ONLINE")
   status            OrderStatus   @default(PENDING)
   shippingAddress   Json
   paymentStatus     PaymentStatus @default(PENDING)
@@ -241,12 +247,13 @@ model Coupon {
 }
 
 model StoreSetting {
-  id             String   @id @default("default")
-  storeName      String   @default("ELANTRAA")
-  storeLogo      String   @default("/images/logo/logo.png")
-  contactEmail   String   @default("elantraa.01@gmail.com")
-  currency       String   @default("INR")
-  shippingCharge Decimal  @default(0) @db.Decimal(10, 2)
-  taxPercentage  Decimal  @default(0) @db.Decimal(5, 2)
-  updatedAt      DateTime @updatedAt
+  id                    String   @id @default("default")
+  storeName             String   @default("ELANTRAA")
+  storeLogo             String   @default("/images/logo/logo.png")
+  contactEmail          String   @default("elantraa.01@gmail.com")
+  currency              String   @default("INR")
+  shippingCharge        Decimal  @default(0) @db.Decimal(10, 2)
+  freeShippingThreshold Decimal  @default(900) @db.Decimal(10, 2)
+  taxPercentage         Decimal  @default(0) @db.Decimal(5, 2)
+  updatedAt             DateTime @updatedAt
 }

@@ -49,7 +49,9 @@ type Category = {
 
 type OrderItem = {
   id: string;
+  productId?: string;
   productName: string;
+  productSku?: string;
   productImage: string;
   quantity: number;
   price: number;
@@ -60,6 +62,8 @@ type OrderItem = {
 type Order = {
   id: string;
   totalAmount: number;
+  advanceAmount?: number | null;
+  balanceAmount?: number | null;
   status: OrderStatus;
   paymentStatus: string;
   paymentMethod?: string;
@@ -88,6 +92,7 @@ type Settings = {
   contactEmail: string;
   currency: string;
   shippingCharge: number;
+  freeShippingThreshold: number;
   taxPercentage: number;
 };
 
@@ -220,6 +225,7 @@ export default function AdminPanel() {
     contactEmail: "elantraa.01@gmail.com",
     currency: "INR",
     shippingCharge: 0,
+    freeShippingThreshold: 900,
     taxPercentage: 0,
   });
 
@@ -1311,10 +1317,33 @@ export default function AdminPanel() {
                       <Field label="Store Name" value={settingsForm.storeName} onChange={(value) => setSettingsForm({ ...settingsForm, storeName: value })} required />
                       <Field label="Contact Email" type="email" value={settingsForm.contactEmail} onChange={(value) => setSettingsForm({ ...settingsForm, contactEmail: value })} required />
                       <Field label="Currency" value={settingsForm.currency} onChange={(value) => setSettingsForm({ ...settingsForm, currency: value })} required />
-                      <Field label="Shipping Charge" type="number" value={String(settingsForm.shippingCharge)} onChange={(value) => setSettingsForm({ ...settingsForm, shippingCharge: Number(value) })} />
-                      <Field label="Tax Percentage" type="number" value={String(settingsForm.taxPercentage)} onChange={(value) => setSettingsForm({ ...settingsForm, taxPercentage: Number(value) })} />
-                      <ImageUpload label="Store Logo" value={settingsForm.storeLogo} onChange={(value) => setSettingsForm({ ...settingsForm, storeLogo: value })} />
-                      <div className="sm:col-span-2"><Button type="submit">Save Settings</Button></div>
+                      <Field
+                        label="Standard Delivery Fee (₹)"
+                        type="number"
+                        value={String(settingsForm.shippingCharge)}
+                        onChange={(value) => setSettingsForm({ ...settingsForm, shippingCharge: Number(value) })}
+                        placeholder="0"
+                      />
+                      <Field
+                        label="Free Delivery Limit (₹ Minimum Order Value)"
+                        type="number"
+                        value={String(settingsForm.freeShippingThreshold)}
+                        onChange={(value) => setSettingsForm({ ...settingsForm, freeShippingThreshold: Number(value) })}
+                        placeholder="900"
+                      />
+                      <div className="sm:col-span-2 p-3 bg-amber-50/70 border border-amber-200/60 rounded-lg text-xs text-amber-950 space-y-1">
+                        <p className="font-semibold flex items-center gap-1.5 text-[#916b15]">
+                          <span>🚚</span> Dynamic Delivery Charge Rule
+                        </p>
+                        <p className="text-gray-600 font-light leading-relaxed">
+                          Orders at or above <strong>₹{settingsForm.freeShippingThreshold.toLocaleString("en-IN")}</strong> receive <strong>Complimentary FREE Delivery</strong>. Orders under this amount will be charged <strong>₹{settingsForm.shippingCharge.toLocaleString("en-IN")}</strong>. You can change this limit anytime (e.g., 900, 1000, 1500).
+                        </p>
+                      </div>
+                      <Field label="Tax Percentage (%)" type="number" value={String(settingsForm.taxPercentage)} onChange={(value) => setSettingsForm({ ...settingsForm, taxPercentage: Number(value) })} />
+                      <div className="sm:col-span-2">
+                        <ImageUpload label="Store Logo" value={settingsForm.storeLogo} onChange={(value) => setSettingsForm({ ...settingsForm, storeLogo: value })} />
+                      </div>
+                      <div className="sm:col-span-2 pt-2"><Button type="submit">Save Settings</Button></div>
                     </form>
                   </Panel>
                   <Panel title="Change Password">
@@ -2432,21 +2461,58 @@ export default function AdminPanel() {
           <div className="space-y-5">
             <div className="grid gap-3 sm:grid-cols-2 text-sm">
               <Info label="Customer" value={`${orderModal.customer?.name || "Customer"} (${orderModal.customer?.email || "No email"})`} />
-              <Info label="Order Date" value={formatDate(orderModal.createdAt)} />
-              <Info label="Payment Method" value={orderModal.paymentMethod || "Online"} />
+              <Info label="Order Date & Time" value={formatDateTime(orderModal.createdAt)} />
+              <Info
+                label="Payment Method"
+                value={
+                  orderModal.paymentMethod === "PARTIAL_COD"
+                    ? "50% Advance Online + 50% COD"
+                    : orderModal.paymentMethod === "COD"
+                    ? "Cash On Delivery (COD)"
+                    : "Pay Online"
+                }
+              />
               <Info label="Payment Status" value={orderModal.paymentStatus} />
+              {orderModal.paymentMethod === "PARTIAL_COD" && (
+                <>
+                  <Info
+                    label="Advance Paid Online (50% + Delivery)"
+                    value={formatMoney(Number(orderModal.advanceAmount || 0), settings.currency)}
+                  />
+                  <Info
+                    label="Balance to Collect on Delivery (COD)"
+                    value={formatMoney(Number(orderModal.balanceAmount || 0), settings.currency)}
+                  />
+                </>
+              )}
             </div>
             <div>
               <p className="mb-2 text-sm font-semibold text-slate-800">Shipping Address</p>
               <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-600">{formatAddress(orderModal.shippingAddress)}</p>
             </div>
             <DataTable
-              headers={["Product", "Qty", "Price"]}
+              headers={["Product", "SKU", "Size / Color", "Qty", "Price", "Total"]}
               empty="No items found."
               rows={(orderModal.items || []).map((item) => [
-                item.productName,
+                <div key="prod" className="flex items-center gap-3">
+                  {item.productImage ? (
+                    <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded border border-slate-200 bg-slate-50">
+                      <Image src={item.productImage} alt={item.productName} fill className="object-cover" />
+                    </div>
+                  ) : null}
+                  <div>
+                    <p className="font-medium text-slate-900 leading-snug">{item.productName}</p>
+                  </div>
+                </div>,
+                <span key="sku" className="font-mono text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                  {item.productSku || "-"}
+                </span>,
+                <span key="variant" className="text-xs text-slate-600 font-medium">
+                  {item.size || "M"}{item.color && item.color !== "Default" ? ` / ${item.color}` : ""}
+                </span>,
                 item.quantity,
                 formatMoney(item.price, settings.currency),
+                formatMoney(item.price * item.quantity, settings.currency),
               ])}
             />
             <div>
@@ -2455,7 +2521,8 @@ export default function AdminPanel() {
                 {(orderModal.timeline || []).map((step) => (
                   <div key={step.status} className="flex items-center gap-3 text-sm">
                     <span className={`h-2.5 w-2.5 rounded-full ${step.completed ? "bg-[#C9A648]" : "bg-slate-300"}`} />
-                    <span className={step.completed ? "text-slate-900" : "text-slate-500"}>{step.label}</span>
+                    <span className={step.completed ? "text-slate-900 font-medium" : "text-slate-500"}>{step.label}</span>
+                    {step.date ? <span className="ml-auto text-xs text-slate-400 font-mono">{formatDateTime(step.date)}</span> : null}
                   </div>
                 ))}
               </div>
@@ -2873,6 +2940,24 @@ function formatMoney(amount: number, currency: string) {
 function formatDate(value?: string) {
   if (!value) return "-";
   return new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value));
+}
+
+function formatDateTime(value?: string) {
+  if (!value) return "-";
+  try {
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return "-";
+    return new Intl.DateTimeFormat("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }).format(d);
+  } catch {
+    return value;
+  }
 }
 
 function shortId(id: string) {

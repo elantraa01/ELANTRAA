@@ -98,6 +98,8 @@ export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof User
 export const AddressScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  name: 'name',
+  phone: 'phone',
   line1: 'line1',
   line2: 'line2',
   city: 'city',
@@ -157,6 +159,9 @@ export const OrderScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   totalAmount: 'totalAmount',
+  advanceAmount: 'advanceAmount',
+  balanceAmount: 'balanceAmount',
+  paymentMethod: 'paymentMethod',
   status: 'status',
   shippingAddress: 'shippingAddress',
   paymentStatus: 'paymentStatus',
@@ -283,6 +288,7 @@ export const StoreSettingScalarFieldEnum = {
   contactEmail: 'contactEmail',
   currency: 'currency',
   shippingCharge: 'shippingCharge',
+  freeShippingThreshold: 'freeShippingThreshold',
   taxPercentage: 'taxPercentage',
   updatedAt: 'updatedAt'
 } as const

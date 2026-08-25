@@ -107,18 +107,26 @@ export default function ProductCard({
             View Details
           </span>
 
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onAddToCart(product);
-            }}
-            className="py-1.5 sm:py-2 px-2.5 sm:px-3 bg-[#171717] text-[#D4AF37] text-[10px] sm:text-xs uppercase tracking-wider font-semibold rounded hover:bg-[#C9A648] hover:text-white transition-colors shadow-md text-center shrink-0 z-20"
-            aria-label="Add to Bag"
-          >
-            + Bag
-          </button>
+          {typeof product.stock === "number" && product.stock <= 0 ? (
+            <span
+              className="py-1.5 sm:py-2 px-2.5 sm:px-3 bg-gray-200 text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider font-semibold rounded shadow-sm text-center shrink-0 z-20 cursor-not-allowed"
+            >
+              Sold Out
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onAddToCart(product);
+              }}
+              className="py-1.5 sm:py-2 px-2.5 sm:px-3 bg-[#171717] text-[#D4AF37] text-[10px] sm:text-xs uppercase tracking-wider font-semibold rounded hover:bg-[#C9A648] hover:text-white transition-colors shadow-md text-center shrink-0 z-20"
+              aria-label="Add to Bag"
+            >
+              + Bag
+            </button>
+          )}
         </div>
       </Link>
 

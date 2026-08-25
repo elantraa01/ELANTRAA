@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { line1, line2, city, state, pincode, country = "India", isDefault = false } = body;
+    const { name, phone, line1, line2, city, state, pincode, country = "India", isDefault = false } = body;
 
     if (!line1 || !city || !pincode) {
       return NextResponse.json(
@@ -69,6 +69,8 @@ export async function POST(req: NextRequest) {
     const newAddress = await prisma.address.create({
       data: {
         userId: user.id,
+        name: name || user.name || null,
+        phone: phone || null,
         line1,
         line2: line2 || null,
         city,
@@ -121,5 +123,61 @@ export async function DELETE(req: NextRequest) {
   } catch (error) {
     console.error("DELETE /api/user/address error:", error);
     return NextResponse.json({ error: "Failed to delete address" }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    const userEmail = session?.user?.email;
+
+    if (!userEmail) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { id, name, phone, line1, line2, city, state, pincode, country = "India", isDefault } = body;
+
+    if (!id || !line1 || !city || !pincode) {
+      return NextResponse.json(
+        { error: "Address ID, Line 1, City, and Pincode are required" },
+        { status: 400 }
+      );
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: userEmail },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    if (isDefault) {
+      await prisma.address.updateMany({
+        where: { userId: user.id },
+        data: { isDefault: false },
+      });
+    }
+
+    const updated = await prisma.address.update({
+      where: { id },
+      data: {
+        ...(name !== undefined ? { name } : {}),
+        ...(phone !== undefined ? { phone } : {}),
+        line1,
+        line2: line2 || null,
+        city,
+        state: state || "",
+        pincode,
+        country,
+        ...(typeof isDefault === "boolean" ? { isDefault } : {}),
+      },
+    });
+
+    return NextResponse.json({ success: true, address: updated });
+  } catch (error) {
+    console.error("PATCH /api/user/address error:", error);
+    return NextResponse.json({ error: "Failed to update address" }, { status: 500 });
   }
 }

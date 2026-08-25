@@ -14,7 +14,7 @@ function getOrderQuantity(quantity: unknown) {
   return parsed;
 }
 
-async function calculateOrderTotal(items: IncomingOrderItem[], promoCode: unknown) {
+async function calculateOrderBreakdown(items: IncomingOrderItem[], promoCode: unknown) {
   const quantitiesByProductId = new Map<string, number>();
 
   for (const item of items) {
@@ -56,17 +56,33 @@ async function calculateOrderTotal(items: IncomingOrderItem[], promoCode: unknow
   }, 0);
 
   const settings = await prisma.storeSetting.findUnique({ where: { id: "default" } });
-  const shippingCharge = subtotal > 5000 || subtotal === 0 ? 0 : Number(settings?.shippingCharge || 0);
+  const freeShippingThreshold = Number(settings?.freeShippingThreshold ?? 900);
+  const shippingCharge = (subtotal >= freeShippingThreshold || subtotal === 0) ? 0 : Number(settings?.shippingCharge || 0);
   const couponDiscount = await getCouponDiscount(promoCode, subtotal);
   const promoDiscount = couponDiscount?.discountAmount || 0;
 
-  return Math.max(0, subtotal - promoDiscount + shippingCharge);
+  const netProductAmount = Math.max(0, subtotal - promoDiscount);
+  const totalAmount = Math.max(0, netProductAmount + shippingCharge);
+
+  // 50% of product amount + 100% of shipping charge paid in advance online
+  const advanceProductAmount = Math.ceil(netProductAmount * 0.5);
+  const advancePayable = Math.max(0, advanceProductAmount + shippingCharge);
+  const balancePayable = Math.max(0, totalAmount - advancePayable);
+
+  return {
+    subtotal,
+    promoDiscount,
+    shippingCharge,
+    totalAmount,
+    advancePayable,
+    balancePayable,
+  };
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { items, promoCode, currency = "INR", receipt } = body;
+    const { items, promoCode, currency = "INR", receipt, paymentMethod, isPartialCod } = body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "Order items are required" }, { status: 400 });
@@ -75,8 +91,12 @@ export async function POST(req: NextRequest) {
     const { key_id } = getRazorpayKeys();
     const instance = getRazorpayInstance();
 
-    const totalAmount = await calculateOrderTotal(items, promoCode);
-    const amountInPaise = Math.round(totalAmount * 100);
+    const breakdown = await calculateOrderBreakdown(items, promoCode);
+    const isPartial = Boolean(isPartialCod || paymentMethod === "PARTIAL_COD");
+
+    // If partial COD, customer pays 50% product value + shipping charge online
+    const amountToCharge = isPartial ? breakdown.advancePayable : breakdown.totalAmount;
+    const amountInPaise = Math.round(amountToCharge * 100);
 
     const orderOptions = {
       amount: amountInPaise,
@@ -108,9 +128,14 @@ export async function POST(req: NextRequest) {
       success: true,
       order: razorpayOrder,
       key: key_id,
+      breakdown: {
+        ...breakdown,
+        chargedAmount: amountToCharge,
+        isPartialCod: isPartial,
+      },
     });
   } catch (error) {
     console.error("Razorpay Order Creation Error:", error);
-    return NextResponse.json({ error: "Failed to create Razorpay order" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create payment order" }, { status: 500 });
   }
 }

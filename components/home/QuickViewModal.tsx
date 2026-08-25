@@ -20,19 +20,25 @@ function QuickViewModalContent({
   onClose: () => void;
   onAddToCart: (product: Product, selectedSize: string, selectedColor: string, quantity: number) => void;
 }) {
+  const stock = typeof product.stock === "number" ? Math.max(0, product.stock) : 0;
+  const isOutOfStock = stock <= 0;
+
   const [selectedSize, setSelectedSize] = useState(product.sizes[0] || "M");
   const selectedColor = "Default";
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(isOutOfStock ? 0 : 1);
   const [activeImage, setActiveImage] = useState(product.images[0]);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
 
+  const isMaxStockReached = quantity >= stock;
+
   useEffect(() => {
     setSelectedSize(product.sizes[0] || "M");
-    setQuantity(1);
+    setQuantity(isOutOfStock ? 0 : 1);
     setActiveImage(product.images[0]);
-  }, [product]);
+  }, [product, isOutOfStock]);
 
   const handleAdd = () => {
+    if (isOutOfStock || quantity > stock) return;
     onAddToCart(product, selectedSize, selectedColor, quantity);
     onClose();
   };
@@ -96,7 +102,9 @@ function QuickViewModalContent({
                   ? (product.category as { name?: string })?.name || ""
                   : product.category}
               </span>
-              <span className="text-emerald-600 font-medium">In Stock ({product.stock})</span>
+              {isOutOfStock && (
+                <span className="text-rose-600 font-semibold">Out of Stock</span>
+              )}
             </div>
 
             <h2 className="text-2xl font-serif text-gray-900">{product.name}</h2>
@@ -136,6 +144,7 @@ function QuickViewModalContent({
                 {product.sizes.map((size) => (
                   <button
                     key={size}
+                    type="button"
                     onClick={() => setSelectedSize(size)}
                     className={`w-10 h-10 text-xs font-medium rounded border transition-all ${
                       selectedSize === size
@@ -156,15 +165,19 @@ function QuickViewModalContent({
               </label>
               <div className="inline-flex items-center border border-gray-300 rounded">
                 <button
+                  type="button"
+                  disabled={isOutOfStock || quantity <= 1}
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-3 py-1.5 text-gray-600 hover:bg-gray-100"
+                  className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   -
                 </button>
-                <span className="px-4 py-1.5 text-sm font-semibold">{quantity}</span>
+                <span className="px-4 py-1.5 text-sm font-semibold">{isOutOfStock ? 0 : quantity}</span>
                 <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="px-3 py-1.5 text-gray-600 hover:bg-gray-100"
+                  type="button"
+                  disabled={isOutOfStock || isMaxStockReached}
+                  onClick={() => setQuantity((prev) => (prev < stock ? prev + 1 : prev))}
+                  className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   +
                 </button>
@@ -175,10 +188,18 @@ function QuickViewModalContent({
           {/* Action Buttons */}
           <div className="pt-4 border-t border-gray-100 flex gap-3">
             <button
+              type="button"
+              disabled={isOutOfStock || quantity > stock}
               onClick={handleAdd}
-              className="flex-1 py-3.5 bg-gradient-to-r from-[#D4AF37] via-[#C9A648] to-[#AA771C] text-white font-medium text-xs tracking-[0.2em] uppercase rounded shadow-lg hover:opacity-95 transition-opacity"
+              className={`flex-1 py-3.5 text-white font-medium text-xs tracking-[0.2em] uppercase rounded shadow-lg transition-all ${
+                isOutOfStock || quantity > stock
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
+                  : "bg-gradient-to-r from-[#D4AF37] via-[#C9A648] to-[#AA771C] hover:opacity-95"
+              }`}
             >
-              Add To Bag • ₹{((product.discountPrice || product.price) * quantity).toLocaleString("en-IN")}
+              {isOutOfStock
+                ? "Out Of Stock"
+                : `Add To Bag • ₹${((product.discountPrice || product.price) * quantity).toLocaleString("en-IN")}`}
             </button>
           </div>
         </div>

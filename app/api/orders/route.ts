@@ -35,10 +35,6 @@ export async function POST(req: NextRequest) {
     const sessionUserId = (session?.user as { id?: string })?.id;
     const sessionEmail = session?.user?.email;
 
-    if (!sessionUserId && !sessionEmail) {
-      return NextResponse.json({ error: "Please log in before placing an order." }, { status: 401 });
-    }
-
     const body = await req.json();
     const {
       userId,
@@ -51,6 +47,12 @@ export async function POST(req: NextRequest) {
       razorpay_order_id,
       razorpay_signature,
     } = body;
+
+    const targetEmail = sessionEmail || userEmail || shippingAddress?.email;
+
+    if (!sessionUserId && !sessionEmail && !targetEmail) {
+      return NextResponse.json({ error: "Please log in or provide an email before placing an order." }, { status: 401 });
+    }
 
     if (!shippingAddress || !items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
@@ -74,7 +76,6 @@ export async function POST(req: NextRequest) {
 
     // Robust user lookup: check by userId, userEmail, or shippingAddress.email
     let orderUserId = sessionUserId || userId;
-    const targetEmail = sessionEmail || userEmail || shippingAddress.email;
 
     try {
       let user = null;
@@ -83,14 +84,25 @@ export async function POST(req: NextRequest) {
       }
 
       if (!user && targetEmail) {
-        user = await prisma.user.findUnique({ where: { email: targetEmail } });
+        user = await prisma.user.findUnique({ where: { email: targetEmail.toLowerCase().trim() } });
+      }
+
+      if (!user && targetEmail) {
+        const customerName = shippingAddress?.fullName || targetEmail.split("@")[0] || "Valued Client";
+        user = await prisma.user.create({
+          data: {
+            email: targetEmail.toLowerCase().trim(),
+            name: customerName,
+            role: "CUSTOMER",
+          },
+        });
       }
 
       if (user) {
         orderUserId = user.id;
 
         // Auto-save shipping address to user's Saved Addresses in database
-        if (shippingAddress.line1 && shippingAddress.city && shippingAddress.pincode) {
+        if (shippingAddress?.line1 && shippingAddress?.city && shippingAddress?.pincode) {
           const existingAddr = await prisma.address.findFirst({
             where: {
               userId: user.id,
@@ -194,10 +206,25 @@ export async function POST(req: NextRequest) {
 
       const subtotal = pricedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
       const settings = await tx.storeSetting.findUnique({ where: { id: "default" } });
-      const shippingCharge = subtotal > 5000 || subtotal === 0 ? 0 : Number(settings?.shippingCharge || 0);
+      const freeShippingThreshold = Number(settings?.freeShippingThreshold ?? 900);
+      const shippingCharge = (subtotal >= freeShippingThreshold || subtotal === 0) ? 0 : Number(settings?.shippingCharge || 0);
       const couponDiscount = await getCouponDiscount(promoCode, subtotal);
       const promoDiscount = couponDiscount?.discountAmount || 0;
-      const recalculatedTotal = Math.max(0, subtotal - promoDiscount + shippingCharge);
+      const netProductAmount = Math.max(0, subtotal - promoDiscount);
+      const recalculatedTotal = Math.max(0, netProductAmount + shippingCharge);
+
+      // Compute advance and balance amounts according to payment method
+      let advanceAmount = 0;
+      let balanceAmount = recalculatedTotal;
+
+      if (payment.paymentMethod === "ONLINE") {
+        advanceAmount = recalculatedTotal;
+        balanceAmount = 0;
+      } else if (payment.paymentMethod === "PARTIAL_COD") {
+        // 50% product value + 100% shipping charge paid online as advance
+        advanceAmount = Math.min(recalculatedTotal, Math.ceil(netProductAmount * 0.5) + shippingCharge);
+        balanceAmount = Math.max(0, recalculatedTotal - advanceAmount);
+      }
 
       for (const item of pricedItems) {
         const stockUpdate = await tx.product.updateMany({
@@ -221,6 +248,9 @@ export async function POST(req: NextRequest) {
         data: {
           userId: orderUserId,
           totalAmount: recalculatedTotal,
+          advanceAmount,
+          balanceAmount,
+          paymentMethod: payment.paymentMethod,
           status: "CONFIRMED",
           paymentStatus: payment.paymentStatus,
           razorpayOrderId: payment.razorpayOrderId,
@@ -233,6 +263,9 @@ export async function POST(req: NextRequest) {
               promoCode: couponDiscount?.code || null,
               promoDiscount,
               shippingCharge,
+              advanceAmount,
+              balanceAmount,
+              paymentMethod: payment.paymentMethod,
             },
           },
           items: {
@@ -250,35 +283,42 @@ export async function POST(req: NextRequest) {
       return {
         orderId: dbOrder.id,
         totalAmount: recalculatedTotal,
+        advanceAmount,
+        balanceAmount,
+        paymentMethod: payment.paymentMethod,
         items: pricedItems,
       };
     });
 
-    // 3. Send Order Confirmation Email using Nodemailer/Resend
-    await sendOrderConfirmationEmail({
-      orderId: orderSummary.orderId,
-      customerName: shippingAddress.fullName || "Valued Client",
-      customerEmail: shippingAddress.email || userEmail,
-      totalAmount: orderSummary.totalAmount,
-      paymentMethod: payment.paymentMethod,
-      items: orderSummary.items.map((item) => ({
-        name: item.name,
-        size: item.size,
-        color: item.color,
-        quantity: item.quantity,
-        price: item.price,
-      })),
-      shippingAddress: {
-        line1: shippingAddress.line1,
-        line2: shippingAddress.line2,
-        city: shippingAddress.city,
-        state: shippingAddress.state,
-        pincode: shippingAddress.pincode,
-        country: shippingAddress.country,
-      },
-    });
+    // 3. Send Order Confirmation Email using Nodemailer/Resend (safely in background)
+    try {
+      await sendOrderConfirmationEmail({
+        orderId: orderSummary.orderId,
+        customerName: shippingAddress.fullName || "Valued Client",
+        customerEmail: shippingAddress.email || userEmail || targetEmail,
+        totalAmount: orderSummary.totalAmount,
+        paymentMethod: payment.paymentMethod,
+        items: orderSummary.items.map((item) => ({
+          name: item.name,
+          size: item.size,
+          color: item.color,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        shippingAddress: {
+          line1: shippingAddress.line1,
+          line2: shippingAddress.line2,
+          city: shippingAddress.city,
+          state: shippingAddress.state,
+          pincode: shippingAddress.pincode,
+          country: shippingAddress.country,
+        },
+      });
+    } catch (emailErr) {
+      console.warn("Order confirmation email sending error:", emailErr);
+    }
 
-    // 4. Send Automated WhatsApp Order Confirmation via Meta Cloud API
+    // 4. Send Automated WhatsApp Order Notification via Meta Cloud API
     const customerPhone = shippingAddress.phone || shippingAddress.phoneNumber || shippingAddress.mobile;
     if (customerPhone) {
       await sendWhatsAppOrderNotification({
@@ -301,6 +341,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Order POST Processing Error:", error);
-    return NextResponse.json({ error: "Failed to process order" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Failed to process order";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

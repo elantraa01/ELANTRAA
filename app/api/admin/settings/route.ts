@@ -11,6 +11,7 @@ const defaultSettings = {
   contactEmail: "elantraa.01@gmail.com",
   currency: "INR",
   shippingCharge: 0,
+  freeShippingThreshold: 900,
   taxPercentage: 0,
 };
 
@@ -29,6 +30,7 @@ export async function GET() {
       settings: {
         ...settings,
         shippingCharge: Number(settings.shippingCharge),
+        freeShippingThreshold: Number(settings.freeShippingThreshold ?? 900),
         taxPercentage: Number(settings.taxPercentage),
       },
     });
@@ -56,6 +58,7 @@ export async function PATCH(req: NextRequest) {
       contactEmail,
       currency,
       shippingCharge,
+      freeShippingThreshold,
       taxPercentage,
     } = body;
 
@@ -74,6 +77,7 @@ export async function PATCH(req: NextRequest) {
         contactEmail: contactEmail.trim(),
         currency: currency.trim().toUpperCase(),
         shippingCharge: Number(shippingCharge || 0),
+        freeShippingThreshold: Number(freeShippingThreshold ?? 900),
         taxPercentage: Number(taxPercentage || 0),
       },
       create: {
@@ -83,6 +87,7 @@ export async function PATCH(req: NextRequest) {
         contactEmail: contactEmail.trim(),
         currency: currency.trim().toUpperCase(),
         shippingCharge: Number(shippingCharge || 0),
+        freeShippingThreshold: Number(freeShippingThreshold ?? 900),
         taxPercentage: Number(taxPercentage || 0),
       },
     });
@@ -92,6 +97,7 @@ export async function PATCH(req: NextRequest) {
       settings: {
         ...settings,
         shippingCharge: Number(settings.shippingCharge),
+        freeShippingThreshold: Number(settings.freeShippingThreshold ?? 900),
         taxPercentage: Number(settings.taxPercentage),
       },
     });

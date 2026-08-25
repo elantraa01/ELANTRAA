@@ -266,7 +266,7 @@ function ShopContent() {
           {/* Product Grid */}
           <div className="lg:col-span-3">
             {loading ? (
-              <ProductGridSkeleton count={6} />
+              <ProductGridSkeleton />
             ) : finalProducts.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
                 {finalProducts.map((product) => (
