@@ -7,9 +7,16 @@ const globalForPrisma = globalThis as unknown as {
   pool: Pool | undefined;
 };
 
+let rawUrl = process.env.DATABASE_URL?.trim() || "";
+if (
+  (rawUrl.startsWith('"') && rawUrl.endsWith('"')) ||
+  (rawUrl.startsWith("'") && rawUrl.endsWith("'"))
+) {
+  rawUrl = rawUrl.slice(1, -1).trim();
+}
+
 const connectionString =
-  process.env.DATABASE_URL ||
-  "postgresql://postgres:postgres@localhost:5432/elantraa?schema=public";
+  rawUrl || "postgresql://postgres:postgres@localhost:5432/elantraa?schema=public";
 
 const isSupabase =
   connectionString.includes("supabase.co") ||

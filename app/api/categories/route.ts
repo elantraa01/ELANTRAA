@@ -23,6 +23,14 @@ export async function GET() {
     );
   } catch (error) {
     console.error("Categories GET Error:", error);
-    return NextResponse.json({ categories: [] }, { status: 500 });
+    return NextResponse.json(
+      { categories: [] },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate",
+        },
+      }
+    );
   }
 }
