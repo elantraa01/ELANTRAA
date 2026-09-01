@@ -6,6 +6,7 @@ dotenv.config({ path: ".env.local" });
 dotenv.config({ path: ".env" });
 
 const dbUrl =
+  process.env["DIRECT_URL"] ||
   process.env["DATABASE_URL"] ||
   (process.env["NODE_ENV"] === "production"
     ? (() => {
