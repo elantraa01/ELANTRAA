@@ -329,8 +329,12 @@ export default function CheckoutPage() {
         });
 
         const rzpData = await rzpOrderRes.json();
+        if (!rzpOrderRes.ok || !rzpData.success || !rzpData.order || !rzpData.key) {
+          throw new Error(rzpData.error || "Unable to initialize Razorpay payment.");
+        }
+
         const rzpOrder = rzpData.order;
-        const razorpayKey = rzpData.key || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_elantraa_key_123";
+        const razorpayKey = rzpData.key;
 
         const options = {
           key: razorpayKey,
@@ -361,7 +365,7 @@ export default function CheckoutPage() {
 
               const verifyData = await verifyRes.json();
               if (!verifyRes.ok || !verifyData.verified) {
-                console.warn("Payment verification API warning:", verifyData.error);
+                throw new Error(verifyData.error || "Payment verification failed.");
               }
 
               // 2. Create Order record with payment metadata
@@ -410,18 +414,7 @@ export default function CheckoutPage() {
           const rzp = new win.Razorpay(options);
           rzp.open();
         } else {
-          // Fallback in case script blocked
-          const createOrderRes = await fetch("/api/orders", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(orderPayload),
-          });
-          const finalData = await createOrderRes.json();
-          if (!createOrderRes.ok || !finalData.success) {
-            throw new Error(finalData.error || "Failed to process order.");
-          }
-          clearCart();
-          router.push(`/checkout/success?orderId=${finalData.orderId}`);
+          throw new Error("Razorpay checkout could not load. Please refresh and try again.");
         }
       } catch (err) {
         console.error("Online Checkout Error:", err);

@@ -1,181 +1,209 @@
-"use client";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import ProductDetailClient from "./ProductDetailClient";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import Navbar from "@/components/home/Navbar";
-import Footer from "@/components/home/Footer";
-import ProductGallery from "@/components/product/ProductGallery";
-import ProductInfo from "@/components/product/ProductInfo";
-import ReviewSection from "@/components/product/ReviewSection";
-import RelatedProducts from "@/components/product/RelatedProducts";
-import QuickViewModal from "@/components/home/QuickViewModal";
-import { Product } from "@/components/home/mockData";
-import { useCart } from "@/context/CartContext";
-
-import { ProductDetailSkeleton } from "@/components/ui/LuxurySkeleton";
-
-export default function ProductDetailPage({
-  params,
-}: {
+type ProductPageProps = {
   params: { slug: string };
-}) {
-  const { addItem } = useCart();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedQuickViewProduct, setSelectedQuickViewProduct] = useState<Product | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+};
 
-  useEffect(() => {
-    async function loadProductData() {
-      try {
-        const res = await fetch(`/api/products/${params.slug}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.product) {
-            setProduct(data.product);
-          }
-        }
-      } catch (err) {
-        console.warn("Error loading product detail", err);
-      } finally {
-        setLoading(false);
-      }
-    }
+export const dynamic = "force-dynamic";
 
-    loadProductData();
-  }, [params.slug]);
+async function getProductBySlug(slug: string) {
+  const product = await prisma.product.findFirst({
+    where: {
+      slug,
+      isActive: true,
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      description: true,
+      price: true,
+      discountPrice: true,
+      sizes: true,
+      colors: true,
+      images: true,
+      stock: true,
+      isFeatured: true,
+      isReturnable: true,
+      productInformation: true,
+      deliveryTimelines: true,
+      disclaimer: true,
+      additionalInfo: true,
+      sizeChart: true,
+      sizeChartCm: true,
+      createdAt: true,
+      category: {
+        select: {
+          name: true,
+          slug: true,
+        },
+      },
+      reviews: {
+        select: {
+          id: true,
+          productId: true,
+          rating: true,
+          comment: true,
+          createdAt: true,
+          user: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
 
-  const showNotification = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+  if (!product) return null;
+
+  const avgRating =
+    product.reviews.length > 0
+      ? product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length
+      : 0;
+
+  return {
+    id: product.id,
+    name: product.name,
+    slug: product.slug,
+    description: product.description,
+    price: Number(product.price),
+    discountPrice: product.discountPrice ? Number(product.discountPrice) : null,
+    category: product.category.name,
+    categorySlug: product.category.slug,
+    sizes: product.sizes,
+    colors: product.colors,
+    images: product.images,
+    stock: product.stock,
+    isFeatured: product.isFeatured,
+    isReturnable: product.isReturnable !== false,
+    rating: product.reviews.length > 0 ? Math.round(avgRating * 10) / 10 : 0,
+    reviewCount: product.reviews.length,
+    createdAt: product.createdAt.toISOString(),
+    productInformation: product.productInformation || "",
+    deliveryTimelines: product.deliveryTimelines || "",
+    disclaimer: product.disclaimer || "",
+    additionalInfo: product.additionalInfo || "",
+    sizeChart: product.sizeChart || null,
+    sizeChartCm: product.sizeChartCm || null,
+    details: [],
+    materials: "",
+    careInstructions: "",
+    reviews: product.reviews.map((review) => ({
+      id: review.id,
+      productId: review.productId,
+      userName: review.user?.name || "Client",
+      rating: review.rating,
+      title: "",
+      comment: review.comment || "",
+      date: new Date(review.createdAt).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+      verifiedBuyer: true,
+    })),
   };
+}
 
-  const handleAddToCart = (
-    p: Product,
-    size?: string,
-    color?: string,
-    quantity: number = 1
-  ) => {
-    addItem(p, size, color, quantity);
-    const sizeInfo = size ? ` (Size: ${size})` : "";
-    showNotification(`Added ${p.name}${sizeInfo} to your shopping bag.`);
-  };
+function truncateDescription(description: string) {
+  const normalized = description.replace(/\s+/g, " ").trim();
+  return normalized.length > 155 ? `${normalized.slice(0, 152)}...` : normalized;
+}
 
-  const handleToggleWishlist = (p: Product) => {
-    showNotification(`Saved ${p.name} to your wishlist.`);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white text-gray-900 font-sans flex flex-col justify-between">
-        <Navbar />
-        <main className="flex-1">
-          <ProductDetailSkeleton />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
+  const product = await getProductBySlug(params.slug);
 
   if (!product) {
-    return (
-      <div className="min-h-screen bg-white text-gray-900 font-sans">
-        <Navbar />
-        <main className="max-w-7xl mx-auto px-4 py-32 text-center space-y-4">
-          <h1 className="text-3xl font-serif">Product Not Found</h1>
-          <p className="text-gray-500 text-sm">The product you are looking for may have been removed or is currently unavailable.</p>
-          <a href="/shop" className="inline-block px-6 py-3 bg-[#171717] text-[#D4AF37] text-xs font-bold uppercase tracking-widest rounded">
-            Return to Shop
-          </a>
-        </main>
-        <Footer />
-      </div>
-    );
+    return {
+      title: "Product Not Found",
+      robots: {
+        index: false,
+        follow: true,
+      },
+    };
   }
 
-  const activeProduct = product;
+  const description = truncateDescription(product.description);
+  const image = product.images[0] || "/images/logo/logo.png";
+  const title = `${product.name} | ${product.category}`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/products/${product.slug}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `/products/${product.slug}`,
+      type: "website",
+      images: [
+        {
+          url: image,
+          width: 1200,
+          height: 630,
+          alt: product.name,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+    },
+  };
+}
+
+export default async function ProductDetailPage({ params }: ProductPageProps) {
+  const product = await getProductBySlug(params.slug);
+
+  if (!product) {
+    notFound();
+  }
+
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: product.images,
+    sku: product.id,
+    brand: {
+      "@type": "Brand",
+      name: "ELANTRAA",
+    },
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "INR",
+      price: product.discountPrice ?? product.price,
+      availability:
+        product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      url: `/products/${product.slug}`,
+    },
+    aggregateRating:
+      product.reviewCount > 0
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: product.rating,
+            reviewCount: product.reviewCount,
+          }
+        : undefined,
+  };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-[#C9A648] selection:text-white">
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed top-20 right-4 z-50 bg-[#171717] text-[#D4AF37] border border-[#C9A648]/40 px-5 py-3 rounded-lg shadow-2xl text-xs font-medium uppercase tracking-wider flex items-center space-x-2 animate-in slide-in-from-top-2 duration-300">
-          <span>&#10022;</span>
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
-      {/* Header & Navigation */}
-      <Navbar />
-
-      {/* Breadcrumb Navigation */}
-      <div className="bg-[#FAF8F5] border-b border-gray-200 py-3">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex items-center space-x-1.5 sm:space-x-2 text-[11px] sm:text-xs text-gray-500 uppercase tracking-wider sm:tracking-widest font-light overflow-x-auto whitespace-nowrap no-scrollbar">
-            <Link href="/" className="hover:text-[#C9A648] transition-colors">
-              Home
-            </Link>
-            <span>/</span>
-            <Link href="/shop" className="hover:text-[#C9A648] transition-colors">
-              Shop
-            </Link>
-            <span>/</span>
-            <span className="text-[#C9A648] font-medium">{activeProduct.category}</span>
-            <span>/</span>
-            <span className="text-gray-900 font-medium truncate max-w-[200px] sm:max-w-none">
-              {activeProduct.name}
-            </span>
-          </nav>
-        </div>
-      </div>
-
-      {/* Main PDP Grid */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
-        {loading ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 animate-pulse">
-            <div className="h-[500px] bg-gray-100 rounded-2xl" />
-            <div className="space-y-6">
-              <div className="h-8 bg-gray-100 rounded w-3/4" />
-              <div className="h-6 bg-gray-100 rounded w-1/4" />
-              <div className="h-32 bg-gray-100 rounded" />
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
-            {/* Left Column: Image Gallery */}
-            <ProductGallery images={activeProduct.images} productName={activeProduct.name} />
-
-            {/* Right Column: Product Specs & CTAs */}
-            <ProductInfo
-              product={activeProduct}
-              onAddToCart={handleAddToCart}
-              onToggleWishlist={handleToggleWishlist}
-            />
-          </div>
-        )}
-      </main>
-
-      {/* Customer Reviews & Ratings Section */}
-      <ReviewSection productId={activeProduct.id} />
-
-      {/* "You May Also Like" Related Products */}
-      <RelatedProducts
-        currentProductId={activeProduct.id}
-        category={activeProduct.category}
-        onQuickView={(p) => setSelectedQuickViewProduct(p)}
-        onAddToCart={handleAddToCart}
-        onToggleWishlist={handleToggleWishlist}
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
       />
-
-      {/* Quick View Modal for Related Products */}
-      <QuickViewModal
-        product={selectedQuickViewProduct}
-        onClose={() => setSelectedQuickViewProduct(null)}
-        onAddToCart={handleAddToCart}
-      />
-
-      {/* Footer */}
-      <Footer />
-    </div>
+      <ProductDetailClient product={product} />
+    </>
   );
 }

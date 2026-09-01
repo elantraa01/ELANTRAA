@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { getRequiredProductionEnv } from "@/lib/env";
 
 interface EmailOrderDetails {
   orderId: string;
@@ -26,13 +27,18 @@ interface EmailOrderDetails {
 export async function sendOrderConfirmationEmail(details: EmailOrderDetails) {
   try {
     // Transporter configuration (uses Ethereal/SMTP fallback in test mode)
+    const smtpHost = getRequiredProductionEnv("SMTP_HOST") || "smtp.ethereal.email";
+    const smtpUser = getRequiredProductionEnv("SMTP_USER") || "test_user";
+    const smtpPass = getRequiredProductionEnv("SMTP_PASS") || "test_pass";
+    const emailFrom = getRequiredProductionEnv("EMAIL_FROM") || '"ELANTRAA Concierge" <elantraa.01@gmail.com>';
+
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || "smtp.ethereal.email",
+      host: smtpHost,
       port: Number(process.env.SMTP_PORT) || 587,
       secure: false,
       auth: {
-        user: process.env.SMTP_USER || "test_user",
-        pass: process.env.SMTP_PASS || "test_pass",
+        user: smtpUser,
+        pass: smtpPass,
       },
     });
 
@@ -130,7 +136,7 @@ export async function sendOrderConfirmationEmail(details: EmailOrderDetails) {
     `;
 
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"ELANTRAA Concierge" <elantraa.01@gmail.com>',
+      from: emailFrom,
       to: details.customerEmail,
       subject: `Order Confirmation: ${details.orderId} | ELANTRAA Haute Couture`,
       html: emailHtml,

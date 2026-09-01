@@ -153,6 +153,17 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    const existingAddress = await prisma.address.findFirst({
+      where: {
+        id,
+        userId: user.id,
+      },
+    });
+
+    if (!existingAddress) {
+      return NextResponse.json({ error: "Address not found" }, { status: 404 });
+    }
+
     if (isDefault) {
       await prisma.address.updateMany({
         where: { userId: user.id },
@@ -161,7 +172,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const updated = await prisma.address.update({
-      where: { id },
+      where: { id: existingAddress.id },
       data: {
         ...(name !== undefined ? { name } : {}),
         ...(phone !== undefined ? { phone } : {}),

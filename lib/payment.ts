@@ -43,7 +43,7 @@ export function validateOrderPayment(input: OrderPaymentInput): ValidatedOrderPa
   const razorpaySignature = asNonEmptyString(input.razorpay_signature);
 
   if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
-    throw new Error("Payment verification details are required.");
+    throw new Error("Razorpay payment verification details are required.");
   }
 
   const isValid = verifyRazorpayPaymentSignature({
@@ -53,10 +53,7 @@ export function validateOrderPayment(input: OrderPaymentInput): ValidatedOrderPa
   });
 
   if (!isValid) {
-    if (process.env.NODE_ENV === "production" && !razorpayOrderId.startsWith("order_rzp_test_")) {
-      throw new Error("Invalid payment signature.");
-    }
-    console.warn("Payment signature mismatch (test mode or dev environment). Proceeding with order creation.");
+    throw new Error("Invalid Razorpay payment signature.");
   }
 
   return {
