@@ -53,7 +53,11 @@ export default function SignupPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setErrorMessage(data.error || "Failed to create account.");
+        setErrorMessage(
+          data.message
+            ? `${data.error || "Failed to create account."} — ${data.message}`
+            : data.error || "Failed to create account."
+        );
         setLoading(false);
         return;
       }

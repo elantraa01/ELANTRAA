@@ -51,10 +51,15 @@ export async function POST(req: NextRequest) {
         role: newUser.role,
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Signup POST Error:", error);
+    const err = error as { message?: string; code?: string } | undefined;
     return NextResponse.json(
-      { error: "Failed to create account. Please try again." },
+      {
+        error: "Failed to create account. Please try again.",
+        message: err?.message || String(error),
+        code: err?.code,
+      },
       { status: 500 }
     );
   }
