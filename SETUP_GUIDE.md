@@ -101,9 +101,9 @@ NEXTAUTH_SECRET="elantraa_luxury_haute_couture_secret_key_2026"
 NEXTAUTH_URL="http://localhost:3000"
 
 # Admin Account Seed
-ADMIN_EMAIL="admin@elantraa.com"
-ADMIN_PASSWORD="ChangeMeAdmin123!"
-ADMIN_NAME="ELANTRAA Admin"
+ADMIN_EMAIL="admin@your-domain.com"
+ADMIN_PASSWORD="your-strong-admin-password"
+ADMIN_NAME="Your Brand Admin"
 
 # Razorpay Payment Gateway (Test Mode)
 RAZORPAY_KEY_ID="rzp_test_elantraa_key_123"

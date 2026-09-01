@@ -1,7 +1,7 @@
 const PLACEHOLDER_VALUES = new Set([
   "elantraa_luxury_haute_couture_secret_key_2026",
   "development-only-nextauth-secret-do-not-use-in-production",
-  "ChangeMeAdmin123!",
+  "your-strong-admin-password",
   "rzp_test_elantraa_key_123",
   "rzp_test_elantraa_secret_456",
   "rzp_test_elantraa_webhook_secret_789",
