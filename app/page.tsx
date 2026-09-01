@@ -10,6 +10,7 @@ import BrandStory from "@/components/home/BrandStory";
 import Newsletter from "@/components/home/Newsletter";
 import Footer from "@/components/home/Footer";
 import QuickViewModal from "@/components/home/QuickViewModal";
+import ProductsComingSoon from "@/components/home/ProductsComingSoon";
 import { Product } from "@/components/home/mockData";
 import { useCart } from "@/context/CartContext";
 
@@ -17,6 +18,7 @@ export default function Home() {
   const { addItem } = useCart();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -27,10 +29,14 @@ export default function Home() {
           const data = await res.json();
           if (data.products && data.products.length > 0) {
             setDbProducts(data.products);
+          } else {
+            setDbProducts([]);
           }
         }
       } catch (err) {
         console.warn("Failed to load DB products for Home", err);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -81,6 +87,9 @@ export default function Home() {
 
         {/* 4. Category Tiles (3-4 clickable tiles: Women / Men / Accessories / Sale) */}
         <CategoryTiles />
+
+        {/* If no products are added from admin, display luxury Products Coming Soon section */}
+        {!loading && dbProducts.length === 0 && <ProductsComingSoon />}
 
         {/* 5. Trending Products (4-6 cards with price + quick-add + social proof) */}
         {trendingProductsList.length > 0 && (
