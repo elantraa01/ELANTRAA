@@ -71,6 +71,8 @@ export const authOptions: NextAuthOptions = {
         create: {
           email,
           name: user.name || email.split("@")[0],
+          // Older migrated databases still have this column as NOT NULL.
+          passwordHash: "",
           role: "CUSTOMER",
         },
       });
