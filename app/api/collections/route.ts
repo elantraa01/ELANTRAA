@@ -12,6 +12,6 @@ export async function GET() {
     return NextResponse.json({ collections });
   } catch (error) {
     console.error("GET /api/collections error:", error);
-    return NextResponse.json({ error: "Failed to fetch collections" }, { status: 500 });
+    return NextResponse.json({ collections: [] }, { status: 200 });
   }
 }

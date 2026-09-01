@@ -26,7 +26,7 @@ export async function GET() {
     return NextResponse.json({ addresses: user.addresses });
   } catch (error) {
     console.error("GET /api/user/address error:", error);
-    return NextResponse.json({ addresses: [] }, { status: 500 });
+    return NextResponse.json({ addresses: [] }, { status: 200 });
   }
 }
 

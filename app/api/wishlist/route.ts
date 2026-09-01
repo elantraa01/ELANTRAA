@@ -68,7 +68,7 @@ export async function GET() {
     return NextResponse.json({ wishlist: products });
   } catch (error) {
     console.error("GET /api/wishlist Error:", error);
-    return NextResponse.json({ wishlist: [] }, { status: 500 });
+    return NextResponse.json({ wishlist: [] }, { status: 200 });
   }
 }
 
