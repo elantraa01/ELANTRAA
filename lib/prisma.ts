@@ -7,16 +7,36 @@ const globalForPrisma = globalThis as unknown as {
   pool: Pool | undefined;
 };
 
-let rawUrl = process.env.DATABASE_URL?.trim() || "";
-if (
-  (rawUrl.startsWith('"') && rawUrl.endsWith('"')) ||
-  (rawUrl.startsWith("'") && rawUrl.endsWith("'"))
-) {
-  rawUrl = rawUrl.slice(1, -1).trim();
+function sanitizeDatabaseUrl(raw?: string): string {
+  if (!raw) return "";
+  let str = raw.trim();
+  if (
+    (str.startsWith('"') && str.endsWith('"')) ||
+    (str.startsWith("'") && str.endsWith("'"))
+  ) {
+    str = str.slice(1, -1).trim();
+  }
+
+  // Auto-encode special characters like @ in password
+  const regex = /^postgres(?:ql)?:\/\/([^:]+):(.*)@([^@\/]+(?::\d+)?(?:\/.*)?)$/;
+  const match = str.match(regex);
+  if (match) {
+    const [, user, pass, rest] = match;
+    try {
+      const decodedPass = decodeURIComponent(pass);
+      const encodedPass = encodeURIComponent(decodedPass);
+      return `postgresql://${user}:${encodedPass}@${rest}`;
+    } catch {
+      return str;
+    }
+  }
+
+  return str;
 }
 
 const connectionString =
-  rawUrl || "postgresql://postgres:postgres@localhost:5432/elantraa?schema=public";
+  sanitizeDatabaseUrl(process.env.DATABASE_URL) ||
+  "postgresql://postgres:postgres@localhost:5432/elantraa?schema=public";
 
 const isSupabase =
   connectionString.includes("supabase.co") ||
