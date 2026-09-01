@@ -268,7 +268,7 @@ export default function ProductInfo({
           </button>
           {activeTab === "delivery" && (
             <div className="mt-3 text-xs sm:text-sm text-gray-600 font-light leading-relaxed whitespace-pre-line animate-in fade-in duration-200">
-              {product.deliveryTimelines || "Standard Shipping: Delivered within 3-5 business days across India.\nExpress Shipping: 2 business days.\nInternational Orders: 5-7 business days via global courier partners."}
+              {product.deliveryTimelines || "Order Processing: 5–10 business days after confirmation.\nMade-to-Order / Customized: Additional processing time as required.\nWorldwide Delivery: Typically 5–10 business days after dispatch with live tracking."}
             </div>
           )}
         </div>
