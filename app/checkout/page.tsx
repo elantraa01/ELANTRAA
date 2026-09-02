@@ -340,10 +340,10 @@ export default function CheckoutPage() {
           key: razorpayKey,
           amount: rzpOrder.amount,
           currency: rzpOrder.currency || "INR",
-          name: "ELANTRAA Haute Couture",
+          name: "ELANTRAA",
           description: isPartialCod
             ? `50% Advance Payment (${items.length} Items)`
-            : `Haute Couture Selection (${items.length} Items)`,
+            : `Selection (${items.length} Items)`,
           image: "/images/logo/logo.png",
           order_id: rzpOrder.id,
           handler: async function (response: {

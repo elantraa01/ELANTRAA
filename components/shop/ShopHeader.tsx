@@ -38,7 +38,7 @@ export default function ShopHeader({
             EXPLORE THE COLLECTION
           </span>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-gray-900 mt-1 tracking-tight break-words">
-            Haute Couture Shop
+            Elantraa Shop
           </h1>
         </div>
         <p className="text-xs sm:text-sm text-gray-500 font-light mt-2 md:mt-0">
@@ -65,7 +65,7 @@ export default function ShopHeader({
         </button>
 
         <div className="hidden lg:block text-xs text-gray-500 uppercase tracking-widest font-medium">
-          Haute Couture Catalogue
+          Shop Catalogue
         </div>
 
         {/* Sort Select */}

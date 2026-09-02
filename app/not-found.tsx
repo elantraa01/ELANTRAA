@@ -20,7 +20,7 @@ export default function NotFound() {
           <div className="w-12 h-[2px] bg-[#C9A648] mx-auto my-6" />
 
           <p className="text-sm text-gray-600 font-light max-w-md mx-auto leading-relaxed">
-            The haute couture piece or page you are seeking does not exist or has been relocated to another sanctuary in our shop catalogue.
+            The piece or page you are seeking does not exist or has been relocated to another sanctuary in our shop catalogue.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">

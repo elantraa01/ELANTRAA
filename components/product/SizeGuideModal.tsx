@@ -53,7 +53,7 @@ export default function SizeGuideModal({
               </h3>
             </div>
             <p className="text-[11px] text-[#C9A648] uppercase tracking-wider font-medium mt-0.5">
-              {productName ? `${productName}` : "ELANTRAA Couture"}
+              {productName ? `${productName}` : "ELANTRAA"}
             </p>
           </div>
           <button
@@ -178,7 +178,7 @@ export default function SizeGuideModal({
                 Size Chart Coming Soon
               </h4>
               <p className="text-xs text-gray-500 max-w-sm mx-auto">
-                Detailed size chart image for this garment is being prepared. Please contact our couture stylists for bespoke sizing assistance.
+                Detailed size chart image for this garment is being prepared. Please contact our stylists for sizing assistance.
               </p>
             </div>
           )}

@@ -28,7 +28,7 @@ function OrderSuccessContent() {
       </h1>
 
       <p className="text-sm text-gray-600 font-light mt-3 max-w-md mx-auto">
-        We have received your haute couture order. A confirmation email with receipt and tracking details has been sent.
+        We have received your order. A confirmation email with receipt and tracking details has been sent.
       </p>
 
       {/* Order Details Card */}

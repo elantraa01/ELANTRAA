@@ -14,10 +14,10 @@ export default function BlogsPage() {
 
         <div className="grid gap-6 sm:grid-cols-2">
           <article className="bg-white rounded-2xl p-6 border border-[#E8E2D9] shadow-sm space-y-3">
-            <span className="text-xs text-[#9b7a1d] font-semibold uppercase tracking-wider">Couture Craftsmanship</span>
+            <span className="text-xs text-[#9b7a1d] font-semibold uppercase tracking-wider">Artisanal Craftsmanship</span>
             <h2 className="text-xl font-serif font-bold text-slate-950">The Art of Hand-Embroidered Silks</h2>
             <p className="text-sm text-slate-600 font-serif leading-relaxed">
-              Explore how our master artisans spend over 120 hours crafting complex metallic embroidery for haute couture gowns.
+              Explore how our master artisans spend over 120 hours crafting complex metallic embroidery for handcrafted gowns.
             </p>
           </article>
 

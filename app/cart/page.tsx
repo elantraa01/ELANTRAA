@@ -56,7 +56,7 @@ export default function CartPage() {
           <div className="flex items-end justify-between border-b border-gray-200 pb-6 mb-8">
             <div>
               <span className="text-[11px] sm:text-xs tracking-[0.3em] text-[#C9A648] uppercase font-semibold">
-                YOUR COUTURE SELECTION
+                YOUR BAG SELECTION
               </span>
               <h1 className="text-3xl sm:text-4xl font-serif text-gray-900 mt-1 tracking-tight">
                 Shopping Bag
@@ -321,7 +321,7 @@ export default function CartPage() {
                 Your Shopping Bag is Empty
               </h2>
               <p className="text-xs text-gray-500 font-light mb-6">
-                Discover our haute couture dresses, embroidered kurtas, and tailored menswear.
+                Discover our handcrafted dresses, embroidered kurtas, and tailored menswear.
               </p>
               <Link
                 href="/shop"

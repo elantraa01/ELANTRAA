@@ -186,7 +186,7 @@ export default function ProductReviews({
 
             <h3 className="text-xl font-serif text-gray-900 mb-1">Write A Review</h3>
             <p className="text-xs text-gray-500 font-light mb-6">
-              Share your experience with ELANTRAA Haute Couture
+              Share your experience with ELANTRAA
             </p>
 
             {submitted ? (

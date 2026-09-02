@@ -36,7 +36,7 @@ export default function Footer() {
               </div>
             </Link>
             <p className="text-xs text-gray-400 font-light leading-relaxed max-w-sm">
-              Artisanal couture, timeless silhouettes, and handcrafted luxury designed for the modern individual.
+              Artisanal craftsmanship, timeless silhouettes, and handcrafted luxury designed for the modern individual.
             </p>
             
             {/* Social Icons */}
