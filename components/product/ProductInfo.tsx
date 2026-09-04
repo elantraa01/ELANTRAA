@@ -312,13 +312,13 @@ export default function ProductInfo({
           )}
         </div>
 
-        {/* Tab 4: Additional Information */}
+        {/* Tab 4: USP */}
         <div className="border-b border-gray-200 py-4">
           <button
             onClick={() => toggleTab("additionalInfo")}
             className="w-full flex items-center justify-between text-sm sm:text-base font-normal text-gray-900 text-left tracking-wide"
           >
-            <span>Additional Information</span>
+            <span>USP</span>
             <svg
               className={`w-4 h-4 text-gray-700 transition-transform duration-200 ${activeTab === "additionalInfo" ? "rotate-90 text-gray-900" : ""
                 }`}

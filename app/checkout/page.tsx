@@ -311,7 +311,7 @@ export default function CheckoutPage() {
         setLoading(false);
       }
     } else {
-      // Online Payment (Full Online or 50% Advance Partial COD)
+      // Online Payment (Full Online or 70% Advance Partial COD)
       try {
         const isPartialCod = formData.paymentMethod === "PARTIAL_COD";
 
@@ -342,7 +342,7 @@ export default function CheckoutPage() {
           currency: rzpOrder.currency || "INR",
           name: "ELANTRAA",
           description: isPartialCod
-            ? `50% Advance Payment (${items.length} Items)`
+            ? `70% Advance Payment (${items.length} Items)`
             : `Selection (${items.length} Items)`,
           image: "/images/logo/logo.png",
           order_id: rzpOrder.id,
@@ -671,7 +671,7 @@ export default function CheckoutPage() {
 
                 {(() => {
                   const netProductAmount = Math.max(0, subtotal - discount);
-                  const advancePayable = Math.min(total, Math.ceil(netProductAmount * 0.5) + shipping);
+                  const advancePayable = Math.min(total, Math.ceil(netProductAmount * 0.7) + shipping);
                   const codBalance = Math.max(0, total - advancePayable);
 
                   const paymentOptions = [
@@ -683,9 +683,9 @@ export default function CheckoutPage() {
                     },
                     {
                       id: "PARTIAL_COD",
-                      label: "50% Advance Online + 50% on Delivery (COD)",
-                      desc: `Pay 50% + shipping now (\u20B9${advancePayable.toLocaleString("en-IN")}), and remaining balance (\u20B9${codBalance.toLocaleString("en-IN")}) in cash/UPI upon package delivery.`,
-                      badge: "50% Advance",
+                      label: "70% Advance Online + 30% on Delivery (COD)",
+                      desc: `Pay 70% + shipping now (\u20B9${advancePayable.toLocaleString("en-IN")}), and remaining balance (\u20B9${codBalance.toLocaleString("en-IN")}) in cash/UPI upon package delivery.`,
+                      badge: "70% Advance",
                     },
                   ];
 
@@ -787,7 +787,7 @@ export default function CheckoutPage() {
               {/* Partial COD Breakdown Notice */}
               {(() => {
                 const netProductAmount = Math.max(0, subtotal - discount);
-                const advancePayable = Math.min(total, Math.ceil(netProductAmount * 0.5) + shipping);
+                const advancePayable = Math.min(total, Math.ceil(netProductAmount * 0.7) + shipping);
                 const codBalance = Math.max(0, total - advancePayable);
 
                 if (formData.paymentMethod === "PARTIAL_COD") {
@@ -795,13 +795,13 @@ export default function CheckoutPage() {
                     <div className="p-3.5 bg-gradient-to-br from-amber-50/90 to-amber-100/40 border border-amber-300/70 rounded-xl space-y-2.5 text-xs">
                       <div className="flex justify-between items-center font-bold text-amber-950">
                         <span className="flex items-center gap-1.5">
-                          <span>💳</span> Due Online Now (50% + Shipping)
+                          <span>💳</span> Due Online Now (70% + Shipping)
                         </span>
                         <span className="text-sm text-[#967727]">&#8377;{advancePayable.toLocaleString("en-IN")}</span>
                       </div>
                       <div className="flex justify-between items-center text-gray-700 pt-1.5 border-t border-amber-200/60">
                         <span className="flex items-center gap-1.5">
-                          <span>📦</span> Remaining COD on Delivery
+                          <span>📦</span> Remaining COD on Delivery (30%)
                         </span>
                         <span className="font-bold text-gray-900">&#8377;{codBalance.toLocaleString("en-IN")}</span>
                       </div>
@@ -819,7 +819,7 @@ export default function CheckoutPage() {
 
               {(() => {
                 const netProductAmount = Math.max(0, subtotal - discount);
-                const advancePayable = Math.min(total, Math.ceil(netProductAmount * 0.5) + shipping);
+                const advancePayable = Math.min(total, Math.ceil(netProductAmount * 0.7) + shipping);
 
                 return (
                   <button
@@ -831,7 +831,7 @@ export default function CheckoutPage() {
                       {loading
                         ? "Connecting to Payment Gateway..."
                         : formData.paymentMethod === "PARTIAL_COD"
-                        ? `Pay 50% Advance \u2022 \u20B9${advancePayable.toLocaleString("en-IN")}`
+                        ? `Pay 70% Advance \u2022 \u20B9${advancePayable.toLocaleString("en-IN")}`
                         : `Pay Online \u2022 \u20B9${total.toLocaleString("en-IN")}`}
                     </span>
                   </button>

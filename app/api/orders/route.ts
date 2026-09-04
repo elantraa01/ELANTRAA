@@ -221,8 +221,8 @@ export async function POST(req: NextRequest) {
         advanceAmount = recalculatedTotal;
         balanceAmount = 0;
       } else if (payment.paymentMethod === "PARTIAL_COD") {
-        // 50% product value + 100% shipping charge paid online as advance
-        advanceAmount = Math.min(recalculatedTotal, Math.ceil(netProductAmount * 0.5) + shippingCharge);
+        // 70% product value + 100% shipping charge paid online as advance
+        advanceAmount = Math.min(recalculatedTotal, Math.ceil(netProductAmount * 0.7) + shippingCharge);
         balanceAmount = Math.max(0, recalculatedTotal - advanceAmount);
       }
 

@@ -64,8 +64,8 @@ async function calculateOrderBreakdown(items: IncomingOrderItem[], promoCode: un
   const netProductAmount = Math.max(0, subtotal - promoDiscount);
   const totalAmount = Math.max(0, netProductAmount + shippingCharge);
 
-  // 50% of product amount + 100% of shipping charge paid in advance online
-  const advanceProductAmount = Math.ceil(netProductAmount * 0.5);
+  // 70% of product amount + 100% of shipping charge paid in advance online
+  const advanceProductAmount = Math.ceil(netProductAmount * 0.7);
   const advancePayable = Math.max(0, advanceProductAmount + shippingCharge);
   const balancePayable = Math.max(0, totalAmount - advancePayable);
 
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
     const breakdown = await calculateOrderBreakdown(items, promoCode);
     const isPartial = Boolean(isPartialCod || paymentMethod === "PARTIAL_COD");
 
-    // If partial COD, customer pays 50% product value + shipping charge online
+    // If partial COD, customer pays 70% product value + shipping charge online
     const amountToCharge = isPartial ? breakdown.advancePayable : breakdown.totalAmount;
     const amountInPaise = Math.round(amountToCharge * 100);
 
