@@ -6,9 +6,10 @@ import Image from "next/image";
 interface ProductGalleryProps {
   images: string[];
   productName: string;
+  tags?: string[];
 }
 
-export default function ProductGallery({ images, productName }: ProductGalleryProps) {
+export default function ProductGallery({ images, productName, tags }: ProductGalleryProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -97,9 +98,24 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
           )}
         </div>
 
+        {/* Product Badges - Luxury Glassmorphism Styling */}
+        {Array.isArray(tags) && tags.length > 0 && (
+          <div className="absolute top-3 left-3 flex flex-wrap max-w-[75%] gap-1.5 z-10 pointer-events-none">
+            {tags.map((tag, idx) => (
+              <span
+                key={idx}
+                className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#171717]/90 backdrop-blur-md text-[#F3E5AB] border border-[#C9A648]/60 text-[9px] sm:text-[10px] font-medium tracking-[0.18em] uppercase rounded-full shadow-lg"
+              >
+                <span className="text-[#C9A648] text-[8px]">✦</span>
+                <span>{tag}</span>
+              </span>
+            ))}
+          </div>
+        )}
+
         {/* Image Counter Badge (Visible when multiple images exist) */}
         {safeImages.length > 1 && (
-          <span className="absolute top-3 left-3 px-3 py-1 bg-[#171717]/80 backdrop-blur-md text-white text-[10px] sm:text-xs font-mono font-medium rounded-full shadow-md z-10 pointer-events-none">
+          <span className="absolute top-3 right-3 px-3 py-1 bg-[#171717]/80 backdrop-blur-md text-white text-[10px] sm:text-xs font-mono font-medium rounded-full shadow-md z-10 pointer-events-none">
             {selectedImageIndex + 1} / {safeImages.length}
           </span>
         )}

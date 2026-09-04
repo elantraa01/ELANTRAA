@@ -73,6 +73,21 @@ function QuickViewModalContent({
                 No image
               </div>
             )}
+
+            {/* Badges */}
+            {Array.isArray(product.tags) && product.tags.length > 0 && (
+              <div className="absolute top-3 left-3 flex flex-wrap max-w-[80%] gap-1.5 z-10 pointer-events-none">
+                {product.tags.map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#171717]/90 backdrop-blur-md text-[#F3E5AB] border border-[#C9A648]/60 text-[9px] font-medium tracking-[0.18em] uppercase rounded-full shadow-lg"
+                  >
+                    <span className="text-[#C9A648] text-[8px]">✦</span>
+                    <span>{tag}</span>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Thumbnail Strip */}
@@ -96,6 +111,21 @@ function QuickViewModalContent({
         {/* Right: Product Specifications & Action */}
         <div className="md:w-1/2 p-6 sm:p-8 flex flex-col justify-between">
           <div>
+            {/* Badges / Tags */}
+            {Array.isArray(product.tags) && product.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {product.tags.map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#171717] text-[#F3E5AB] border border-[#C9A648]/60 text-[9px] font-medium tracking-[0.15em] uppercase rounded-full shadow-sm"
+                  >
+                    <span className="text-[#C9A648] text-[8px]">✦</span>
+                    <span>{tag}</span>
+                  </span>
+                ))}
+              </div>
+            )}
+
             <div className="flex items-center justify-between text-xs uppercase tracking-widest text-[#C9A648] font-semibold mb-2">
               <span>
                 {typeof product.category === "object"

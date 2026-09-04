@@ -45,6 +45,21 @@ export default function ProductInfo({
   return (
     <div className="flex flex-col justify-between h-full space-y-6">
       <div>
+        {/* Product Badges / Tags */}
+        {Array.isArray(product.tags) && product.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {product.tags.map((tag, idx) => (
+              <span
+                key={idx}
+                className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#171717] text-[#F3E5AB] border border-[#C9A648]/60 text-[10px] sm:text-[11px] font-medium tracking-[0.18em] uppercase rounded-full shadow-sm"
+              >
+                <span className="text-[#C9A648] text-[9px]">✦</span>
+                <span>{tag}</span>
+              </span>
+            ))}
+          </div>
+        )}
+
         {/* Category & Ratings */}
         <div className="flex items-center justify-between text-xs uppercase tracking-widest mb-3">
           <span className="text-[#C9A648] font-bold">
