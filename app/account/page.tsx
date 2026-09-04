@@ -341,7 +341,7 @@ function AccountPageContent() {
                                           <div class="logo-container">
                                             <img src="${logoUrl}" alt="ELANTRAA" class="logo-img" onError="this.style.display='none'; this.nextElementSibling.style.display='block';" />
                                             <div class="brand-fallback" style="display:none;">ELANTRAA</div>
-                                            <p style="font-size: 10px; color: #6b7280; margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">HAUTE COUTURE & LUXURY ATELIER</p>
+                                            <p style="font-size: 10px; color: #6b7280; margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">LUXURY FASHION ATELIER</p>
                                             <p style="font-size: 10px; color: #9ca3af; margin-top: 2px;">GSTIN: 27AAAAA0000A1Z5 • Reg. MH-400050</p>
                                           </div>
                                           <div class="invoice-badge">
@@ -370,7 +370,7 @@ function AccountPageContent() {
                                           <thead>
                                             <tr>
                                               <th style="width: 50px;">#</th>
-                                              <th>COUTURE ITEM DESCRIPTION</th>
+                                              <th>ITEM DESCRIPTION</th>
                                               <th style="text-align: center; width: 60px;">QTY</th>
                                               <th style="text-align: right; width: 120px;">UNIT PRICE</th>
                                               <th style="text-align: right; width: 120px;">AMOUNT</th>
@@ -418,7 +418,7 @@ function AccountPageContent() {
                                         </div>
 
                                         <div class="footer-stamp">
-                                          ✦ COMPUTER GENERATED TAX INVOICE • NO PHYSICAL SIGNATURE REQUIRED • ELANTRAA LUXURY COUTURE ✦
+                                          ✦ COMPUTER GENERATED TAX INVOICE • NO PHYSICAL SIGNATURE REQUIRED • ELANTRAA LUXURY ✦
                                         </div>
                                       </div>
 

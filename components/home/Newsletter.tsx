@@ -32,7 +32,7 @@ export default function Newsletter() {
         </h2>
 
         <p className="text-sm sm:text-base text-gray-600 font-light mt-3 max-w-xl mx-auto">
-          Subscribe to receive private invitations to new haute couture drops, trunk shows, and enjoy <strong className="font-semibold text-gray-900">10% off</strong> your inaugural order.
+          Subscribe to receive private invitations to new collection drops, trunk shows, and enjoy <strong className="font-semibold text-gray-900">10% off</strong> your inaugural order.
         </p>
 
         {/* Subscription Form */}

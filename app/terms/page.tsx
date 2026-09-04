@@ -35,7 +35,7 @@ export default function TermsPage() {
 
             <h3 className="text-lg font-serif text-gray-900 font-semibold mt-6">1. Product Authenticity & Pricing</h3>
             <p>
-              All products listed on ELANTRAA are 100% authentic haute couture garments. Prices are listed in Indian Rupees (INR) and include applicable taxes. We reserve the right to correct pricing errors.
+              All products listed on ELANTRAA are 100% authentic garments. Prices are listed in Indian Rupees (INR) and include applicable taxes. We reserve the right to correct pricing errors.
             </p>
 
             <h3 className="text-lg font-serif text-gray-900 font-semibold mt-6">2. Intellectual Property</h3>

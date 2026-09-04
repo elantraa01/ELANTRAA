@@ -71,7 +71,7 @@ export async function sendOrderConfirmationEmail(details: EmailOrderDetails) {
             <!-- Brand Header -->
             <div style="background-color: #171717; color: #D4AF37; text-align: center; padding: 30px 20px; border-bottom: 2px solid #C9A648;">
               <h1 style="font-family: Georgia, serif; letter-spacing: 4px; margin: 0; font-size: 26px; text-transform: uppercase;">ELANTRAA</h1>
-              <span style="font-size: 9px; letter-spacing: 3px; uppercase; color: #C9A648;">HAUTE COUTURE PRIVÉ</span>
+              <span style="font-size: 9px; letter-spacing: 3px; uppercase; color: #C9A648;">ELANTRAA PRIVÉ</span>
             </div>
 
             <!-- Email Body -->
@@ -79,7 +79,7 @@ export async function sendOrderConfirmationEmail(details: EmailOrderDetails) {
               <span style="font-size: 10px; font-weight: bold; letter-spacing: 2px; color: #C9A648; text-transform: uppercase;">CONFIRMATION RECEIPT</span>
               <h2 style="font-family: Georgia, serif; color: #171717; margin-top: 5px; font-size: 22px;">Thank You For Your Order, ${details.customerName}</h2>
               <p style="font-size: 13px; color: #555555; line-height: 1.6;">
-                We have successfully received your haute couture order. Our master artisans are preparing your bespoke garments for express delivery.
+                We have successfully received your order. Our master artisans are preparing your bespoke garments for express delivery.
               </p>
 
               <!-- Order Summary Box -->
@@ -127,7 +127,7 @@ export async function sendOrderConfirmationEmail(details: EmailOrderDetails) {
 
             <!-- Email Footer -->
             <div style="background-color: #FAF8F5; text-align: center; padding: 20px; border-top: 1px solid #e5e5e5; font-size: 11px; color: #888888;">
-              <p style="margin: 0 0 5px 0;">Need assistance with your couture order?</p>
+              <p style="margin: 0 0 5px 0;">Need assistance with your order?</p>
               <p style="margin: 0; font-weight: bold; color: #C9A648;">elantraa.01@gmail.com | +91 9015342951</p>
             </div>
           </div>
@@ -138,7 +138,7 @@ export async function sendOrderConfirmationEmail(details: EmailOrderDetails) {
     const info = await transporter.sendMail({
       from: emailFrom,
       to: details.customerEmail,
-      subject: `Order Confirmation: ${details.orderId} | ELANTRAA Haute Couture`,
+      subject: `Order Confirmation: ${details.orderId} | ELANTRAA`,
       html: emailHtml,
     });
 
