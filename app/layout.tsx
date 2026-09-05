@@ -62,7 +62,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "ELANTRAA Admin",
+    title: "Elantraa",
   },
   icons: {
     icon: "/icons/icon-192.png",

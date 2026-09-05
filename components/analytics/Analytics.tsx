@@ -1,10 +1,13 @@
+"use client";
+
 import Script from "next/script";
 
 export default function Analytics() {
-  const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim();
-  const clarityId = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID?.trim();
+  const gaId =
+    process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() || "G-PZWHKPYS60";
+  const clarityId =
+    process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID?.trim() || "ydeyxjad5n";
 
-  // If neither tracking ID is configured, render nothing (no impact on performance)
   if (!gaId && !clarityId) {
     return null;
   }

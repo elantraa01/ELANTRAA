@@ -250,7 +250,7 @@ export default function ReturnsPolicyPage() {
                   </p>
                   <div className="flex flex-wrap items-center gap-3 pt-2">
                     <a
-                      href="https://instagram.com"
+                      href="https://www.instagram.com/elantraaofficial?utm_source=ig_web_button_share_sheet&igsi=ZDNlZDc0MzIxNw=="
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] text-white rounded text-xs font-semibold hover:opacity-90 transition-opacity"

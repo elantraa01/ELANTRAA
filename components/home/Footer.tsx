@@ -19,30 +19,30 @@ export default function Footer() {
 
   return (
     <footer className="bg-[#121212] text-[#E5E0D8] font-sans border-t border-[#C9A648]/20 selection:bg-[#C9A648] selection:text-black">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
-        {/* Main Grid: 4 Compact Columns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10 pb-8 border-b border-white/10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-28 sm:py-12">
+        {/* Main Grid: 3 Main Sections (Desktop 4-4-4, Mobile Stacked with 2-Col Links) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 pb-8 border-b border-white/10">
           
           {/* Column 1: Brand & Socials (4 cols) */}
-          <div className="lg:col-span-4 space-y-3.5">
+          <div className="lg:col-span-4 space-y-3.5 flex flex-col items-center lg:items-start text-center lg:text-left">
             <Link href="/" className="inline-block">
               <div className="relative w-36 h-10">
                 <Image
                   src="/images/logo/logo.png"
                   alt="ELANTRAA"
                   fill
-                  className="object-contain object-left brightness-125"
+                  className="object-contain object-center lg:object-left brightness-125"
                 />
               </div>
             </Link>
-            <p className="text-xs text-gray-400 font-light leading-relaxed max-w-sm">
+            <p className="text-xs text-gray-400 font-light leading-relaxed max-w-sm mx-auto lg:mx-0">
               Artisanal craftsmanship, timeless silhouettes, and handcrafted luxury designed for the modern individual.
             </p>
             
             {/* Social Icons */}
-            <div className="flex items-center gap-3 pt-1">
+            <div className="flex items-center justify-center lg:justify-start gap-3 pt-1">
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/elantraaofficial?utm_source=ig_web_button_share_sheet&igsi=ZDNlZDc0MzIxNw=="
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
@@ -80,74 +80,72 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Column 2: Quick Links (2 cols) */}
-          <div className="lg:col-span-2 space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D4AF37]">
-              Explore
-            </h4>
-            <ul className="space-y-2 text-xs text-gray-400 font-light">
-              <li>
-                <Link href="/shop" className="hover:text-white transition-colors">
-                  All Collections
-                </Link>
-              </li>
-              <li>
-                <Link href="/shop?filter=new-arrivals" className="hover:text-white transition-colors">
-                  New Arrivals
-                </Link>
-              </li>
-              <li>
-                <Link href="/shop?filter=best-sellers" className="hover:text-white transition-colors">
-                  Best Sellers
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" className="hover:text-white transition-colors">
-                  Our Story
-                </Link>
-              </li>
-            </ul>
+          {/* Column 2 & 3: Explore & Client Care - 2 Columns side-by-side on mobile, centered */}
+          <div className="lg:col-span-4 grid grid-cols-2 gap-4 sm:gap-6 text-center lg:text-left">
+            {/* Explore */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D4AF37]">
+                Explore
+              </h4>
+              <ul className="space-y-2 text-xs text-gray-400 font-light">
+                <li>
+                  <Link href="/shop" className="hover:text-white transition-colors">
+                    All Collections
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/shop?filter=new-arrivals" className="hover:text-white transition-colors">
+                    New Arrivals
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/about" className="hover:text-white transition-colors">
+                    Our Story
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Client Care */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D4AF37]">
+                Client Care
+              </h4>
+              <ul className="space-y-2 text-xs text-gray-400 font-light">
+                <li>
+                  <Link href="/contact" className="hover:text-white transition-colors">
+                    Contact Us
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/shipping" className="hover:text-white transition-colors">
+                    Shipping Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/returns" className="hover:text-white transition-colors">
+                    Returns & Exchange
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy" className="hover:text-white transition-colors">
+                    Privacy Policy
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
 
-          {/* Column 3: Customer Care (2 cols) */}
-          <div className="lg:col-span-2 space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D4AF37]">
-              Client Care
-            </h4>
-            <ul className="space-y-2 text-xs text-gray-400 font-light">
-              <li>
-                <Link href="/contact" className="hover:text-white transition-colors">
-                  Contact Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/shipping" className="hover:text-white transition-colors">
-                  Shipping Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/returns" className="hover:text-white transition-colors">
-                  Returns & Exchange
-                </Link>
-              </li>
-              <li>
-                <Link href="/privacy" className="hover:text-white transition-colors">
-                  Privacy Policy
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 4: Newsletter (4 cols) */}
-          <div className="lg:col-span-4 space-y-3">
+          {/* Column 4: Newsletter (4 cols, centered on mobile) */}
+          <div className="lg:col-span-4 space-y-3 text-center lg:text-left">
             <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D4AF37]">
               Newsletter
             </h4>
-            <p className="text-xs text-gray-400 font-light">
+            <p className="text-xs text-gray-400 font-light max-w-sm mx-auto lg:mx-0">
               Subscribe for exclusive previews and private sale invitations.
             </p>
 
-            <form onSubmit={handleSubscribe} className="flex gap-2">
+            <form onSubmit={handleSubscribe} className="flex gap-2 max-w-sm mx-auto lg:mx-0">
               <input
                 type="email"
                 required
@@ -165,7 +163,7 @@ export default function Footer() {
             </form>
 
             {subscribed && (
-              <p className="text-[11px] text-emerald-400 animate-in fade-in">
+              <p className="text-[11px] text-emerald-400 animate-in fade-in text-center lg:text-left">
                 ✓ Thank you for subscribing to ELANTRAA!
               </p>
             )}
@@ -177,7 +175,7 @@ export default function Footer() {
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500 font-light">
           <p>© {new Date().getFullYear()} ELANTRAA. All rights reserved.</p>
           
-          <div className="flex items-center gap-4 text-[11px]">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px]">
             <Link href="/terms" className="hover:text-gray-300 transition-colors">
               Terms
             </Link>

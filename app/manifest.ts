@@ -2,9 +2,9 @@ import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "ELANTRAA Admin Portal",
-    short_name: "ELANTRAA Admin",
-    description: "ELANTRAA Luxury Haute Couture Administration & Mobile Control Center",
+    name: "Elantraa",
+    short_name: "Elantraa",
+    description: "Elantraa Luxury Haute Couture & Bespoke Fashion",
     start_url: "/admin",
     scope: "/",
     display: "standalone",

@@ -30,8 +30,8 @@ export default function ContactPage() {
 
             <div>
               <p className="text-xs font-sans uppercase tracking-wider text-slate-500 font-semibold mb-1">Social</p>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#9b7a1d] transition-colors">
-                Instagram: @shopdori / @elantraa
+              <a href="https://www.instagram.com/elantraaofficial?utm_source=ig_web_button_share_sheet&igsi=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer" className="hover:text-[#9b7a1d] transition-colors">
+                Instagram: @elantraaofficial
               </a>
             </div>
           </div>

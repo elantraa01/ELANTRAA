@@ -557,7 +557,7 @@ export default function AdminPanel() {
         await installPrompt.prompt();
         const { outcome } = await installPrompt.userChoice;
         if (outcome === "accepted") {
-          notify("success", "Installing ELANTRAA Admin app to your home screen!");
+          notify("success", "Installing Elantraa app to your home screen!");
           setInstallPrompt(null);
         }
       } catch {}
@@ -2704,7 +2704,7 @@ function AdminShell({
         >
           <div className="flex items-center gap-2">
             <span className="text-sm">📲</span>
-            <span>Install Android App</span>
+            <span>Install Elantraa App</span>
           </div>
           <span className="text-[10px] bg-[#D4AF37] text-slate-950 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
             Install
