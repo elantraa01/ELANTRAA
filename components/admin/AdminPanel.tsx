@@ -246,8 +246,7 @@ export default function AdminPanel() {
 
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [uploadError, setUploadError] = useState("");
-  const [uploadingSizeChartIn, setUploadingSizeChartIn] = useState(false);
-  const [uploadingSizeChartCm, setUploadingSizeChartCm] = useState(false);
+  const [uploadingSizeChart, setUploadingSizeChart] = useState(false);
   const [sizeChartError, setSizeChartError] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
@@ -420,10 +419,9 @@ export default function AdminPanel() {
     }
   }
 
-  async function handleSizeChartUpload(file: File, unit: "in" | "cm") {
+  async function handleSizeChartUpload(file: File) {
     if (!file) return;
-    if (unit === "in") setUploadingSizeChartIn(true);
-    else setUploadingSizeChartCm(true);
+    setUploadingSizeChart(true);
     setSizeChartError("");
 
     try {
@@ -432,19 +430,11 @@ export default function AdminPanel() {
       const res = await fetch("/api/upload", { method: "POST", body: form });
       const data = await res.json();
       if (res.ok && data.url) {
-        if (unit === "in") {
-          setProductForm((prev) => ({ ...prev, sizeChart: data.url }));
-          try {
-            localStorage.setItem("elantraa_default_size_chart_in", data.url);
-          } catch {}
-          notify("success", "Inches (\") size chart uploaded & saved as default for new products.");
-        } else {
-          setProductForm((prev) => ({ ...prev, sizeChartCm: data.url }));
-          try {
-            localStorage.setItem("elantraa_default_size_chart_cm", data.url);
-          } catch {}
-          notify("success", "Centimeters (cm) size chart uploaded & saved as default for new products.");
-        }
+        setProductForm((prev) => ({ ...prev, sizeChart: data.url }));
+        try {
+          localStorage.setItem("elantraa_default_size_chart_in", data.url);
+        } catch {}
+        notify("success", "Size chart uploaded & saved as default for new products.");
       } else {
         throw new Error(data.error || "Failed to upload size chart");
       }
@@ -453,8 +443,7 @@ export default function AdminPanel() {
       setSizeChartError(msg);
       notify("error", msg);
     } finally {
-      if (unit === "in") setUploadingSizeChartIn(false);
-      else setUploadingSizeChartCm(false);
+      setUploadingSizeChart(false);
     }
   }
 
@@ -2251,14 +2240,14 @@ export default function AdminPanel() {
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                         </svg>
-                        <span>{uploadingSizeChartIn ? "Uploading..." : "Upload Chart Image"}</span>
+                        <span>{uploadingSizeChart ? "Uploading..." : "Upload Chart Image"}</span>
                         <input
                           type="file"
                           accept="image/png,image/jpeg,image/webp,image/avif"
-                          disabled={uploadingSizeChartIn}
+                          disabled={uploadingSizeChart}
                           onChange={(e) => {
                             const file = e.target.files?.[0];
-                            if (file) handleSizeChartUpload(file, "in");
+                            if (file) handleSizeChartUpload(file);
                           }}
                           className="hidden"
                         />
