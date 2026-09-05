@@ -1,10 +1,19 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import SplashScreen from "@/components/SplashScreen";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import MobileBottomNav from "@/components/home/MobileBottomNav";
 import { CartProvider } from "@/context/CartContext";
 import AuthProvider from "@/components/AuthProvider";
+import Analytics from "@/components/analytics/Analytics";
+import PwaRegister from "@/components/PwaRegister";
+
+export const viewport: Viewport = {
+  themeColor: "#020617",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
 
 export const metadata: Metadata = {
   title: {
@@ -49,6 +58,16 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "ELANTRAA Admin",
+  },
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/icons/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -61,6 +80,8 @@ export default function RootLayout({
       <body className="bg-background text-foreground font-body antialiased min-h-screen relative overflow-x-hidden max-w-full w-full pb-14 lg:pb-0">
         <AuthProvider>
           <CartProvider>
+            <PwaRegister />
+            <Analytics />
             <SplashScreen />
             {children}
             <WhatsAppButton />

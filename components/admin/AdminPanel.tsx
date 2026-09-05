@@ -255,6 +255,12 @@ export default function AdminPanel() {
   const [isHeroDragging, setIsHeroDragging] = useState(false);
   const [heroManualUrl, setHeroManualUrl] = useState("");
 
+  const [installPrompt, setInstallPrompt] = useState<{
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+  } | null>(null);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
+
   async function handleHeroVideoUpload(file: File) {
     if (!file) return;
     setUploadingHeroVideo(true);
@@ -516,6 +522,52 @@ export default function AdminPanel() {
     if (authStatus === "loading") return;
     loadAll();
   }, [authStatus, loadAll]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as unknown as { standalone?: boolean }).standalone
+      ) {
+        setIsAppInstalled(true);
+      }
+      const handleBeforeInstall = (e: Event) => {
+        e.preventDefault();
+        setInstallPrompt(
+          e as unknown as {
+            prompt: () => Promise<void>;
+            userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+          }
+        );
+      };
+      window.addEventListener("beforeinstallprompt", handleBeforeInstall);
+      window.addEventListener("appinstalled", () => {
+        setIsAppInstalled(true);
+        setInstallPrompt(null);
+      });
+      return () => {
+        window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+      };
+    }
+  }, []);
+
+  async function triggerInstallApp() {
+    if (installPrompt) {
+      try {
+        await installPrompt.prompt();
+        const { outcome } = await installPrompt.userChoice;
+        if (outcome === "accepted") {
+          notify("success", "Installing ELANTRAA Admin app to your home screen!");
+          setInstallPrompt(null);
+        }
+      } catch {}
+    } else {
+      notify(
+        "success",
+        "To install on Android: Tap Chrome menu (⋮) -> 'Add to Home screen' or 'Install app'."
+      );
+    }
+  }
 
   useEffect(() => {
     setPage(1);
@@ -933,7 +985,7 @@ export default function AdminPanel() {
   }
 
   if (authStatus === "loading" || status === "loading") {
-    return <AdminShell activeTab={activeTab} setActiveTab={setActiveTab} mobileNavOpen={mobileNavOpen} setMobileNavOpen={setMobileNavOpen}><LoadingState /></AdminShell>;
+    return <AdminShell activeTab={activeTab} setActiveTab={setActiveTab} mobileNavOpen={mobileNavOpen} setMobileNavOpen={setMobileNavOpen} onInstallApp={triggerInstallApp} isAppInstalled={isAppInstalled}><LoadingState /></AdminShell>;
   }
 
   if (!session || role !== "ADMIN") {
@@ -952,7 +1004,7 @@ export default function AdminPanel() {
   }
 
   return (
-    <AdminShell activeTab={activeTab} setActiveTab={setActiveTab} mobileNavOpen={mobileNavOpen} setMobileNavOpen={setMobileNavOpen}>
+    <AdminShell activeTab={activeTab} setActiveTab={setActiveTab} mobileNavOpen={mobileNavOpen} setMobileNavOpen={setMobileNavOpen} onInstallApp={triggerInstallApp} isAppInstalled={isAppInstalled}>
       <div className="flex min-h-screen flex-col bg-slate-50">
         <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
           <div className="flex h-14 sm:h-16 items-center justify-between gap-3 px-3 sm:px-4 lg:px-6">
@@ -975,6 +1027,17 @@ export default function AdminPanel() {
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
+              {!isAppInstalled && (
+                <button
+                  type="button"
+                  onClick={triggerInstallApp}
+                  className="flex items-center gap-1.5 rounded-lg border border-[#D4AF37] bg-gradient-to-r from-[#D4AF37] via-[#C9A648] to-[#AA771C] px-2.5 py-1.5 text-xs font-bold text-slate-950 shadow-sm active:scale-95 transition-all"
+                  title="Install ELANTRAA Admin App"
+                >
+                  <span className="text-sm leading-none">📲</span>
+                  <span>Install App</span>
+                </button>
+              )}
               <span className="hidden text-xs text-slate-500 sm:block">{session.user?.email}</span>
               <button
                 type="button"
@@ -2597,12 +2660,16 @@ function AdminShell({
   setActiveTab,
   mobileNavOpen,
   setMobileNavOpen,
+  onInstallApp,
+  isAppInstalled,
 }: {
   children: React.ReactNode;
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
   mobileNavOpen: boolean;
   setMobileNavOpen: (value: boolean) => void;
+  onInstallApp?: () => void;
+  isAppInstalled?: boolean;
 }) {
   const sidebar = (
     <aside className="flex h-full w-64 flex-col border-r border-slate-800 bg-slate-950 text-white">
@@ -2629,6 +2696,21 @@ function AdminShell({
           </button>
         ))}
       </nav>
+      {!isAppInstalled && onInstallApp && (
+        <button
+          type="button"
+          onClick={onInstallApp}
+          className="mx-3 mb-2 flex items-center justify-between rounded-lg border border-[#D4AF37]/50 bg-gradient-to-r from-[#D4AF37]/25 via-[#D4AF37]/10 to-transparent px-3 py-2.5 text-left text-xs font-semibold text-[#F3E5AB] active:scale-95 transition-all shadow-sm"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-sm">📲</span>
+            <span>Install Android App</span>
+          </div>
+          <span className="text-[10px] bg-[#D4AF37] text-slate-950 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
+            Install
+          </span>
+        </button>
+      )}
       <button type="button" onClick={() => signOut({ callbackUrl: "/login" })} className="m-3 rounded-lg border border-white/15 px-3 py-2.5 text-left text-sm font-medium text-slate-300 hover:bg-white/10">
         Logout
       </button>
