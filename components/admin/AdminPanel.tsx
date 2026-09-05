@@ -966,18 +966,56 @@ export default function AdminPanel() {
     <AdminShell activeTab={activeTab} setActiveTab={setActiveTab} mobileNavOpen={mobileNavOpen} setMobileNavOpen={setMobileNavOpen}>
       <div className="flex min-h-screen flex-col bg-slate-50">
         <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
-          <div className="flex h-16 items-center justify-between gap-3 px-4 lg:px-6">
-            <div className="min-w-0">
-              <button type="button" onClick={() => setMobileNavOpen(true)} className="mr-3 rounded-md border border-slate-200 px-2 py-1 text-sm lg:hidden">Menu</button>
-              <span className="text-xs uppercase tracking-[0.22em] text-slate-500">Admin</span>
-              <h1 className="truncate text-lg font-semibold text-slate-950">{navItems.find((item) => item.id === activeTab)?.label}</h1>
+          <div className="flex h-14 sm:h-16 items-center justify-between gap-3 px-3 sm:px-4 lg:px-6">
+            <div className="flex items-center gap-2 min-w-0">
+              <button
+                type="button"
+                onClick={() => setMobileNavOpen(true)}
+                className="p-2 -ml-1 text-slate-700 hover:text-slate-900 rounded-lg hover:bg-slate-100 lg:hidden flex items-center justify-center focus:outline-none"
+                aria-label="Open Navigation Drawer"
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+              <div className="min-w-0">
+                <span className="text-[10px] uppercase tracking-[0.2em] text-[#9b7a1d] font-bold block sm:inline">ELANTRAA Admin</span>
+                <h1 className="truncate text-base sm:text-lg font-bold text-slate-950 font-serif leading-tight">
+                  {navItems.find((item) => item.id === activeTab)?.label}
+                </h1>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="hidden text-sm text-slate-500 sm:block">{session.user?.email}</span>
-              <button type="button" onClick={() => signOut({ callbackUrl: "/login" })} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-700 hover:border-slate-950">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="hidden text-xs text-slate-500 sm:block">{session.user?.email}</span>
+              <button
+                type="button"
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-950 active:scale-95 transition-all"
+              >
                 Logout
               </button>
             </div>
+          </div>
+
+          {/* Mobile Swipeable Quick Tabs Strip */}
+          <div className="lg:hidden border-t border-slate-100 bg-slate-50/80 px-2.5 py-2 overflow-x-auto no-scrollbar flex items-center gap-1.5 shrink-0 select-none">
+            {navItems.map((item) => {
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveTab(item.id)}
+                  className={`px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all shrink-0 ${
+                    isActive
+                      ? "bg-slate-950 text-[#D4AF37] shadow-sm ring-1 ring-[#D4AF37]/30"
+                      : "bg-white text-slate-600 border border-slate-200/80 active:bg-slate-100"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
           </div>
         </header>
 
@@ -1043,7 +1081,7 @@ export default function AdminPanel() {
               )}
 
               {activeTab === "products" && (
-                <Panel title="Products Catalogue" action={<div className="hidden sm:block"><Button onClick={() => openProduct()}>+ Add Product</Button></div>}>
+                <Panel title="Products Catalogue" action={<Button onClick={() => openProduct()}>+ Add Product</Button>}>
                   <Toolbar>
                     <SearchBar value={query} onChange={setQuery} placeholder="Search products or SKU..." />
                     <Select value={categoryFilter} onChange={setCategoryFilter}>
@@ -1117,7 +1155,7 @@ export default function AdminPanel() {
               )}
 
               {activeTab === "categories" && (
-                <Panel title="Categories" action={<div className="hidden sm:block"><Button onClick={() => openCategory()}>+ Add Category</Button></div>}>
+                <Panel title="Categories" action={<Button onClick={() => openCategory()}>+ Add Category</Button>}>
                   <Toolbar><SearchBar value={query} onChange={setQuery} placeholder="Search categories..." /></Toolbar>
                   
                   {/* Desktop Data Table */}
@@ -1702,21 +1740,22 @@ export default function AdminPanel() {
       </div>
 
       {productModal.open && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-sm p-3 sm:p-6 md:p-8 flex justify-center items-start font-sans">
-          <div className="bg-[#FAF8F5] text-gray-900 w-full max-w-5xl rounded-2xl border border-[#C9A648]/30 shadow-2xl overflow-hidden my-4 sm:my-6">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm p-0 sm:p-6 md:p-8 flex justify-center items-start font-sans">
+          <div className="bg-[#FAF8F5] text-gray-900 w-full max-w-5xl rounded-none sm:rounded-2xl border-0 sm:border border-[#C9A648]/30 shadow-2xl overflow-hidden my-0 sm:my-6 min-h-screen sm:min-h-0">
             
             {/* Top Bar Header */}
-            <div className="p-4 sm:p-6 border-b border-gray-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-serif font-bold text-gray-900 tracking-tight">
-                  {productModal.id ? "Edit product" : "Add product"}
+            <div className="sticky top-0 z-30 p-3.5 sm:p-6 border-b border-gray-200/80 flex items-center justify-between gap-3 bg-white/95 backdrop-blur-md">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg sm:text-2xl font-serif font-bold text-gray-900 tracking-tight truncate">
+                  {productModal.id ? "Edit Product" : "Add Product"}
                 </h2>
-                <p className="text-xs text-gray-500 mt-1 font-normal">
-                  Fill in the details below to list a new product in the ELANTRAA catalogue.
+                <p className="text-[11px] sm:text-xs text-gray-500 font-normal truncate">
+                  ELANTRAA Catalogue • {productModal.id ? "Update details" : "New listing"}
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
+              {/* Desktop Action Buttons (Hidden on mobile) */}
+              <div className="hidden sm:flex items-center gap-3">
                 {productModal.id && (
                   <button
                     type="button"
@@ -1746,18 +1785,21 @@ export default function AdminPanel() {
                 >
                   Publish product
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setProductModal({ open: false })}
-                  className="p-2 text-gray-400 hover:text-gray-900 transition-colors text-lg"
-                >
-                  ✕
-                </button>
               </div>
+
+              {/* Close Button (Touch optimized for mobile) */}
+              <button
+                type="button"
+                onClick={() => setProductModal({ open: false })}
+                className="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors text-lg shrink-0"
+                aria-label="Close modal"
+              >
+                ✕
+              </button>
             </div>
 
             {/* Main 2-Column Form Body */}
-            <form onSubmit={(e) => saveProduct(e)} className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <form onSubmit={(e) => saveProduct(e)} className="p-4 sm:p-6 pb-28 sm:pb-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
               
               {/* Left Column (Main Info Cards) */}
               <div className="lg:col-span-7 space-y-6">
@@ -2323,7 +2365,78 @@ export default function AdminPanel() {
                 </div>
               </div>
 
+              {/* Form Bottom Actions (Desktop & Tablet) */}
+              <div className="lg:col-span-12 hidden sm:flex items-center justify-end gap-3 pt-6 border-t border-gray-200/80 bg-white p-4 rounded-xl">
+                {productModal.id && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const prod = products.find((p) => p.id === productModal.id);
+                      if (prod) {
+                        setProductModal({ open: false });
+                        deleteProduct(prod);
+                      }
+                    }}
+                    className="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs rounded-lg border border-rose-200 transition-all uppercase tracking-wider"
+                  >
+                    Delete Product
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => saveProduct(undefined, false)}
+                  className="px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-800 font-semibold text-xs rounded-lg border border-gray-300 shadow-sm transition-all uppercase tracking-wider"
+                >
+                  Save as Draft
+                </button>
+                <button
+                  type="button"
+                  onClick={() => saveProduct(undefined, true)}
+                  className="px-6 py-2.5 bg-[#171717] hover:bg-black text-[#F3E5AB] font-semibold text-xs rounded-lg shadow-md transition-all uppercase tracking-wider"
+                >
+                  Publish Product
+                </button>
+              </div>
+
             </form>
+
+            {/* Mobile Fixed Sticky Bottom Action Bar (Phone Only) */}
+            <div className="sm:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200 p-3 flex items-center gap-2 shadow-2xl safe-area-bottom">
+              {productModal.id && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const prod = products.find((p) => p.id === productModal.id);
+                    if (prod) {
+                      setProductModal({ open: false });
+                      deleteProduct(prod);
+                    }
+                  }}
+                  className="p-3 bg-rose-50 active:bg-rose-100 text-rose-700 rounded-xl border border-rose-200 shrink-0 flex items-center justify-center"
+                  title="Delete Product"
+                  aria-label="Delete Product"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => saveProduct(undefined, false)}
+                className="flex-1 py-3 px-2 bg-slate-100 active:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl border border-slate-300 text-center uppercase tracking-wider"
+              >
+                Draft
+              </button>
+              <button
+                type="button"
+                onClick={() => saveProduct(undefined, true)}
+                className="flex-[2] py-3 px-3 bg-slate-950 active:bg-black text-[#D4AF37] font-bold text-xs rounded-xl shadow-lg text-center uppercase tracking-wider flex items-center justify-center gap-1.5"
+              >
+                <span>Publish Product</span>
+                <span className="text-amber-400">✓</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -2337,7 +2450,10 @@ export default function AdminPanel() {
               <input type="checkbox" checked={categoryForm.isActive} onChange={(e) => setCategoryForm({ ...categoryForm, isActive: e.target.checked })} className="h-4 w-4 accent-[#C9A648]" />
               Active category
             </label>
-            <Button type="submit">{categoryModal.id ? "Save Category" : "Create Category"}</Button>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button type="button" variant="secondary" onClick={() => setCategoryModal({ open: false })}>Cancel</Button>
+              <Button type="submit">{categoryModal.id ? "Save Category" : "Create Category"}</Button>
+            </div>
           </form>
         </Modal>
       )}
@@ -2541,7 +2657,7 @@ function AdminShell({
       )}
 
       {/* Android Native Bottom Navigation Bar (Mobile / Tablet) */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-slate-950 border-t border-slate-800 shadow-2xl flex items-center justify-around h-16 px-1">
+      <nav className="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-slate-950 border-t border-slate-800 shadow-2xl flex items-center justify-around h-16 px-1 safe-area-bottom">
         {[
           {
             id: "dashboard" as Tab,
@@ -2571,29 +2687,36 @@ function AdminShell({
             ),
           },
           {
-            id: "categories" as Tab,
-            label: "Category",
+            id: "coupons" as Tab,
+            label: "Promos",
             icon: (
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
               </svg>
             ),
           },
           {
-            id: "settings" as Tab,
-            label: "Settings",
+            id: "menu",
+            label: "Menu",
             icon: (
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             ),
           },
         ].map((tab) => {
-          const isActive = activeTab === tab.id;
+          const isActive = tab.id === "menu" ? mobileNavOpen : activeTab === tab.id;
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                if (tab.id === "menu") {
+                  setMobileNavOpen(!mobileNavOpen);
+                } else {
+                  setActiveTab(tab.id as Tab);
+                  setMobileNavOpen(false);
+                }
+              }}
               className={`flex flex-col items-center justify-center flex-1 h-full px-1 transition-all ${
                 isActive ? "text-[#D4AF37]" : "text-slate-400 hover:text-slate-200"
               }`}
@@ -2616,18 +2739,18 @@ function AdminShell({
 
 function Panel({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="flex flex-col gap-3 border-b border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-base font-semibold text-slate-950">{title}</h2>
-        {action}
+    <section className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="flex flex-row items-center justify-between gap-3 border-b border-slate-200 p-3.5 sm:p-4">
+        <h2 className="text-sm sm:text-base font-bold text-slate-950 truncate">{title}</h2>
+        {action ? <div className="shrink-0">{action}</div> : null}
       </div>
-      <div className="p-4">{children}</div>
+      <div className="p-3.5 sm:p-5">{children}</div>
     </section>
   );
 }
 
 function Toolbar({ children }: { children: React.ReactNode }) {
-  return <div className="mb-4 flex flex-col gap-3 sm:flex-row">{children}</div>;
+  return <div className="mb-4 flex flex-col gap-2.5 sm:flex-row">{children}</div>;
 }
 
 function DataTable({ headers, rows, empty }: { headers: string[]; rows: React.ReactNode[][]; empty: string }) {
@@ -2648,11 +2771,26 @@ function DataTable({ headers, rows, empty }: { headers: string[]; rows: React.Re
 }
 
 function SearchBar({ value, onChange, placeholder }: { value: string; onChange: (value: string) => void; placeholder: string }) {
-  return <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#C9A648] sm:max-w-xs" />;
+  return (
+    <input
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-base sm:text-sm outline-none focus:border-[#C9A648] bg-white sm:max-w-xs transition-all placeholder:text-slate-400"
+    />
+  );
 }
 
 function Select({ value, onChange, children }: { value: string; onChange: (value: string) => void; children: React.ReactNode }) {
-  return <select value={value} onChange={(e) => onChange(e.target.value)} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#C9A648]">{children}</select>;
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full sm:w-auto rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-base sm:text-sm outline-none focus:border-[#C9A648] transition-all"
+    >
+      {children}
+    </select>
+  );
 }
 
 function Pagination({ page, total, pageSize, onPageChange }: { page: number; total: number; pageSize: number; onPageChange: (page: number) => void }) {
@@ -2671,7 +2809,7 @@ function Pagination({ page, total, pageSize, onPageChange }: { page: number; tot
 function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
-      <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-white shadow-2xl animate-in slide-in-from-bottom duration-200">
+      <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-white shadow-2xl animate-in slide-in-from-bottom duration-200 pb-6 sm:pb-0">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-slate-950 text-white p-4 rounded-t-2xl sm:rounded-t-2xl">
           <div className="flex items-center space-x-2">
             <span className="w-1.5 h-4 bg-[#D4AF37] rounded-full"></span>
@@ -2739,7 +2877,7 @@ function ImageUpload({ label, value, onChange }: { label: string; value: string;
         {value ? <Image src={value} alt={label} fill className="object-cover" /> : null}
       </div>
       <Field label={label} value={value} onChange={onChange} />
-      <label className="inline-flex cursor-pointer items-center justify-center rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-[#C9A648]">
+      <label className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:border-[#C9A648] active:scale-95 transition-all">
         {uploading ? "Uploading" : "Upload"}
         <input type="file" accept="image/*" className="hidden" onChange={(e) => upload(e.target.files?.[0])} />
       </label>
@@ -2750,7 +2888,17 @@ function ImageUpload({ label, value, onChange }: { label: string; value: string;
 
 function Button({ children, type = "button", onClick, variant = "primary" }: { children: React.ReactNode; type?: "button" | "submit"; onClick?: () => void; variant?: "primary" | "secondary" | "outline" }) {
   return (
-    <button type={type} onClick={onClick} className={variant === "primary" ? "rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-[#D4AF37] hover:bg-[#C9A648] hover:text-white" : "rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-slate-950"}>
+    <button
+      type={type}
+      onClick={onClick}
+      className={
+        variant === "primary"
+          ? "rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-[#D4AF37] hover:bg-[#C9A648] hover:text-white active:scale-95 transition-all shadow-sm"
+          : variant === "secondary"
+          ? "rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:border-slate-950 active:scale-95 transition-all"
+          : "rounded-lg border border-slate-200 bg-transparent px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 active:scale-95 transition-all"
+      }
+    >
       {children}
     </button>
   );
@@ -2758,9 +2906,16 @@ function Button({ children, type = "button", onClick, variant = "primary" }: { c
 
 function Field({ label, value, onChange, type = "text", required = false, placeholder }: { label: string; value: string; onChange: (value: string) => void; type?: string; required?: boolean; placeholder?: string }) {
   return (
-    <label className="block text-sm font-medium text-slate-700">
+    <label className="block text-xs sm:text-sm font-medium text-slate-700">
       {label}
-      <input type={type} required={required} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#C9A648]" />
+      <input
+        type={type}
+        required={required}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="mt-1 w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-base sm:text-sm outline-none focus:border-[#C9A648] bg-white transition-all placeholder:text-slate-400"
+      />
     </label>
   );
 }
