@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Product } from "@/components/home/mockData";
 import { useCart } from "@/context/CartContext";
 import SizeGuideModal from "./SizeGuideModal";
+import ProductOffers from "./ProductOffers";
 
 interface ProductInfoProps {
   product: Product;
@@ -84,20 +85,28 @@ export default function ProductInfo({
         </h1>
 
         {/* Pricing */}
-        <div className="flex items-baseline gap-3 my-4">
-          <span className="text-2xl sm:text-3xl font-semibold text-gray-900 font-sans">
-            &#8377;{effectivePrice.toLocaleString("en-IN")}
-          </span>
-          {product.discountPrice && (
-            <span className="text-base text-gray-400 line-through font-sans">
-              &#8377;{product.price.toLocaleString("en-IN")}
+        <div>
+          <div className="flex items-baseline flex-wrap gap-2.5 sm:gap-3 mt-4 mb-1">
+            <span className="text-2xl sm:text-3xl font-semibold text-gray-900 font-sans">
+              &#8377;{effectivePrice.toLocaleString("en-IN")}
             </span>
-          )}
-          {product.discountPrice && (
-            <span className="px-2.5 py-1 bg-[#C9A648]/15 text-[#C9A648] text-xs font-bold uppercase rounded">
-              SAVE &#8377;{(product.price - product.discountPrice).toLocaleString("en-IN")}
+            {product.discountPrice && (
+              <span className="text-base text-gray-400 line-through font-sans">
+                &#8377;{product.price.toLocaleString("en-IN")}
+              </span>
+            )}
+            {product.discountPrice && (
+              <span className="px-2.5 py-1 bg-[#C9A648]/15 text-[#C9A648] text-xs font-bold uppercase rounded">
+                SAVE &#8377;{(product.price - product.discountPrice).toLocaleString("en-IN")}
+              </span>
+            )}
+            <span className="text-xs text-gray-500 font-sans font-light">
+              Inclusive of all taxes
             </span>
-          )}
+          </div>
+
+          {/* Dynamic Promocode / Offer Banner */}
+          <ProductOffers currentPrice={effectivePrice} />
         </div>
 
 

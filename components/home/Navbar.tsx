@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
@@ -109,6 +109,25 @@ export default function Navbar({
     loadHeadline();
   }, []);
 
+  const loopedAnnouncements = useMemo(() => {
+    if (!announcementText?.trim()) return [];
+    // Split by pipe (|) or newline (\n)
+    const list = announcementText
+      .split(/[|\n]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    if (list.length === 0) return [];
+
+    // Ensure we have at least 4-6 items per copy so continuous marquee never has empty spaces on wide screens
+    const repeats = Math.max(2, Math.ceil(6 / list.length));
+    const looped: string[] = [];
+    for (let r = 0; r < repeats; r++) {
+      looped.push(...list);
+    }
+    return looped;
+  }, [announcementText]);
+
   const [mobileActiveTab, setMobileActiveTab] = useState<"menu" | "categories">("menu");
 
   const handleSearchSubmit = () => {
@@ -122,10 +141,33 @@ export default function Navbar({
 
   return (
     <>
-      {/* Top Announcement Bar */}
-      {announcementText && (
-        <div className="bg-[#171717] text-[#D4AF37] text-[10px] sm:text-xs py-1 px-3 sm:px-4 text-center font-medium tracking-wider uppercase border-b border-[#C9A648]/20 flex items-center justify-center relative z-40">
-          <span className="text-center w-full">{announcementText}</span>
+      {/* Top Moving Announcement Bar */}
+      {loopedAnnouncements.length > 0 && (
+        <div
+          className="bg-[#171717] text-[#D4AF37] text-[10px] sm:text-xs py-1.5 border-b border-[#C9A648]/20 overflow-hidden relative z-40 select-none group"
+          role="region"
+          aria-label="Announcement"
+        >
+          <div className="flex w-max animate-marquee">
+            {[0, 1].map((copyIndex) => (
+              <div
+                key={copyIndex}
+                className="flex items-center shrink-0"
+                aria-hidden={copyIndex === 1}
+              >
+                {loopedAnnouncements.map((text, itemIndex) => (
+                  <div key={itemIndex} className="flex items-center px-4 sm:px-6">
+                    <span className="font-medium tracking-widest uppercase">
+                      {text}
+                    </span>
+                    <span className="mx-4 sm:mx-6 text-[#C9A648]/60 text-[8px] sm:text-[10px]">
+                      ✦
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

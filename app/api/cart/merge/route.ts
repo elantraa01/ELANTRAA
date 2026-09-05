@@ -14,7 +14,8 @@ export async function POST(req: NextRequest) {
     const sessionEmail = session?.user?.email;
 
     const body = await req.json().catch(() => ({}));
-    const { guestCartItems, guestId } = body;
+    const guestCartItems = body.guestCartItems || body.guestItems || [];
+    const guestId = body.guestId;
 
     let targetUser = null;
     if (sessionEmail || sessionUserId) {

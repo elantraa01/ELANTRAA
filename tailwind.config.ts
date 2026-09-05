@@ -24,6 +24,15 @@ const config: Config = {
         logo: ["var(--font-logo)", "Georgia", "serif"],
         body: ["var(--font-body)", "Arial", "sans-serif"],
       },
+      keyframes: {
+        marquee: {
+          "0%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+      },
+      animation: {
+        marquee: "marquee 28s linear infinite",
+      },
     },
   },
   plugins: [],

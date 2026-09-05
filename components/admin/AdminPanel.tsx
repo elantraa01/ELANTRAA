@@ -1299,10 +1299,14 @@ export default function AdminPanel() {
               )}
 
               {/* Mobile Android Floating Action Button (FAB) */}
-              {(activeTab === "products" || activeTab === "categories") && (
+              {(activeTab === "products" || activeTab === "categories" || activeTab === "coupons") && (
                 <button
                   type="button"
-                  onClick={() => (activeTab === "products" ? openProduct() : openCategory())}
+                  onClick={() => {
+                    if (activeTab === "products") openProduct();
+                    else if (activeTab === "categories") openCategory();
+                    else openCoupon();
+                  }}
                   className="lg:hidden fixed bottom-20 right-4 z-40 w-14 h-14 bg-gradient-to-r from-[#D4AF37] via-[#C9A648] to-[#AA771C] text-slate-950 rounded-full shadow-2xl flex items-center justify-center font-bold text-2xl active:scale-95 transition-transform border border-amber-300/40"
                   aria-label="Add New Item"
                 >
@@ -1360,7 +1364,21 @@ export default function AdminPanel() {
                 <Panel title="Hero Banner Configuration">
                   <form onSubmit={saveHero} className="space-y-6">
                     <div className="grid gap-4 sm:grid-cols-2">
-                      <Field label="Announcement Bar Text" value={heroForm.announcement} onChange={(value) => setHeroForm({ ...heroForm, announcement: value })} placeholder="COMPLIMENTARY WORLDWIDE EXPRESS SHIPPING..." />
+                    <div className="sm:col-span-2 space-y-1">
+                      <label className="block text-xs font-semibold text-slate-700">
+                        Announcement Bar Text (Moving Ticker)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={heroForm.announcement}
+                        onChange={(e) => setHeroForm({ ...heroForm, announcement: e.target.value })}
+                        placeholder="COMPLIMENTARY WORLDWIDE EXPRESS SHIPPING ON ORDERS ABOVE ₹5,000 | USE CODE ELANTRAA10 FOR 10% OFF | HANDCRAFTED PURE SILK COUTURE"
+                        className="w-full rounded-md border border-slate-300 px-3 py-2 text-xs outline-none focus:border-[#C9A648] bg-white font-sans text-slate-900"
+                      />
+                      <p className="text-[11px] text-slate-500">
+                        ✦ <strong>How to add 2-3 lines:</strong> Separate each message using a pipe <code className="font-mono bg-slate-100 text-[#C9A648] font-bold px-1 rounded">|</code> or by pressing <strong>Enter (new line)</strong>. They will loop seamlessly in the top moving bar separated by gold stars.
+                      </p>
+                    </div>
                       <Field label="Tagline" value={heroForm.tagline} onChange={(value) => setHeroForm({ ...heroForm, tagline: value })} placeholder="AUTUMN / WINTER COLLECTION" />
                       <Field label="Main Brand Title" value={heroForm.title} onChange={(value) => setHeroForm({ ...heroForm, title: value })} required />
                       <Field label="Highlight Subtitle" value={heroForm.highlight} onChange={(value) => setHeroForm({ ...heroForm, highlight: value })} placeholder="& Timeless Elegance" />
@@ -1636,7 +1654,7 @@ export default function AdminPanel() {
               )}
 
               {activeTab === "coupons" && (
-                <Panel title="Promocodes & Discounts" action={<div className="hidden sm:block"><Button onClick={() => openCoupon()}>+ Add Promo Code</Button></div>}>
+                <Panel title="Promocodes & Discounts" action={<Button onClick={() => openCoupon()}>+ Add Promo Code</Button>}>
                   <Toolbar><SearchBar value={query} onChange={setQuery} placeholder="Search promo codes..." /></Toolbar>
                   
                   <div className="hidden md:block">
@@ -2109,23 +2127,17 @@ export default function AdminPanel() {
                       <button
                         type="button"
                         onClick={() => {
-                          let savedCount = 0;
                           if (productForm.sizeChart.trim()) {
-                            try { localStorage.setItem("elantraa_default_size_chart_in", productForm.sizeChart.trim()); savedCount++; } catch {}
-                          }
-                          if (productForm.sizeChartCm.trim()) {
-                            try { localStorage.setItem("elantraa_default_size_chart_cm", productForm.sizeChartCm.trim()); savedCount++; } catch {}
-                          }
-                          if (savedCount > 0) {
-                            notify("success", "Current charts saved as defaults for upcoming new products!");
+                            try { localStorage.setItem("elantraa_default_size_chart_in", productForm.sizeChart.trim()); } catch {}
+                            notify("success", "Current size chart saved as default for upcoming new products!");
                           } else {
-                            notify("error", "Please upload or enter at least one size chart URL first.");
+                            notify("error", "Please upload or enter a size chart URL first.");
                           }
                         }}
                         className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-[#9b7a1d] border border-[#C9A648]/40 rounded text-[11px] font-semibold transition-colors shadow-2xs"
-                        title="Save both as the default for next newly created products"
+                        title="Save as default for next newly created products"
                       >
-                        Save As Defaults
+                        Save As Default
                       </button>
                     </div>
                   </div>
@@ -2136,183 +2148,93 @@ export default function AdminPanel() {
                     </p>
                   )}
 
-                  {/* 2-Column Grid for Inches Chart and CM Chart */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    {/* CHART 1: INCHES */}
-                    <div className="p-4 rounded-xl border border-gray-200 bg-[#FAF8F5]/60 space-y-3 flex flex-col justify-between">
-                      <div className="space-y-2.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-[#C9A648]" />
-                            1. Inches (&quot;) Chart
-                          </span>
-                          {productForm.sizeChart ? (
-                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                              Attached
-                            </span>
-                          ) : (
-                            <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                              Not set
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Preview Box */}
+                  {/* Single Size Chart Card */}
+                  <div className="p-4 rounded-xl border border-gray-200 bg-[#FAF8F5]/60 space-y-3">
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-[#C9A648]" />
+                          Size Chart Image
+                        </span>
                         {productForm.sizeChart ? (
-                          <div className="relative w-full h-36 rounded-lg overflow-hidden border border-gray-200 bg-white flex items-center justify-center p-1.5 shadow-inner group">
-                            <img
-                              src={productForm.sizeChart}
-                              alt="Inches size chart preview"
-                              className="w-full h-full object-contain"
-                            />
-                            <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-90 group-hover:opacity-100">
-                              <a
-                                href={productForm.sizeChart}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="bg-black/75 hover:bg-black text-white text-[10px] px-2 py-0.5 rounded"
-                              >
-                                View ↗
-                              </a>
-                              <button
-                                type="button"
-                                onClick={() => setProductForm((prev) => ({ ...prev, sizeChart: "" }))}
-                                className="bg-red-600 hover:bg-red-700 text-white text-[10px] px-1.5 py-0.5 rounded"
-                                title="Remove chart"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="w-full h-36 rounded-lg border-2 border-dashed border-gray-300 bg-white flex flex-col items-center justify-center text-gray-400 p-2 text-center">
-                            <span className="text-xl mb-1">📏</span>
-                            <span className="text-[11px] font-medium text-gray-600">No Inches Chart</span>
-                            <span className="text-[10px] text-gray-400">Upload image or enter URL</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="space-y-2 pt-2 border-t border-gray-200/70">
-                        {/* File Upload Button for Inches */}
-                        <label className="flex items-center justify-center gap-1.5 w-full py-2 bg-slate-900 hover:bg-[#C9A648] text-[#D4AF37] hover:text-white text-xs font-semibold uppercase tracking-wider rounded-lg cursor-pointer transition-all shadow-xs text-center">
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                          </svg>
-                          <span>{uploadingSizeChartIn ? "Uploading..." : "Upload Inches Chart"}</span>
-                          <input
-                            type="file"
-                            accept="image/png,image/jpeg,image/webp,image/avif"
-                            disabled={uploadingSizeChartIn}
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleSizeChartUpload(file, "in");
-                            }}
-                            className="hidden"
-                          />
-                        </label>
-
-                        {/* Direct URL Input for Inches */}
-                        <input
-                          type="text"
-                          placeholder="Direct URL for Inches chart..."
-                          value={productForm.sizeChart}
-                          onChange={(e) => setProductForm({ ...productForm, sizeChart: e.target.value })}
-                          className="w-full bg-white border border-gray-300 focus:border-[#C9A648] rounded-lg px-2.5 py-1.5 text-xs text-gray-900 placeholder-gray-400 outline-none font-mono"
-                        />
-                      </div>
-                    </div>
-
-                    {/* CHART 2: CENTIMETERS (CM) */}
-                    <div className="p-4 rounded-xl border border-gray-200 bg-[#FAF8F5]/60 space-y-3 flex flex-col justify-between">
-                      <div className="space-y-2.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-emerald-600" />
-                            2. Centimeters (cm) Chart
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                            Attached
                           </span>
-                          {productForm.sizeChartCm ? (
-                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                              Attached
-                            </span>
-                          ) : (
-                            <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                              Not set
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Preview Box */}
-                        {productForm.sizeChartCm ? (
-                          <div className="relative w-full h-36 rounded-lg overflow-hidden border border-gray-200 bg-white flex items-center justify-center p-1.5 shadow-inner group">
-                            <img
-                              src={productForm.sizeChartCm}
-                              alt="Centimeters size chart preview"
-                              className="w-full h-full object-contain"
-                            />
-                            <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-90 group-hover:opacity-100">
-                              <a
-                                href={productForm.sizeChartCm}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="bg-black/75 hover:bg-black text-white text-[10px] px-2 py-0.5 rounded"
-                              >
-                                View ↗
-                              </a>
-                              <button
-                                type="button"
-                                onClick={() => setProductForm((prev) => ({ ...prev, sizeChartCm: "" }))}
-                                className="bg-red-600 hover:bg-red-700 text-white text-[10px] px-1.5 py-0.5 rounded"
-                                title="Remove chart"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          </div>
                         ) : (
-                          <div className="w-full h-36 rounded-lg border-2 border-dashed border-gray-300 bg-white flex flex-col items-center justify-center text-gray-400 p-2 text-center">
-                            <span className="text-xl mb-1">📐</span>
-                            <span className="text-[11px] font-medium text-gray-600">No CM Chart</span>
-                            <span className="text-[10px] text-gray-400">Upload image or enter URL</span>
-                          </div>
+                          <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                            Not set
+                          </span>
                         )}
                       </div>
 
-                      <div className="space-y-2 pt-2 border-t border-gray-200/70">
-                        {/* File Upload Button for CM */}
-                        <label className="flex items-center justify-center gap-1.5 w-full py-2 bg-slate-900 hover:bg-[#C9A648] text-[#D4AF37] hover:text-white text-xs font-semibold uppercase tracking-wider rounded-lg cursor-pointer transition-all shadow-xs text-center">
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                          </svg>
-                          <span>{uploadingSizeChartCm ? "Uploading..." : "Upload CM Chart"}</span>
-                          <input
-                            type="file"
-                            accept="image/png,image/jpeg,image/webp,image/avif"
-                            disabled={uploadingSizeChartCm}
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleSizeChartUpload(file, "cm");
-                            }}
-                            className="hidden"
+                      {/* Preview Box */}
+                      {productForm.sizeChart ? (
+                        <div className="relative w-full h-44 rounded-lg overflow-hidden border border-gray-200 bg-white flex items-center justify-center p-2 shadow-inner group">
+                          <img
+                            src={productForm.sizeChart}
+                            alt="Size chart preview"
+                            className="w-full h-full object-contain"
                           />
-                        </label>
-
-                        {/* Direct URL Input for CM */}
-                        <input
-                          type="text"
-                          placeholder="Direct URL for CM chart..."
-                          value={productForm.sizeChartCm}
-                          onChange={(e) => setProductForm({ ...productForm, sizeChartCm: e.target.value })}
-                          className="w-full bg-white border border-gray-300 focus:border-[#C9A648] rounded-lg px-2.5 py-1.5 text-xs text-gray-900 placeholder-gray-400 outline-none font-mono"
-                        />
-                      </div>
+                          <div className="absolute top-2 right-2 flex items-center gap-1.5 opacity-90 group-hover:opacity-100">
+                            <a
+                              href={productForm.sizeChart}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="bg-black/75 hover:bg-black text-white text-[10px] px-2.5 py-1 rounded font-medium"
+                            >
+                              View ↗
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => setProductForm((prev) => ({ ...prev, sizeChart: "" }))}
+                              className="bg-red-600 hover:bg-red-700 text-white text-[10px] px-2 py-1 rounded font-bold"
+                              title="Remove chart"
+                            >
+                              ✕ Remove
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-full h-36 rounded-lg border-2 border-dashed border-gray-300 bg-white flex flex-col items-center justify-center text-gray-400 p-2 text-center">
+                          <span className="text-xl mb-1">📏</span>
+                          <span className="text-[11px] font-medium text-gray-600">No Size Chart Attached</span>
+                          <span className="text-[10px] text-gray-400">Upload image or enter direct image URL</span>
+                        </div>
+                      )}
                     </div>
 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-gray-200/70 items-center">
+                      {/* File Upload Button */}
+                      <label className="flex items-center justify-center gap-1.5 w-full py-2 bg-slate-900 hover:bg-[#C9A648] text-[#D4AF37] hover:text-white text-xs font-semibold uppercase tracking-wider rounded-lg cursor-pointer transition-all shadow-xs text-center">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        <span>{uploadingSizeChartIn ? "Uploading..." : "Upload Chart Image"}</span>
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/avif"
+                          disabled={uploadingSizeChartIn}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleSizeChartUpload(file, "in");
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+
+                      {/* Direct URL Input */}
+                      <input
+                        type="text"
+                        placeholder="Or direct image URL (https://...)"
+                        value={productForm.sizeChart}
+                        onChange={(e) => setProductForm({ ...productForm, sizeChart: e.target.value })}
+                        className="w-full bg-white border border-gray-300 focus:border-[#C9A648] rounded-lg px-2.5 py-2 text-xs text-gray-900 placeholder-gray-400 outline-none font-mono"
+                      />
+                    </div>
                   </div>
 
                   <p className="text-[11px] text-gray-600 bg-amber-50/70 p-2.5 rounded-lg border border-amber-200/60 leading-relaxed">
-                    ✨ <strong>Smart Defaulting:</strong> Once uploaded, these 2 chart images are remembered and will automatically default for newly added products, while you can easily upload new custom charts for any specific product.
+                    ✨ <strong>Smart Defaulting:</strong> Once uploaded, this chart image is remembered and will automatically default for newly added products, while you can easily customize or change it for any specific product.
                   </p>
                 </div>
 

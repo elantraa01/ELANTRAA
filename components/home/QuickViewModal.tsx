@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Product } from "./mockData";
 import SizeGuideModal from "@/components/product/SizeGuideModal";
+import ProductOffers from "@/components/product/ProductOffers";
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -140,7 +141,7 @@ function QuickViewModalContent({
             <h2 className="text-2xl font-serif text-gray-900">{product.name}</h2>
 
             {/* Price */}
-            <div className="flex items-baseline gap-3 my-3">
+            <div className="flex items-baseline flex-wrap gap-2.5 sm:gap-3 mt-3 mb-1">
               <span className="text-2xl font-semibold text-gray-900">
                 ₹{(product.discountPrice || product.price).toLocaleString("en-IN")}
               </span>
@@ -149,7 +150,13 @@ function QuickViewModalContent({
                   ₹{product.price.toLocaleString("en-IN")}
                 </span>
               )}
+              <span className="text-[11px] text-gray-500 font-sans font-light">
+                Inclusive of all taxes
+              </span>
             </div>
+
+            {/* Dynamic Promocode / Offer Banner */}
+            <ProductOffers currentPrice={product.discountPrice || product.price} />
 
             {/* Description */}
             <p className="text-sm text-gray-600 font-light leading-relaxed mb-6">

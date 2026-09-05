@@ -330,7 +330,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prev) => prev.filter((item) => item.id !== itemId));
 
     if (isLoggedIn) {
-      fetch("/api/cart", {
+      fetch(`/api/cart?itemId=${encodeURIComponent(itemId)}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ itemId }),
@@ -345,7 +345,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(PROMO_CODE_KEY);
 
     if (isLoggedIn) {
-      fetch("/api/cart", { method: "DELETE" }).catch((error) =>
+      fetch("/api/cart?all=true", { method: "DELETE" }).catch((error) =>
         console.error("Failed to clear cart", error)
       );
     }

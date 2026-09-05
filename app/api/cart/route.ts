@@ -117,15 +117,23 @@ export async function DELETE(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const itemId = searchParams.get("itemId");
+    let itemId = searchParams.get("itemId");
     const clearAll = searchParams.get("all") === "true";
+
+    if (!itemId && !clearAll) {
+      const body = await req.json().catch(() => ({}));
+      if (body?.itemId) itemId = String(body.itemId);
+      if (body?.all === true) {
+        // clear all request via body
+      }
+    }
 
     const cart = await prisma.cart.findUnique({ where: { userId } });
     if (!cart) {
       return NextResponse.json({ success: true });
     }
 
-    if (clearAll) {
+    if (clearAll || (!itemId && searchParams.get("all") === null)) {
       await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
       return NextResponse.json({ success: true, cart: { ...cart, items: [] } });
     }
