@@ -230,8 +230,7 @@ export default function ProductOffers({ currentPrice }: ProductOffersProps) {
                         )}
                       </div>
 
-                      <p className="text-xs text-gray-700 font-medium">{coupon.description}</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5">
+                      <p className="text-[11px] text-gray-500 mt-1">
                         Special price with this code:{" "}
                         <span className="font-semibold text-gray-900 font-sans">
                           &#8377;{finalItemPrice.toLocaleString("en-IN")}
