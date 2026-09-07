@@ -54,9 +54,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Please log in or provide an email before placing an order." }, { status: 401 });
     }
 
-    if (!shippingAddress || !items || !Array.isArray(items) || items.length === 0) {
+    if (!shippingAddress || typeof shippingAddress !== "object" || !items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
         { error: "Shipping address and items are required" },
+        { status: 400 }
+      );
+    }
+
+    const addrLine1 = typeof shippingAddress.line1 === "string" ? shippingAddress.line1.trim() : "";
+    const addrCity = typeof shippingAddress.city === "string" ? shippingAddress.city.trim() : "";
+    const addrPincode = typeof shippingAddress.pincode === "string" ? shippingAddress.pincode.trim() : "";
+    const addrPhone = typeof shippingAddress.phone === "string" ? shippingAddress.phone.trim() : "";
+
+    if (!addrLine1 || !addrCity || !addrPincode) {
+      return NextResponse.json(
+        { error: "A complete delivery address (street address, city, and pincode) is required to place an order." },
+        { status: 400 }
+      );
+    }
+
+    if (!addrPhone) {
+      return NextResponse.json(
+        { error: "A valid recipient contact phone number is required for delivery." },
         { status: 400 }
       );
     }
@@ -221,8 +240,8 @@ export async function POST(req: NextRequest) {
         advanceAmount = recalculatedTotal;
         balanceAmount = 0;
       } else if (payment.paymentMethod === "PARTIAL_COD") {
-        // 70% product value + 100% shipping charge paid online as advance
-        advanceAmount = Math.min(recalculatedTotal, Math.ceil(netProductAmount * 0.7) + shippingCharge);
+        // 40% product value + 100% shipping charge paid online as advance
+        advanceAmount = Math.min(recalculatedTotal, Math.ceil(netProductAmount * 0.4) + shippingCharge);
         balanceAmount = Math.max(0, recalculatedTotal - advanceAmount);
       }
 

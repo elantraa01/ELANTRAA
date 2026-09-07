@@ -12,41 +12,6 @@ export interface PublicCoupon {
   description: string;
 }
 
-const fallbackCoupons: PublicCoupon[] = [
-  {
-    id: "default_elantraagold",
-    code: "ELANTRAAGOLD",
-    type: "percentage",
-    value: 10,
-    minSpend: null,
-    description: "Get 10% OFF on all luxury collections",
-  },
-  {
-    id: "default_welcome10",
-    code: "WELCOME10",
-    type: "fixed",
-    value: 500,
-    minSpend: 2500,
-    description: "Flat ₹500 OFF on orders above ₹2,500",
-  },
-  {
-    id: "default_festive15",
-    code: "FESTIVE15",
-    type: "percentage",
-    value: 15,
-    minSpend: 4000,
-    description: "Festive Exclusive: 15% OFF on orders above ₹4,000",
-  },
-  {
-    id: "default_elantraa10",
-    code: "ELANTRAA10",
-    type: "fixed",
-    value: 300,
-    minSpend: null,
-    description: "Instant ₹300 discount on your order",
-  },
-];
-
 export async function GET() {
   try {
     const couponModel = (
@@ -57,7 +22,7 @@ export async function GET() {
     ).coupon;
 
     if (!couponModel || typeof couponModel.findMany !== "function") {
-      return NextResponse.json({ coupons: fallbackCoupons });
+      return NextResponse.json({ coupons: [] });
     }
 
     const now = new Date();
@@ -69,7 +34,7 @@ export async function GET() {
     });
 
     if (!dbCoupons || dbCoupons.length === 0) {
-      return NextResponse.json({ coupons: fallbackCoupons });
+      return NextResponse.json({ coupons: [] });
     }
 
     const validCoupons: PublicCoupon[] = dbCoupons
@@ -108,13 +73,10 @@ export async function GET() {
         };
       });
 
-    if (validCoupons.length > 0) {
-      return NextResponse.json({ coupons: validCoupons });
-    }
-
-    return NextResponse.json({ coupons: fallbackCoupons });
+    return NextResponse.json({ coupons: validCoupons });
   } catch (error) {
     console.warn("Public Coupons GET warning:", error);
-    return NextResponse.json({ coupons: fallbackCoupons });
+    return NextResponse.json({ coupons: [] });
   }
 }
+

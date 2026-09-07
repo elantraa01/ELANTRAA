@@ -29,7 +29,7 @@ export default function ProductOffers({ currentPrice }: ProductOffersProps) {
         const res = await fetch("/api/coupons");
         if (res.ok) {
           const data = await res.json();
-          if (Array.isArray(data.coupons) && data.coupons.length > 0) {
+          if (Array.isArray(data.coupons)) {
             setCoupons(data.coupons);
           }
         }

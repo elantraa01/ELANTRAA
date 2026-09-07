@@ -2556,7 +2556,7 @@ export default function AdminPanel() {
                 label="Payment Method"
                 value={
                   orderModal.paymentMethod === "PARTIAL_COD"
-                    ? "70% Advance Online + 30% COD"
+                    ? "40% Advance Online + 60% COD"
                     : orderModal.paymentMethod === "COD"
                     ? "Cash On Delivery (COD)"
                     : "Pay Online"
@@ -2566,11 +2566,11 @@ export default function AdminPanel() {
               {orderModal.paymentMethod === "PARTIAL_COD" && (
                 <>
                   <Info
-                    label="Advance Paid Online (70% + Delivery)"
+                    label="Advance Paid Online (40% + Delivery)"
                     value={formatMoney(Number(orderModal.advanceAmount || 0), settings.currency)}
                   />
                   <Info
-                    label="Balance to Collect on Delivery (30% COD)"
+                    label="Balance to Collect on Delivery (60% COD)"
                     value={formatMoney(Number(orderModal.balanceAmount || 0), settings.currency)}
                   />
                 </>

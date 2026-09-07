@@ -35,6 +35,7 @@ export default function CheckoutPage() {
   const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
   const [addressSubmitting, setAddressSubmitting] = useState(false);
   const [addressModalError, setAddressModalError] = useState("");
+  const [addressError, setAddressError] = useState("");
 
   const [addressModalForm, setAddressModalForm] = useState({
     name: "",
@@ -107,6 +108,7 @@ export default function CheckoutPage() {
 
   const handleSelectSavedAddress = (addr: SavedAddressItem) => {
     setSelectedAddressId(addr.id);
+    setAddressError("");
     setFormData((prev) => ({
       ...prev,
       fullName: addr.name || prev.fullName || session?.user?.name || "",
@@ -266,6 +268,35 @@ export default function CheckoutPage() {
       return;
     }
 
+    // Validate delivery address
+    const hasValidAddress = Boolean(
+      savedAddresses.length > 0 &&
+      selectedAddressId &&
+      formData.line1?.trim() &&
+      formData.city?.trim() &&
+      formData.pincode?.trim()
+    );
+
+    if (!hasValidAddress || savedAddresses.length === 0) {
+      setAddressError("Please add or select a delivery address before placing your order.");
+      if (savedAddresses.length === 0) {
+        openAddAddressModal();
+      } else {
+        const addressSection = document.getElementById("delivery-address-section");
+        addressSection?.scrollIntoView({ behavior: "smooth" });
+      }
+      return;
+    }
+
+    if (!formData.phone?.trim()) {
+      setAddressError("Please provide a contact phone number for order delivery.");
+      const currentAddr = savedAddresses.find((a) => a.id === selectedAddressId);
+      if (currentAddr) openEditAddressModal(currentAddr);
+      else openAddAddressModal();
+      return;
+    }
+
+    setAddressError("");
     setLoading(true);
 
     const orderPayload = {
@@ -311,7 +342,7 @@ export default function CheckoutPage() {
         setLoading(false);
       }
     } else {
-      // Online Payment (Full Online or 70% Advance Partial COD)
+      // Online Payment (Full Online or 40% Advance Partial COD)
       try {
         const isPartialCod = formData.paymentMethod === "PARTIAL_COD";
 
@@ -342,7 +373,7 @@ export default function CheckoutPage() {
           currency: rzpOrder.currency || "INR",
           name: "ELANTRAA",
           description: isPartialCod
-            ? `70% Advance Payment (${items.length} Items)`
+            ? `40% Advance Payment (${items.length} Items)`
             : `Selection (${items.length} Items)`,
           image: "/images/logo/logo.png",
           order_id: rzpOrder.id,
@@ -537,7 +568,7 @@ export default function CheckoutPage() {
               </div>
 
               {/* 1. Delivery Address (Saved Addresses Only + Add / Edit Option) */}
-              <div className="bg-[#FAF8F5] p-6 rounded-xl border border-gray-200 space-y-4">
+              <div id="delivery-address-section" className="bg-[#FAF8F5] p-6 rounded-xl border border-gray-200 space-y-4">
                 <div className="flex items-center justify-between border-b border-gray-200 pb-3">
                   <h3 className="text-sm font-serif font-semibold uppercase tracking-wider text-gray-900">
                     1. Delivery Address
@@ -551,6 +582,15 @@ export default function CheckoutPage() {
                     <span>Add New Address</span>
                   </button>
                 </div>
+
+                {addressError && (
+                  <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium flex items-center gap-2">
+                    <svg className="w-4 h-4 shrink-0 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>{addressError}</span>
+                  </div>
+                )}
 
                 {savedAddresses.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -671,7 +711,7 @@ export default function CheckoutPage() {
 
                 {(() => {
                   const netProductAmount = Math.max(0, subtotal - discount);
-                  const advancePayable = Math.min(total, Math.ceil(netProductAmount * 0.7) + shipping);
+                  const advancePayable = Math.min(total, Math.ceil(netProductAmount * 0.4) + shipping);
                   const codBalance = Math.max(0, total - advancePayable);
 
                   const paymentOptions = [
@@ -683,9 +723,9 @@ export default function CheckoutPage() {
                     },
                     {
                       id: "PARTIAL_COD",
-                      label: "70% Advance Online + 30% on Delivery (COD)",
-                      desc: `Pay 70% + shipping now (\u20B9${advancePayable.toLocaleString("en-IN")}), and remaining balance (\u20B9${codBalance.toLocaleString("en-IN")}) in cash/UPI upon package delivery.`,
-                      badge: "70% Advance",
+                      label: "40% Advance Online + 60% on Delivery (COD)",
+                      desc: `Pay 40% + shipping now (\u20B9${advancePayable.toLocaleString("en-IN")}), and remaining balance (\u20B9${codBalance.toLocaleString("en-IN")}) in cash/UPI upon package delivery.`,
+                      badge: "40% Advance",
                     },
                   ];
 
@@ -787,7 +827,7 @@ export default function CheckoutPage() {
               {/* Partial COD Breakdown Notice */}
               {(() => {
                 const netProductAmount = Math.max(0, subtotal - discount);
-                const advancePayable = Math.min(total, Math.ceil(netProductAmount * 0.7) + shipping);
+                const advancePayable = Math.min(total, Math.ceil(netProductAmount * 0.4) + shipping);
                 const codBalance = Math.max(0, total - advancePayable);
 
                 if (formData.paymentMethod === "PARTIAL_COD") {
@@ -795,13 +835,13 @@ export default function CheckoutPage() {
                     <div className="p-3.5 bg-gradient-to-br from-amber-50/90 to-amber-100/40 border border-amber-300/70 rounded-xl space-y-2.5 text-xs">
                       <div className="flex justify-between items-center font-bold text-amber-950">
                         <span className="flex items-center gap-1.5">
-                          <span>💳</span> Due Online Now (70% + Shipping)
+                          <span>💳</span> Due Online Now (40% + Shipping)
                         </span>
                         <span className="text-sm text-[#967727]">&#8377;{advancePayable.toLocaleString("en-IN")}</span>
                       </div>
                       <div className="flex justify-between items-center text-gray-700 pt-1.5 border-t border-amber-200/60">
                         <span className="flex items-center gap-1.5">
-                          <span>📦</span> Remaining COD on Delivery (30%)
+                          <span>📦</span> Remaining COD on Delivery (60%)
                         </span>
                         <span className="font-bold text-gray-900">&#8377;{codBalance.toLocaleString("en-IN")}</span>
                       </div>
@@ -819,7 +859,29 @@ export default function CheckoutPage() {
 
               {(() => {
                 const netProductAmount = Math.max(0, subtotal - discount);
-                const advancePayable = Math.min(total, Math.ceil(netProductAmount * 0.7) + shipping);
+                const advancePayable = Math.min(total, Math.ceil(netProductAmount * 0.4) + shipping);
+                const hasAddress = Boolean(
+                  savedAddresses.length > 0 &&
+                  selectedAddressId &&
+                  formData.line1?.trim() &&
+                  formData.city?.trim() &&
+                  formData.pincode?.trim()
+                );
+
+                if (!hasAddress) {
+                  return (
+                    <button
+                      type="button"
+                      onClick={openAddAddressModal}
+                      className="w-full py-4 bg-gradient-to-r from-amber-700 via-[#C9A648] to-amber-800 text-white font-semibold text-xs tracking-[0.2em] uppercase rounded-md shadow-lg hover:opacity-95 transition-opacity flex items-center justify-center space-x-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      <span>Add Delivery Address to Proceed</span>
+                    </button>
+                  );
+                }
 
                 return (
                   <button
@@ -831,7 +893,7 @@ export default function CheckoutPage() {
                       {loading
                         ? "Connecting to Payment Gateway..."
                         : formData.paymentMethod === "PARTIAL_COD"
-                        ? `Pay 70% Advance \u2022 \u20B9${advancePayable.toLocaleString("en-IN")}`
+                        ? `Pay 40% Advance \u2022 \u20B9${advancePayable.toLocaleString("en-IN")}`
                         : `Pay Online \u2022 \u20B9${total.toLocaleString("en-IN")}`}
                     </span>
                   </button>
