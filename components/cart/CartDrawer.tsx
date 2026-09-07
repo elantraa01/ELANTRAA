@@ -51,11 +51,11 @@ export default function CartDrawer() {
         onClick={() => setCartOpen(false)}
       />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+      <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10 pointer-events-none">
+        <div className="w-full sm:w-screen max-w-full sm:max-w-md bg-white shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300 pointer-events-auto h-full">
           
           {/* Header */}
-          <div className="p-4 sm:p-6 bg-[#171717] text-white flex items-center justify-between border-b border-[#C9A648]/30">
+          <div className="shrink-0 p-4 sm:p-6 bg-[#171717] text-white flex items-center justify-between border-b border-[#C9A648]/30">
             <div className="flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-[#C9A648] animate-pulse" />
               <h2 className="text-sm font-serif uppercase tracking-[0.2em] text-[#D4AF37] font-semibold">
@@ -76,7 +76,7 @@ export default function CartDrawer() {
 
           {/* Free Delivery Progress Bar */}
           {items.length > 0 && freeShippingThreshold > 0 && (
-            <div className="bg-[#FAF8F5] px-4 py-2.5 border-b border-gray-200 text-xs">
+            <div className="shrink-0 bg-[#FAF8F5] px-4 py-2.5 border-b border-gray-200 text-xs">
               {subtotal >= freeShippingThreshold ? (
                 <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
                   <span>✨</span>
@@ -99,7 +99,7 @@ export default function CartDrawer() {
           )}
 
           {/* Cart Items List */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 divide-y divide-gray-100">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 divide-y divide-gray-100 overscroll-contain">
             {items.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center py-12 space-y-4">
                 <div className="w-16 h-16 rounded-full bg-[#FAF8F5] border border-[#C9A648]/20 flex items-center justify-center text-[#C9A648]">
@@ -196,7 +196,7 @@ export default function CartDrawer() {
 
           {/* Footer & Checkout Summary */}
           {items.length > 0 && (
-            <div className="p-4 sm:p-6 bg-[#FAF8F5] border-t border-gray-200 space-y-4">
+            <div className="shrink-0 p-4 sm:p-6 bg-[#FAF8F5] border-t border-gray-200 space-y-3.5 sm:space-y-4">
               {/* Promo Code Input */}
               <div>
                 {promoCode ? (
@@ -218,12 +218,12 @@ export default function CartDrawer() {
                       placeholder="PROMO CODE"
                       value={inputCode}
                       onChange={(e) => setInputCode(e.target.value)}
-                      className="flex-1 px-3 py-2 text-xs uppercase bg-white border border-gray-300 rounded focus:border-[#C9A648] outline-none font-mono"
+                      className="flex-1 min-w-0 px-3 py-2 text-xs uppercase bg-white border border-gray-300 rounded focus:border-[#C9A648] outline-none font-mono"
                     />
                     <button
                       type="submit"
                       disabled={applying}
-                      className="px-4 py-2 bg-[#171717] text-[#D4AF37] text-xs font-semibold uppercase tracking-wider rounded hover:bg-[#C9A648] hover:text-white transition-colors"
+                      className="shrink-0 px-4 py-2 bg-[#171717] text-[#D4AF37] text-xs font-semibold uppercase tracking-wider rounded hover:bg-[#C9A648] hover:text-white transition-colors"
                     >
                       {applying ? "..." : "Apply"}
                     </button>
@@ -259,13 +259,13 @@ export default function CartDrawer() {
               </div>
 
               {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3 pt-1 sm:pt-2">
                 <button
                   onClick={() => {
                     setCartOpen(false);
                     router.push("/cart");
                   }}
-                  className="w-full py-3 bg-white border border-gray-300 text-gray-900 text-xs font-semibold uppercase tracking-widest rounded hover:border-gray-900 transition-colors text-center"
+                  className="w-full py-3 px-2 bg-white border border-gray-300 text-gray-900 text-xs font-semibold uppercase tracking-wider sm:tracking-widest rounded hover:border-gray-900 transition-colors text-center truncate"
                 >
                   View Bag
                 </button>
@@ -275,7 +275,7 @@ export default function CartDrawer() {
                     setCartOpen(false);
                     router.push("/checkout");
                   }}
-                  className="w-full py-3 bg-[#171717] text-[#D4AF37] text-xs font-semibold uppercase tracking-widest rounded hover:bg-[#C9A648] hover:text-white transition-colors text-center shadow-md"
+                  className="w-full py-3 px-2 bg-[#171717] text-[#D4AF37] text-xs font-semibold uppercase tracking-wider sm:tracking-widest rounded hover:bg-[#C9A648] hover:text-white transition-colors text-center shadow-md truncate"
                 >
                   Checkout
                 </button>
