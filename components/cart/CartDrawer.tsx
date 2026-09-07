@@ -44,15 +44,16 @@ export default function CartDrawer() {
   };
 
   return (
-    <div className="fixed inset-0 z-[70] overflow-hidden font-sans">
+    <div className="fixed inset-0 z-[70] overflow-hidden font-sans flex justify-end">
       {/* Backdrop overlay */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-300"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
         onClick={() => setCartOpen(false)}
+        aria-hidden="true"
       />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10 pointer-events-none">
-        <div className="w-full sm:w-screen max-w-full sm:max-w-md bg-white shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300 pointer-events-auto h-full">
+      {/* Slide-over panel */}
+      <div className="relative z-10 w-full sm:max-w-md h-full bg-white shadow-2xl flex flex-col justify-between overflow-hidden drawer-slide-in">
           
           {/* Header */}
           <div className="shrink-0 p-4 sm:p-6 bg-[#171717] text-white flex items-center justify-between border-b border-[#C9A648]/30">
@@ -284,7 +285,6 @@ export default function CartDrawer() {
           )}
 
         </div>
-      </div>
     </div>
   );
 }
