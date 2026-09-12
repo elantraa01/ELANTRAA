@@ -70,7 +70,7 @@ type Order = {
   paymentMethod?: string;
   createdAt: string;
   customer?: { id: string; name: string; email: string };
-  shippingAddress?: Record<string, any> | string;
+  shippingAddress?: Record<string, unknown> | string;
   items?: OrderItem[];
   timeline?: { status: string; label: string; completed: boolean; date?: string | null }[];
 };
@@ -2557,7 +2557,7 @@ export default function AdminPanel() {
                 label="Payment Method"
                 value={
                   orderModal.paymentMethod === "PARTIAL_COD"
-                    ? "70% Advance Online + 30% COD"
+                    ? "40% Advance Online + 60% COD"
                     : orderModal.paymentMethod === "COD"
                     ? "Cash On Delivery (COD)"
                     : "Pay Online"
@@ -2567,11 +2567,11 @@ export default function AdminPanel() {
               {orderModal.paymentMethod === "PARTIAL_COD" && (
                 <>
                   <Info
-                    label="Advance Paid Online (70% + Delivery)"
+                    label="Advance Paid Online (40% + Delivery)"
                     value={formatMoney(Number(orderModal.advanceAmount || 0), settings.currency)}
                   />
                   <Info
-                    label="Balance to Collect on Delivery (30% COD)"
+                    label="Balance to Collect on Delivery (60% COD)"
                     value={formatMoney(Number(orderModal.balanceAmount || 0), settings.currency)}
                   />
                 </>
@@ -2682,8 +2682,8 @@ export default function AdminPanel() {
                   {/* Optional Pricing Breakdown if present in shippingAddress.pricing */}
                   {addr?.pricing && (
                     <div className="mt-2 pt-2 border-t border-slate-200/60 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
-                      {addr.pricing.promoCode && (
-                        <span>Promo Code: <strong className="text-slate-700">{addr.pricing.promoCode}</strong></span>
+                      {Boolean(addr.pricing.promoCode) && (
+                        <span>Promo Code: <strong className="text-slate-700">{String(addr.pricing.promoCode)}</strong></span>
                       )}
                       {Number(addr.pricing.promoDiscount) > 0 && (
                         <span>Promo Discount: <strong className="text-emerald-600">-₹{Number(addr.pricing.promoDiscount).toLocaleString("en-IN")}</strong></span>

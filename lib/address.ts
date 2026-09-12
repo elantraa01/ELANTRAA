@@ -1,3 +1,13 @@
+export interface AddressPricingDetails {
+  subtotal?: number;
+  promoCode?: string | null;
+  promoDiscount?: number;
+  shippingCharge?: number;
+  advanceAmount?: number;
+  balanceAmount?: number;
+  paymentMethod?: string;
+}
+
 export interface ParsedShippingAddress {
   recipientName: string;
   phone: string;
@@ -8,12 +18,12 @@ export interface ParsedShippingAddress {
   state: string;
   pincode: string;
   country: string;
-  pricing?: Record<string, any>;
+  pricing?: AddressPricingDetails;
 }
 
-export function parseAddressDetails(rawAddress?: Record<string, any> | string | null): ParsedShippingAddress | null {
+export function parseAddressDetails(rawAddress?: Record<string, unknown> | string | null): ParsedShippingAddress | null {
   if (!rawAddress) return null;
-  let parsed: Record<string, any> = {};
+  let parsed: Record<string, unknown> = {};
   if (typeof rawAddress === "string") {
     try {
       parsed = JSON.parse(rawAddress);
@@ -49,7 +59,7 @@ export function parseAddressDetails(rawAddress?: Record<string, any> | string | 
   const state = String(parsed.state || parsed.province || "").trim();
   const pincode = String(parsed.pincode || parsed.postalCode || parsed.zip || "").trim();
   const country = String(parsed.country || "India").trim();
-  const pricing = typeof parsed.pricing === "object" && parsed.pricing !== null ? parsed.pricing : undefined;
+  const pricing = typeof parsed.pricing === "object" && parsed.pricing !== null ? (parsed.pricing as AddressPricingDetails) : undefined;
 
   return {
     recipientName,
@@ -65,7 +75,7 @@ export function parseAddressDetails(rawAddress?: Record<string, any> | string | 
   };
 }
 
-export function formatAddress(address?: Record<string, any> | string | null): string {
+export function formatAddress(address?: Record<string, unknown> | string | null): string {
   const details = parseAddressDetails(address);
   if (!details) return "No shipping address provided.";
 
