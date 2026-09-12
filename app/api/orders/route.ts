@@ -61,6 +61,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const customerPhone = String(
+      shippingAddress?.phone || shippingAddress?.phoneNumber || shippingAddress?.mobile || ""
+    ).trim();
+
+    if (!customerPhone) {
+      return NextResponse.json(
+        { error: "A contact phone number is required for shipping and delivery updates." },
+        { status: 400 }
+      );
+    }
+
     let payment;
     try {
       payment = validateOrderPayment({
@@ -103,6 +114,7 @@ export async function POST(req: NextRequest) {
 
         // Auto-save shipping address to user's Saved Addresses in database
         if (shippingAddress?.line1 && shippingAddress?.city && shippingAddress?.pincode) {
+          const recipientName = shippingAddress.fullName || shippingAddress.name || user.name || null;
           const existingAddr = await prisma.address.findFirst({
             where: {
               userId: user.id,
@@ -116,6 +128,8 @@ export async function POST(req: NextRequest) {
             await prisma.address.create({
               data: {
                 userId: user.id,
+                name: recipientName,
+                phone: customerPhone,
                 line1: shippingAddress.line1,
                 line2: shippingAddress.line2 || null,
                 city: shippingAddress.city,
@@ -123,6 +137,14 @@ export async function POST(req: NextRequest) {
                 pincode: shippingAddress.pincode,
                 country: shippingAddress.country || "India",
                 isDefault: userAddressCount === 0,
+              },
+            });
+          } else if (!existingAddr.phone && customerPhone) {
+            await prisma.address.update({
+              where: { id: existingAddr.id },
+              data: {
+                phone: customerPhone,
+                name: existingAddr.name || recipientName,
               },
             });
           }
@@ -258,6 +280,7 @@ export async function POST(req: NextRequest) {
           razorpaySignature: payment.razorpaySignature,
           shippingAddress: {
             ...shippingAddress,
+            phone: customerPhone,
             pricing: {
               subtotal,
               promoCode: couponDiscount?.code || null,
@@ -306,6 +329,8 @@ export async function POST(req: NextRequest) {
           price: item.price,
         })),
         shippingAddress: {
+          fullName: shippingAddress.fullName || undefined,
+          phone: customerPhone || undefined,
           line1: shippingAddress.line1,
           line2: shippingAddress.line2,
           city: shippingAddress.city,
@@ -319,7 +344,6 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Send Automated WhatsApp Order Notification via Meta Cloud API
-    const customerPhone = shippingAddress.phone || shippingAddress.phoneNumber || shippingAddress.mobile;
     if (customerPhone) {
       await sendWhatsAppOrderNotification({
         phone: customerPhone,

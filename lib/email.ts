@@ -15,6 +15,8 @@ interface EmailOrderDetails {
     price: number;
   }>;
   shippingAddress: {
+    fullName?: string;
+    phone?: string;
     line1: string;
     line2?: string;
     city: string;
@@ -116,8 +118,10 @@ export async function sendOrderConfirmationEmail(details: EmailOrderDetails) {
               </div>
 
               <!-- Shipping Address Box -->
-              <div style="background-color: #ffffff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 15px; font-size: 12px; color: #555555;">
-                <strong style="text-transform: uppercase; color: #171717; font-size: 11px; display: block; margin-bottom: 5px;">Delivery Address</strong>
+              <div style="background-color: #ffffff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 15px; font-size: 12px; color: #555555; line-height: 1.6;">
+                <strong style="text-transform: uppercase; color: #171717; font-size: 11px; display: block; margin-bottom: 6px;">Delivery Address</strong>
+                ${details.shippingAddress.fullName ? `<strong>${details.shippingAddress.fullName}</strong><br/>` : ""}
+                ${details.shippingAddress.phone ? `<span style="color: #666666;">Phone: ${details.shippingAddress.phone}</span><br/>` : ""}
                 ${details.shippingAddress.line1}<br/>
                 ${details.shippingAddress.line2 ? details.shippingAddress.line2 + "<br/>" : ""}
                 ${details.shippingAddress.city}, ${details.shippingAddress.state} - ${details.shippingAddress.pincode}<br/>

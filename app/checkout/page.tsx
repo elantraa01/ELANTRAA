@@ -266,6 +266,28 @@ export default function CheckoutPage() {
       return;
     }
 
+    // Validate delivery address
+    if (!formData.line1.trim() || !formData.city.trim() || !formData.pincode.trim()) {
+      alert("Please select or add a valid delivery address with street address, city, and pincode.");
+      if (savedAddresses.length === 0) {
+        openAddAddressModal();
+      }
+      return;
+    }
+
+    // Validate contact phone number
+    const trimmedPhone = (formData.phone || "").trim();
+    if (!trimmedPhone || trimmedPhone.replace(/\D/g, "").length < 7) {
+      alert("Please provide a valid contact phone number for shipment delivery updates.");
+      const currentSelected = savedAddresses.find((a) => a.id === selectedAddressId);
+      if (currentSelected) {
+        openEditAddressModal(currentSelected);
+      } else {
+        openAddAddressModal();
+      }
+      return;
+    }
+
     setLoading(true);
 
     const orderPayload = {
@@ -593,10 +615,15 @@ export default function CheckoutPage() {
                               )}
                             </div>
 
-                            {recipientPhone && (
+                            {recipientPhone ? (
                               <p className="text-xs text-gray-600 font-medium pl-6 mb-1 flex items-center gap-1.5">
                                 <span className="text-gray-400">📞</span>
                                 <span>{recipientPhone}</span>
+                              </p>
+                            ) : (
+                              <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded font-medium ml-6 mb-1.5 inline-flex items-center gap-1">
+                                <span>⚠️</span>
+                                <span>Phone missing — click Edit to add</span>
                               </p>
                             )}
 

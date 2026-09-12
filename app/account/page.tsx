@@ -16,6 +16,8 @@ import { useSearchParams } from "next/navigation";
 
 interface SavedAddress {
   id: string;
+  name?: string;
+  phone?: string;
   line1: string;
   line2?: string;
   city: string;
@@ -72,6 +74,8 @@ function AccountPageContent() {
   }, [status, router]);
 
   const [newAddr, setNewAddr] = useState({
+    name: "",
+    phone: "",
     line1: "",
     line2: "",
     city: "",
@@ -113,7 +117,10 @@ function AccountPageContent() {
 
   const handleAddAddress = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newAddr.line1 || !newAddr.city || !newAddr.pincode) return;
+    if (!newAddr.name.trim() || !newAddr.phone.trim() || !newAddr.line1.trim() || !newAddr.city.trim() || !newAddr.pincode.trim()) {
+      showNotification("Please fill in Recipient Name, Phone Number, Address Line 1, City, and Pincode.");
+      return;
+    }
 
     try {
       const res = await fetch("/api/user/address", {
@@ -127,7 +134,7 @@ function AccountPageContent() {
         if (data.address) {
           setAddresses((prev) => [...prev, data.address]);
           setShowAddressModal(false);
-          setNewAddr({ line1: "", line2: "", city: "", state: "", pincode: "", country: "India", isDefault: false });
+          setNewAddr({ name: "", phone: "", line1: "", line2: "", city: "", state: "", pincode: "", country: "India", isDefault: false });
           showNotification("New saved address added successfully to your profile!");
         }
       } else {
@@ -515,7 +522,18 @@ function AccountPageContent() {
                             DEFAULT ADDRESS
                           </span>
                         )}
-                        <p className="text-xs font-semibold text-gray-900 mb-1">{userName}</p>
+                        <p className="text-xs font-semibold text-gray-900 mb-0.5">{addr.name || userName}</p>
+                        {addr.phone ? (
+                          <p className="text-xs text-gray-600 mb-1.5 flex items-center gap-1">
+                            <span className="text-gray-400">📞</span>
+                            <span>{addr.phone}</span>
+                          </p>
+                        ) : (
+                          <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded font-medium mb-1.5 inline-flex items-center gap-1">
+                            <span>⚠️</span>
+                            <span>No phone number saved</span>
+                          </p>
+                        )}
                         <p className="text-xs text-gray-600 font-light leading-relaxed">
                           {addr.line1}
                           {addr.line2 ? `, ${addr.line2}` : ""}
@@ -566,6 +584,36 @@ function AccountPageContent() {
             <h3 className="text-xl font-serif text-gray-900 mb-4">Add New Delivery Address</h3>
 
             <form onSubmit={handleAddAddress} className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-semibold uppercase text-gray-700 mb-1">
+                    Recipient Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Radhika Kapoor"
+                    value={newAddr.name}
+                    onChange={(e) => setNewAddr({ ...newAddr, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:border-[#C9A648] outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold uppercase text-gray-700 mb-1">
+                    Contact Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="+91 98765 43210"
+                    value={newAddr.phone}
+                    onChange={(e) => setNewAddr({ ...newAddr, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:border-[#C9A648] outline-none"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block font-semibold uppercase text-gray-700 mb-1">
                   Address Line 1 *

@@ -4,6 +4,7 @@
 import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { parseAddressDetails, formatAddress } from "@/lib/address";
 
 type Tab = "dashboard" | "products" | "categories" | "inventory" | "orders" | "customers" | "hero" | "coupons" | "settings";
 type Status = "idle" | "loading" | "error" | "ready";
@@ -69,7 +70,7 @@ type Order = {
   paymentMethod?: string;
   createdAt: string;
   customer?: { id: string; name: string; email: string };
-  shippingAddress?: Record<string, string>;
+  shippingAddress?: Record<string, any> | string;
   items?: OrderItem[];
   timeline?: { status: string; label: string; completed: boolean; date?: string | null }[];
 };
@@ -2576,10 +2577,125 @@ export default function AdminPanel() {
                 </>
               )}
             </div>
-            <div>
-              <p className="mb-2 text-sm font-semibold text-slate-800">Shipping Address</p>
-              <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-600">{formatAddress(orderModal.shippingAddress)}</p>
-            </div>
+            {(() => {
+              const addr = parseAddressDetails(orderModal.shippingAddress);
+              const recipientName = addr?.recipientName || orderModal.customer?.name || "Customer";
+              const recipientPhone = addr?.phone;
+              const cleanPhone = recipientPhone ? recipientPhone.replace(/\D/g, "") : "";
+              const whatsappPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+              const fullAddressString = [
+                recipientName,
+                recipientPhone ? `Ph: ${recipientPhone}` : "",
+                addr?.line1,
+                addr?.line2,
+                [addr?.city, addr?.state, addr?.pincode ? `- ${addr.pincode}` : ""].filter(Boolean).join(" "),
+                addr?.country,
+              ].filter(Boolean).join("\n");
+
+              return (
+                <div className="rounded-xl border border-slate-200 bg-slate-50/90 p-4 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">📍</span>
+                      <span className="text-sm font-semibold text-slate-900">Delivery & Shipping Address</span>
+                    </div>
+                    {fullAddressString && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(fullAddressString);
+                          alert("Address copied to clipboard for shipping label!");
+                        }}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-white border border-slate-200 text-xs font-semibold text-[#9b7a1d] hover:bg-[#FAF8F5] transition-colors shadow-sm"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Copy Address
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4 text-xs">
+                    {/* Recipient Details */}
+                    <div className="space-y-1.5">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Recipient Details</p>
+                      <p className="font-bold text-slate-900 text-sm">{recipientName}</p>
+                      
+                      {recipientPhone ? (
+                        <div className="flex flex-wrap items-center gap-2 pt-1">
+                          <a
+                            href={`tel:${recipientPhone}`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-800 font-semibold hover:border-[#C9A648] hover:text-[#9b7a1d] transition-colors shadow-xs"
+                            title="Call recipient"
+                          >
+                            <span>📞</span>
+                            <span>{recipientPhone}</span>
+                          </a>
+                          {whatsappPhone && (
+                            <a
+                              href={`https://wa.me/${whatsappPhone}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold hover:bg-emerald-100 transition-colors shadow-xs"
+                              title="Chat on WhatsApp"
+                            >
+                              <span>💬 WhatsApp</span>
+                            </a>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-50 border border-rose-200 text-rose-700 font-semibold text-[11px]">
+                          <span>⚠️</span>
+                          <span>Phone Number Missing</span>
+                        </div>
+                      )}
+
+                      {(addr?.email || orderModal.customer?.email) && (
+                        <p className="text-slate-600 pt-0.5">
+                          <span className="text-slate-400 mr-1">✉️</span>
+                          <a href={`mailto:${addr?.email || orderModal.customer?.email}`} className="hover:underline">
+                            {addr?.email || orderModal.customer?.email}
+                          </a>
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Destination Address */}
+                    <div className="space-y-1 sm:border-l sm:border-slate-200 sm:pl-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Destination Address</p>
+                      {addr?.line1 ? (
+                        <div className="text-slate-700 space-y-0.5 leading-relaxed pt-0.5 font-medium">
+                          <p>{addr.line1}</p>
+                          {addr.line2 && <p className="text-slate-500">{addr.line2}</p>}
+                          <p className="text-slate-900 font-semibold">
+                            {addr.city}, {addr.state} - <span className="font-mono">{addr.pincode}</span>
+                          </p>
+                          <p className="text-slate-500 text-[11px]">{addr.country}</p>
+                        </div>
+                      ) : (
+                        <p className="text-slate-500 italic pt-1">{formatAddress(orderModal.shippingAddress)}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Optional Pricing Breakdown if present in shippingAddress.pricing */}
+                  {addr?.pricing && (
+                    <div className="mt-2 pt-2 border-t border-slate-200/60 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
+                      {addr.pricing.promoCode && (
+                        <span>Promo Code: <strong className="text-slate-700">{addr.pricing.promoCode}</strong></span>
+                      )}
+                      {Number(addr.pricing.promoDiscount) > 0 && (
+                        <span>Promo Discount: <strong className="text-emerald-600">-₹{Number(addr.pricing.promoDiscount).toLocaleString("en-IN")}</strong></span>
+                      )}
+                      {Number(addr.pricing.shippingCharge) > 0 && (
+                        <span>Shipping: <strong className="text-slate-700">₹{Number(addr.pricing.shippingCharge).toLocaleString("en-IN")}</strong></span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             <DataTable
               headers={["Product", "SKU", "Size / Color", "Qty", "Price", "Total"]}
               empty="No items found."
@@ -3116,7 +3232,4 @@ function titleCase(value: string) {
   return value.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function formatAddress(address?: Record<string, string>) {
-  if (!address) return "No shipping address provided.";
-  return Object.values(address).filter(Boolean).join(", ") || "No shipping address provided.";
-}
+
