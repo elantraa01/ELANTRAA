@@ -54,6 +54,25 @@ export async function PATCH(req: NextRequest) {
 
     const finalBgImages = sanitizedBgImages.length > 0 ? sanitizedBgImages : [primaryImage];
 
+    const normalizeButtonLink = (raw?: string) => {
+      if (!raw) return "/shop";
+      const trimmed = raw.trim();
+      if (
+        trimmed === "" ||
+        trimmed.toLowerCase() === "shop now" ||
+        trimmed.toLowerCase() === "/shop now" ||
+        trimmed.toLowerCase() === "shop"
+      ) {
+        return "/shop";
+      }
+      if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("/")) {
+        return trimmed;
+      }
+      return `/${trimmed}`;
+    };
+
+    const sanitizedButtonLink = normalizeButtonLink(buttonLink);
+
     const updated = await prisma.heroBanner.upsert({
       where: { id: "default" },
       update: {
@@ -63,7 +82,7 @@ export async function PATCH(req: NextRequest) {
         highlight: highlight || "",
         description: description || "",
         buttonText: buttonText || "Shop",
-        buttonLink: buttonLink || "/shop",
+        buttonLink: sanitizedButtonLink,
         bgImage: primaryImage,
         bgImages: finalBgImages,
         bgVideo: bgVideo || null,
@@ -76,7 +95,7 @@ export async function PATCH(req: NextRequest) {
         highlight: highlight || "",
         description: description || "",
         buttonText: buttonText || "Shop",
-        buttonLink: buttonLink || "/shop",
+        buttonLink: sanitizedButtonLink,
         bgImage: primaryImage,
         bgImages: finalBgImages,
         bgVideo: bgVideo || null,

@@ -1474,7 +1474,7 @@ export default function AdminPanel() {
                       <Field label="Main Brand Title" value={heroForm.title} onChange={(value) => setHeroForm({ ...heroForm, title: value })} required />
                       <Field label="Highlight Subtitle" value={heroForm.highlight} onChange={(value) => setHeroForm({ ...heroForm, highlight: value })} placeholder="& Timeless Elegance" />
                       <Field label="Button Text" value={heroForm.buttonText} onChange={(value) => setHeroForm({ ...heroForm, buttonText: value })} required />
-                      <Field label="Button Target Link" value={heroForm.buttonLink} onChange={(value) => setHeroForm({ ...heroForm, buttonLink: value })} required />
+                      <Field label="Button Target Link" value={heroForm.buttonLink} onChange={(value) => setHeroForm({ ...heroForm, buttonLink: value })} placeholder="/shop (e.g. /shop, /category/women)" required />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-1.5">Hero Description</label>

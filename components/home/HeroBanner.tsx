@@ -15,6 +15,23 @@ export interface HeroData {
   bgVideo?: string;
 }
 
+function normalizeHeroLink(rawLink?: string): string {
+  if (!rawLink) return "/shop";
+  const trimmed = rawLink.trim();
+  if (
+    trimmed === "" ||
+    trimmed.toLowerCase() === "shop now" ||
+    trimmed.toLowerCase() === "/shop now" ||
+    trimmed.toLowerCase() === "shop"
+  ) {
+    return "/shop";
+  }
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("/")) {
+    return trimmed;
+  }
+  return `/${trimmed}`;
+}
+
 export default function HeroBanner() {
   const [hero, setHero] = useState<HeroData | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -41,7 +58,7 @@ export default function HeroBanner() {
               highlight: rawHero.highlight || "",
               description: rawHero.description || "",
               buttonText: rawHero.buttonText || "Shop",
-              buttonLink: rawHero.buttonLink || "/shop",
+              buttonLink: normalizeHeroLink(rawHero.buttonLink),
               bgImage: sanitizedImages[0] || rawHero.bgImage || "",
               bgImages: sanitizedImages.length > 0 ? sanitizedImages : (rawHero.bgImage ? [rawHero.bgImage] : []),
               bgVideo: rawHero.bgVideo || undefined,
@@ -185,7 +202,7 @@ export default function HeroBanner() {
           {/* CTA Row */}
           <div className="flex flex-wrap items-center gap-6">
             <Link
-              href={hero.buttonLink}
+              href={normalizeHeroLink(hero.buttonLink)}
               className="inline-flex items-center justify-center px-9 py-4 bg-gradient-to-r from-[#D4AF37] via-[#C9A648] to-[#AA771C] text-white font-medium text-xs sm:text-sm tracking-[0.2em] uppercase rounded shadow-xl hover:shadow-[#C9A648]/40 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 group"
             >
               <span>{hero.buttonText}</span>

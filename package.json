@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && next build && node scripts/copy-standalone.mjs",
+    "postbuild": "node scripts/copy-standalone.mjs",
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",

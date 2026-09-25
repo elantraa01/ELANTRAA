@@ -21,6 +21,21 @@ const nextConfig = {
       },
     ],
   },
+  output: 'standalone',
+  async redirects() {
+    return [
+      {
+        source: '/Shop%20Now',
+        destination: '/shop',
+        permanent: true,
+      },
+      {
+        source: '/Shop Now',
+        destination: '/shop',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

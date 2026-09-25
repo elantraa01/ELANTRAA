@@ -18,10 +18,33 @@ const defaultHero = {
   bgVideo: null,
 };
 
+function normalizeButtonLink(link?: string | null): string {
+  if (!link) return "/shop";
+  const trimmed = link.trim();
+  if (
+    trimmed === "" ||
+    trimmed.toLowerCase() === "shop now" ||
+    trimmed.toLowerCase() === "/shop now" ||
+    trimmed.toLowerCase() === "shop"
+  ) {
+    return "/shop";
+  }
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("/")) {
+    return trimmed;
+  }
+  return `/${trimmed}`;
+}
+
 export async function GET() {
   try {
     const hero = await prisma.heroBanner.findUnique({ where: { id: "default" } });
-    return NextResponse.json({ hero: hero || defaultHero });
+    const activeHero = hero || defaultHero;
+    return NextResponse.json({
+      hero: {
+        ...activeHero,
+        buttonLink: normalizeButtonLink(activeHero.buttonLink),
+      },
+    });
   } catch (error) {
     console.error("GET /api/hero error:", error);
     return NextResponse.json({ hero: defaultHero }, { status: 200 });
