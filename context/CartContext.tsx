@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Product } from "@/components/home/mockData";
+import { trackAddToCart } from "@/lib/analytics";
 
 export interface CartItemType {
   id: string;
@@ -285,6 +286,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       finalQuantity = initialQty;
       return [...prevItems, createLocalCartItem(product, size, color, initialQty)];
     });
+
+    try {
+      trackAddToCart({
+        id: product.id,
+        name: product.name,
+        price: Number(product.discountPrice ?? product.price) || 0,
+        category: product.category,
+        quantity,
+      });
+    } catch {
+      // Ignore tracking errors
+    }
 
     if (isLoggedIn) {
       fetch("/api/cart", {

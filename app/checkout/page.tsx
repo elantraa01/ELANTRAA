@@ -9,6 +9,7 @@ import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { useCart } from "@/context/CartContext";
 import { LogoShimmer } from "@/components/ui/LuxurySkeleton";
+import { trackPurchase, trackInitiateCheckout } from "@/lib/analytics";
 
 interface SavedAddressItem {
   id: string;
@@ -105,6 +106,26 @@ export default function CheckoutPage() {
       fetchUserAddresses();
     }
   }, [session]);
+
+  // Track initiate checkout for Meta Pixel and GA4
+  useEffect(() => {
+    if (items.length > 0) {
+      try {
+        trackInitiateCheckout({
+          value: total,
+          items: items.map((i) => ({
+            id: i.productId,
+            name: i.name,
+            price: Number(i.discountPrice ?? i.price),
+            quantity: i.quantity,
+          })),
+        });
+      } catch {
+        // ignore
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSelectSavedAddress = (addr: SavedAddressItem) => {
     setSelectedAddressId(addr.id);
@@ -334,6 +355,22 @@ export default function CheckoutPage() {
           throw new Error(resData.error || "Failed to place order");
         }
 
+        try {
+          trackPurchase({
+            transactionId: resData.orderId,
+            value: total,
+            shipping,
+            items: items.map((i) => ({
+              id: i.productId,
+              name: i.name,
+              price: Number(i.discountPrice ?? i.price),
+              quantity: i.quantity,
+            })),
+          });
+        } catch {
+          // ignore tracking error
+        }
+
         clearCart();
         router.push(`/checkout/success?orderId=${resData.orderId}`);
       } catch (err) {
@@ -417,8 +454,25 @@ export default function CheckoutPage() {
                 throw new Error(finalData.error || "Failed to finalize order after payment.");
               }
 
-              clearCart();
               const finalId = finalData.orderId || `ELN-2026-${Math.floor(100000 + Math.random() * 900000)}`;
+
+              try {
+                trackPurchase({
+                  transactionId: finalId,
+                  value: total,
+                  shipping,
+                  items: items.map((i) => ({
+                    id: i.productId,
+                    name: i.name,
+                    price: Number(i.discountPrice ?? i.price),
+                    quantity: i.quantity,
+                  })),
+                });
+              } catch {
+                // ignore tracking error
+              }
+
+              clearCart();
               router.push(`/checkout/success?orderId=${finalId}`);
             } catch (err) {
               console.error("Order completion error:", err);
