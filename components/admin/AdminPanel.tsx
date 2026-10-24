@@ -6,7 +6,7 @@ import { signOut, useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { parseAddressDetails, formatAddress } from "@/lib/address";
 
-type Tab = "dashboard" | "products" | "categories" | "inventory" | "orders" | "customers" | "whatsapp" | "hero" | "coupons" | "settings";
+type Tab = "dashboard" | "products" | "categories" | "inventory" | "orders" | "customers" | "whatsapp" | "hero" | "coupons" | "freeGifts" | "settings";
 type Status = "idle" | "loading" | "error" | "ready";
 type OrderStatus = "PENDING" | "CONFIRMED" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
 
@@ -83,6 +83,7 @@ type Order = {
   customer?: { id: string; name: string; email: string };
   shippingAddress?: Record<string, unknown> | string;
   items?: OrderItem[];
+  freeGift?: { id: string; name: string; image: string; price: number } | null;
   timeline?: { status: string; label: string; completed: boolean; date?: string | null }[];
 };
 
@@ -133,6 +134,16 @@ type Coupon = {
   createdAt?: string;
 };
 
+type FreeGift = {
+  id: string;
+  name: string;
+  image: string;
+  stock: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 type Toast = { type: "success" | "error"; message: string } | null;
 type ConfirmState = { title: string; message: string; onConfirm: () => void } | null;
 
@@ -146,6 +157,7 @@ const navItems: { id: Tab; label: string }[] = [
   { id: "whatsapp", label: "WhatsApp Members" },
   { id: "hero", label: "Hero Banner" },
   { id: "coupons", label: "Promocodes" },
+  { id: "freeGifts", label: "Free Gifts" },
   { id: "settings", label: "Settings" },
 ];
 
@@ -231,6 +243,8 @@ export default function AdminPanel() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [freeGifts, setFreeGifts] = useState<FreeGift[]>([]);
+  const [isFreeGiftEnabled, setIsFreeGiftEnabled] = useState(true);
   const [whatsappSubscribers, setWhatsappSubscribers] = useState<WhatsAppSubscriberData[]>([]);
   const [heroForm, setHeroForm] = useState<HeroBannerData>(emptyHero);
   const [settings, setSettings] = useState<Settings>({
@@ -252,9 +266,13 @@ export default function AdminPanel() {
   const [orderModal, setOrderModal] = useState<Order | null>(null);
   const [customerModal, setCustomerModal] = useState<Customer | null>(null);
   const [couponModal, setCouponModal] = useState<{ open: boolean; id?: string }>({ open: false });
+  const [freeGiftModal, setFreeGiftModal] = useState<{ open: boolean; id?: string }>({ open: false });
   const [productForm, setProductForm] = useState(emptyProduct);
   const [categoryForm, setCategoryForm] = useState(emptyCategory);
   const [couponForm, setCouponForm] = useState(emptyCoupon);
+  const [freeGiftForm, setFreeGiftForm] = useState({ name: "", image: "", stock: "10", isActive: true });
+  const [uploadingGiftImage, setUploadingGiftImage] = useState(false);
+  const [giftImageError, setGiftImageError] = useState("");
   const [settingsForm, setSettingsForm] = useState(settings);
   const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "" });
 
@@ -499,10 +517,11 @@ export default function AdminPanel() {
         request<{ settings: Settings }>("/api/admin/settings"),
         request<{ hero: HeroBannerData }>("/api/admin/hero"),
         request<{ coupons: Coupon[] }>("/api/admin/coupons"),
+        request<{ gifts: FreeGift[]; isFreeGiftEnabled: boolean }>("/api/admin/free-gifts"),
         request<{ subscribers: WhatsAppSubscriberData[] }>("/api/whatsapp/subscribe"),
       ]);
 
-      const [productRes, categoryRes, orderRes, customerRes, settingsRes, heroRes, couponRes, whatsappRes] = results;
+      const [productRes, categoryRes, orderRes, customerRes, settingsRes, heroRes, couponRes, giftRes, whatsappRes] = results;
 
       if (productRes.status === "fulfilled") setProducts(productRes.value.products || []);
       if (categoryRes.status === "fulfilled") setCategories(categoryRes.value.categories || []);
@@ -525,6 +544,10 @@ export default function AdminPanel() {
         });
       }
       if (couponRes.status === "fulfilled") setCoupons(couponRes.value.coupons || []);
+      if (giftRes && giftRes.status === "fulfilled") {
+        if (giftRes.value.gifts) setFreeGifts(giftRes.value.gifts);
+        if (giftRes.value.isFreeGiftEnabled !== undefined) setIsFreeGiftEnabled(giftRes.value.isFreeGiftEnabled);
+      }
       if (whatsappRes && whatsappRes.status === "fulfilled") {
         setWhatsappSubscribers(whatsappRes.value.subscribers || []);
       }
@@ -973,6 +996,135 @@ export default function AdminPanel() {
           notify("success", "Promocode deleted.");
         } catch (err) {
           notify("error", err instanceof Error ? err.message : "Unable to delete promocode.");
+        }
+      },
+    });
+  }
+
+  async function toggleMasterFreeGift(forcedState?: boolean) {
+    const nextState = forcedState !== undefined ? forcedState : !isFreeGiftEnabled;
+    try {
+      const data = await request<{ success: boolean; isFreeGiftEnabled: boolean }>("/api/admin/free-gifts", {
+        method: "PATCH",
+        body: JSON.stringify({ isFreeGiftEnabled: nextState }),
+      });
+      setIsFreeGiftEnabled(data.isFreeGiftEnabled);
+      notify("success", data.isFreeGiftEnabled ? "Free Gift promotion enabled across all customer carts." : "Free Gift promotion paused.");
+    } catch (err) {
+      notify("error", err instanceof Error ? err.message : "Failed to toggle free gift promotion.");
+    }
+  }
+
+  function openFreeGift(gift?: FreeGift) {
+    setGiftImageError("");
+    setFreeGiftModal({ open: true, id: gift?.id });
+    setFreeGiftForm(
+      gift
+        ? {
+            name: gift.name,
+            image: gift.image || "",
+            stock: String(gift.stock ?? 0),
+            isActive: gift.isActive !== false,
+          }
+        : {
+            name: "",
+            image: "",
+            stock: "10",
+            isActive: true,
+          }
+    );
+  }
+
+  async function handleGiftImageUpload(file: File) {
+    if (!file) return;
+    setUploadingGiftImage(true);
+    setGiftImageError("");
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("folder", "free-gifts");
+      const res = await fetch("/api/upload", { method: "POST", body: form });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setFreeGiftForm((prev) => ({ ...prev, image: data.url }));
+        notify("success", "Free gift photo uploaded successfully.");
+      } else {
+        throw new Error(data.error || "Failed to upload picture");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Gift photo upload failed.";
+      setGiftImageError(msg);
+      notify("error", msg);
+    } finally {
+      setUploadingGiftImage(false);
+    }
+  }
+
+  async function saveFreeGift(e: React.FormEvent) {
+    e.preventDefault();
+    if (!freeGiftForm.name.trim()) {
+      notify("error", "Free gift name is required.");
+      return;
+    }
+    if (!freeGiftForm.image.trim()) {
+      notify("error", "Please upload 1 picture for the gift.");
+      return;
+    }
+    const parsedStock = parseInt(freeGiftForm.stock, 10);
+    if (isNaN(parsedStock) || parsedStock < 0) {
+      notify("error", "Stock quantity must be a non-negative number.");
+      return;
+    }
+
+    try {
+      const payload = {
+        id: freeGiftModal.id,
+        name: freeGiftForm.name.trim(),
+        image: freeGiftForm.image.trim(),
+        stock: parsedStock,
+        isActive: freeGiftForm.isActive,
+      };
+      const data = await request<{ gift: FreeGift }>("/api/admin/free-gifts", {
+        method: freeGiftModal.id ? "PATCH" : "POST",
+        body: JSON.stringify(payload),
+      });
+
+      setFreeGifts((prev) =>
+        freeGiftModal.id
+          ? prev.map((item) => (item.id === data.gift.id ? data.gift : item))
+          : [data.gift, ...prev]
+      );
+      setFreeGiftModal({ open: false });
+      notify("success", freeGiftModal.id ? "Free gift updated." : "Free gift created & ready.");
+    } catch (err) {
+      notify("error", err instanceof Error ? err.message : "Unable to save free gift.");
+    }
+  }
+
+  async function toggleGiftActive(gift: FreeGift) {
+    try {
+      const data = await request<{ gift: FreeGift }>("/api/admin/free-gifts", {
+        method: "PATCH",
+        body: JSON.stringify({ id: gift.id, isActive: !gift.isActive }),
+      });
+      setFreeGifts((prev) => prev.map((g) => (g.id === gift.id ? data.gift : g)));
+      notify("success", `Gift "${gift.name}" is now ${data.gift.isActive ? "active" : "inactive"}.`);
+    } catch (err) {
+      notify("error", err instanceof Error ? err.message : "Failed to toggle status.");
+    }
+  }
+
+  function deleteFreeGift(gift: FreeGift) {
+    setConfirm({
+      title: "Delete Free Gift",
+      message: `Remove "${gift.name}" from your free gifts? Customers will no longer receive this item.`,
+      onConfirm: async () => {
+        try {
+          await request(`/api/admin/free-gifts?id=${gift.id}`, { method: "DELETE" });
+          setFreeGifts((prev) => prev.filter((item) => item.id !== gift.id));
+          notify("success", "Free gift deleted.");
+        } catch (err) {
+          notify("error", err instanceof Error ? err.message : "Unable to delete gift.");
         }
       },
     });
@@ -1965,6 +2117,230 @@ export default function AdminPanel() {
                   </div>
                 </Panel>
               )}
+
+              {activeTab === "freeGifts" && (
+                <Panel
+                  title="Free Gift Management"
+                  action={
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Button onClick={() => openFreeGift()}>
+                        + Add Free Gift
+                      </Button>
+                    </div>
+                  }
+                >
+                  {/* Master Feature Promotion Switch Banner */}
+                  <div className={`p-4 sm:p-5 rounded-2xl border transition-all mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                    isFreeGiftEnabled
+                      ? "bg-gradient-to-r from-emerald-50 via-amber-50/40 to-emerald-50 border-emerald-300 shadow-sm"
+                      : "bg-slate-100 border-slate-300"
+                  }`}>
+                    <div className="flex items-start sm:items-center gap-3.5">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 ${
+                        isFreeGiftEnabled ? "bg-emerald-600 text-white shadow-md" : "bg-slate-300 text-slate-600"
+                      }`}>
+                        🎁
+                      </div>
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="font-serif font-bold text-slate-900 text-base sm:text-lg">
+                            Automatic Free Gift Promotion
+                          </h3>
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            isFreeGiftEnabled
+                              ? "bg-emerald-100 text-emerald-800 border border-emerald-300 animate-pulse"
+                              : "bg-slate-200 text-slate-700 border border-slate-300"
+                          }`}>
+                            {isFreeGiftEnabled ? "Promotion Active" : "Promotion Paused"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 mt-1 max-w-2xl font-light">
+                          {isFreeGiftEnabled
+                            ? "Active: When a customer adds any product to their cart, 1 random complimentary gift from your active in-stock gifts is automatically added (1 gift per order, displayed at ₹0 on bill and invoice)."
+                            : "Paused: Customers will not receive any free gifts in their carts. You can turn this promotion back on anytime."}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
+                      <button
+                        type="button"
+                        onClick={() => toggleMasterFreeGift()}
+                        className={`px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 flex items-center gap-2 ${
+                          isFreeGiftEnabled
+                            ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                            : "bg-slate-800 hover:bg-slate-900 text-amber-300"
+                        }`}
+                      >
+                        <span className={`w-2.5 h-2.5 rounded-full ${isFreeGiftEnabled ? "bg-white animate-ping" : "bg-amber-400"}`} />
+                        <span>{isFreeGiftEnabled ? "Feature ON (Click to Stop)" : "Feature OFF (Click to Enable)"}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Summary Metric Cards */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+                    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+                      <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-0.5">Total Added Gifts</p>
+                      <p className="text-2xl font-serif font-bold text-slate-900">{freeGifts.length}</p>
+                      <p className="text-[11px] text-slate-500 mt-1">Configured gifts</p>
+                    </div>
+                    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+                      <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-0.5">Eligible for Random Pick</p>
+                      <p className="text-2xl font-serif font-bold text-emerald-600">
+                        {freeGifts.filter((g) => g.isActive && g.stock > 0).length}
+                      </p>
+                      <p className="text-[11px] text-emerald-700 mt-1">Active with stock &gt; 0</p>
+                    </div>
+                    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+                      <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-0.5">Total Gift Units</p>
+                      <p className="text-2xl font-serif font-bold text-[#AA771C]">
+                        {freeGifts.reduce((acc, g) => acc + (g.stock || 0), 0)}
+                      </p>
+                      <p className="text-[11px] text-slate-500 mt-1">Available in inventory</p>
+                    </div>
+                    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+                      <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-0.5">Feature Mode</p>
+                      <p className="text-xl font-serif font-bold text-slate-900">
+                        {isFreeGiftEnabled ? "1 Gift / Cart" : "Disabled"}
+                      </p>
+                      <p className="text-[11px] text-slate-500 mt-1">100% Free at ₹0</p>
+                    </div>
+                  </div>
+
+                  <Toolbar>
+                    <SearchBar
+                      value={query}
+                      onChange={setQuery}
+                      placeholder="Search free gift by name..."
+                    />
+                  </Toolbar>
+
+                  {/* Desktop Data Table */}
+                  <div className="hidden md:block">
+                    <DataTable
+                      headers={["Gift Photo", "Gift Name", "Stock Quantity", "Eligibility", "Status", "Actions"]}
+                      empty="No free gifts configured yet. Click '+ Add Free Gift' to create one."
+                      rows={freeGifts
+                        .filter((g) => g.name.toLowerCase().includes(query.toLowerCase()))
+                        .map((gift) => [
+                          <div key="photo" className="relative w-14 h-16 rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
+                            <Image src={gift.image} alt={gift.name} fill className="object-cover" />
+                          </div>,
+                          <div key="name" className="min-w-0">
+                            <p className="font-serif font-semibold text-slate-900 text-sm">{gift.name}</p>
+                            <p className="text-[11px] text-slate-500">1 per customer order • ₹0</p>
+                          </div>,
+                          <div key="stock" className="flex items-center gap-2">
+                            <span className="font-bold text-sm text-slate-900 font-mono">{gift.stock}</span>
+                            {gift.stock <= 0 ? (
+                              <span className="px-2 py-0.5 bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold uppercase rounded">
+                                Out of Stock
+                              </span>
+                            ) : gift.stock <= 5 ? (
+                              <span className="px-2 py-0.5 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold uppercase rounded">
+                                Low Stock
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold uppercase rounded">
+                                In Stock
+                              </span>
+                            )}
+                          </div>,
+                          <span key="eligibility" className="text-xs">
+                            {gift.isActive && gift.stock > 0 ? (
+                              <span className="inline-flex items-center gap-1 text-emerald-700 font-medium">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                Available for Random Assignment
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-slate-400 font-medium">
+                                <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                                {gift.stock <= 0 ? "Not Picked (Out of Stock)" : "Inactive"}
+                              </span>
+                            )}
+                          </span>,
+                          <button
+                            key="status"
+                            type="button"
+                            onClick={() => toggleGiftActive(gift)}
+                            className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                              gift.isActive
+                                ? "bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100"
+                                : "bg-slate-100 border border-slate-200 text-slate-600 hover:bg-slate-200"
+                            }`}
+                          >
+                            {gift.isActive ? "Active ✓" : "Disabled ✕"}
+                          </button>,
+                          <RowActions
+                            key="actions"
+                            onEdit={() => openFreeGift(gift)}
+                            onDelete={() => deleteFreeGift(gift)}
+                          />,
+                        ])}
+                    />
+                  </div>
+
+                  {/* Mobile Native Cards */}
+                  <div className="md:hidden space-y-3">
+                    {freeGifts.filter((g) => g.name.toLowerCase().includes(query.toLowerCase())).length ? (
+                      freeGifts
+                        .filter((g) => g.name.toLowerCase().includes(query.toLowerCase()))
+                        .map((gift) => (
+                          <div key={gift.id} className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3">
+                            <div className="flex gap-3 items-center">
+                              <div className="relative w-16 h-18 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+                                <Image src={gift.image} alt={gift.name} fill className="object-cover" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-serif font-bold text-slate-900 text-sm truncate">{gift.name}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="text-xs text-slate-600">Stock: <strong className="font-mono">{gift.stock}</strong></span>
+                                  {gift.stock <= 0 && (
+                                    <span className="text-[10px] text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded font-bold">
+                                      Out of stock
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="mt-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleGiftActive(gift)}
+                                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                      gift.isActive
+                                        ? "bg-emerald-100 text-emerald-800"
+                                        : "bg-slate-200 text-slate-700"
+                                    }`}
+                                  >
+                                    {gift.isActive ? "Active" : "Inactive"}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="pt-2 border-t border-slate-100 flex justify-end gap-2">
+                              <button
+                                onClick={() => openFreeGift(gift)}
+                                className="px-3 py-1.5 bg-slate-900 text-[#D4AF37] font-semibold rounded-md text-xs"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => deleteFreeGift(gift)}
+                                className="px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 font-semibold rounded-md text-xs"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                    ) : (
+                      <div className="p-8 text-center text-sm text-slate-500 bg-white rounded-xl border border-slate-200">
+                        No free gifts found. Click &quot;+ Add Free Gift&quot; to create your first free gift!
+                      </div>
+                    )}
+                  </div>
+                </Panel>
+              )}
             </>
           )}
         </main>
@@ -2725,6 +3101,135 @@ export default function AdminPanel() {
         </Modal>
       )}
 
+      {freeGiftModal.open && (
+        <Modal
+          title={freeGiftModal.id ? "Edit Free Gift" : "Add Free Gift"}
+          onClose={() => setFreeGiftModal({ open: false })}
+        >
+          <form onSubmit={saveFreeGift} className="space-y-4">
+            <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-xs text-amber-950 space-y-1">
+              <p className="font-bold flex items-center gap-1.5 text-[#916b15]">
+                <span>🎁</span> Free Gift Promotion Rule
+              </p>
+              <p className="text-gray-600 font-light leading-relaxed">
+                Upload <strong>1 photo</strong> for this gift. When enabled, the system picks <strong>any random gift</strong> from your active in-stock gifts to give 1 time to each customer order at <strong>₹0 (Free)</strong>. Stock will automatically decrement by 1 each time an order is placed.
+              </p>
+            </div>
+
+            {/* Single Photo Upload (Drag & Drop or Select) */}
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-slate-700">
+                Gift Picture (1 Picture Only) <span className="text-rose-500">*</span>
+              </label>
+
+              {freeGiftForm.image ? (
+                <div className="flex items-center gap-4 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                  <div className="relative w-20 h-24 rounded-lg overflow-hidden border border-slate-300 bg-white shrink-0 shadow-sm">
+                    <Image src={freeGiftForm.image} alt="Gift preview" fill className="object-cover" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-slate-900 truncate">Photo uploaded</p>
+                    <p className="text-[11px] text-slate-500 truncate">{freeGiftForm.image}</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <label className="inline-flex cursor-pointer items-center justify-center rounded-md bg-white border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:border-[#C9A648] shadow-xs">
+                        {uploadingGiftImage ? "Uploading..." : "Replace Picture"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) handleGiftImageUpload(e.target.files[0]);
+                          }}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setFreeGiftForm((prev) => ({ ...prev, image: "" }))}
+                        className="text-xs text-red-600 hover:text-red-700 underline font-medium"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="relative rounded-xl border-2 border-dashed border-slate-300 p-6 text-center hover:border-[#C9A648] bg-slate-50/50 transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) handleGiftImageUpload(e.target.files[0]);
+                    }}
+                    className="absolute inset-0 z-10 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="flex flex-col items-center justify-center gap-2 pointer-events-none">
+                    <div className="w-12 h-12 rounded-full bg-amber-100 text-[#C9A648] flex items-center justify-center text-xl">
+                      📸
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-800">
+                        {uploadingGiftImage ? "Uploading gift photo..." : "Click to select 1 gift photo or drag & drop here"}
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">JPG, PNG, WebP up to 5MB</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {giftImageError && (
+                <p className="text-xs text-rose-600 font-semibold bg-rose-50 p-2 rounded border border-rose-200">
+                  {giftImageError}
+                </p>
+              )}
+
+              <input
+                type="text"
+                placeholder="Or paste direct image URL (https://...)"
+                value={freeGiftForm.image}
+                onChange={(e) => setFreeGiftForm((prev) => ({ ...prev, image: e.target.value }))}
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-xs outline-none focus:border-[#C9A648] bg-white font-mono"
+              />
+            </div>
+
+            <Field
+              label="Gift Title / Item Name"
+              value={freeGiftForm.name}
+              onChange={(value) => setFreeGiftForm((prev) => ({ ...prev, name: value }))}
+              required
+              placeholder="e.g. Silk Pocket Square, Luxury Brooch, Satin Scrunchie"
+            />
+
+            <Field
+              label="Available Stock Quantity"
+              type="number"
+              value={freeGiftForm.stock}
+              onChange={(value) => setFreeGiftForm((prev) => ({ ...prev, stock: value }))}
+              required
+              placeholder="e.g. 50"
+            />
+
+            <label className="flex items-center gap-2.5 text-xs text-slate-700 cursor-pointer pt-2 select-none">
+              <input
+                type="checkbox"
+                checked={freeGiftForm.isActive}
+                onChange={(e) => setFreeGiftForm((prev) => ({ ...prev, isActive: e.target.checked }))}
+                className="h-4 w-4 rounded accent-[#C9A648]"
+              />
+              <span className="font-medium">Active & ready for random customer cart assignment</span>
+            </label>
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-slate-200">
+              <Button type="button" variant="outline" onClick={() => setFreeGiftModal({ open: false })}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                {freeGiftModal.id ? "Update Gift" : "Add Free Gift"}
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
       {orderModal && (
         <Modal title={`Order ${shortId(orderModal.id)}`} onClose={() => setOrderModal(null)}>
           <div className="space-y-5">
@@ -2899,6 +3404,27 @@ export default function AdminPanel() {
                 formatMoney(item.price * item.quantity, settings.currency),
               ])}
             />
+            {orderModal.freeGift && (
+              <div className="p-3.5 bg-gradient-to-r from-amber-50 to-amber-100/50 rounded-xl border border-[#D4AF37]/50 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {orderModal.freeGift.image ? (
+                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-amber-200 bg-white shadow-xs">
+                      <Image src={orderModal.freeGift.image} alt={orderModal.freeGift.name} fill className="object-cover" />
+                    </div>
+                  ) : null}
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#171717] text-[#D4AF37]">
+                      🎁 Free Gift Included
+                    </span>
+                    <p className="font-semibold text-slate-900 text-sm mt-0.5">{orderModal.freeGift.name}</p>
+                    <p className="text-xs text-slate-500">Qty: 1 • Complimentary Promotional Gift</p>
+                  </div>
+                </div>
+                <span className="font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded text-xs">
+                  ₹0 (FREE)
+                </span>
+              </div>
+            )}
             <div>
               <p className="mb-2 text-sm font-semibold text-slate-800">Order Timeline</p>
               <div className="space-y-2">

@@ -53,6 +53,7 @@ export async function GET() {
         size: item.size,
         color: item.color,
       })),
+      freeGift: (order as unknown as { freeGift?: unknown }).freeGift || null,
       timeline: buildTimeline(order.status, order.createdAt.toISOString()),
     }));
 

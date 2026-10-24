@@ -20,8 +20,16 @@ export interface CartItemType {
   stock?: number;
 }
 
+export interface FreeGiftType {
+  id: string;
+  name: string;
+  image: string;
+  price: 0;
+}
+
 interface CartContextType {
   items: CartItemType[];
+  freeGift: FreeGiftType | null;
   cartCount: number;
   subtotal: number;
   discount: number;
@@ -76,6 +84,7 @@ const GUEST_CART_KEY = "elantraa_guest_cart";
 const GUEST_ID_KEY = "elantraa_guest_id";
 const PROMO_CODE_KEY = "elantraa_promo_code";
 const GUEST_WISHLIST_KEY = "elantraa_guest_wishlist";
+const FREE_GIFT_KEY = "elantraa_free_gift";
 
 function createGuestId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -127,6 +136,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const isLoggedIn = status === "authenticated" && !!session?.user?.email;
 
   const [items, setItems] = useState<CartItemType[]>([]);
+  const [freeGift, setFreeGift] = useState<FreeGiftType | null>(null);
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [promoCode, setPromoCode] = useState("");
@@ -227,16 +237,58 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     const savedPromo = localStorage.getItem(PROMO_CODE_KEY);
     if (savedPromo) setPromoCode(savedPromo);
+
+    const savedGift = localStorage.getItem(FREE_GIFT_KEY);
+    if (savedGift) {
+      try {
+        setFreeGift(JSON.parse(savedGift));
+      } catch {
+        localStorage.removeItem(FREE_GIFT_KEY);
+      }
+    }
   }, []);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+
+    // If cart is empty, remove free gift
+    if (items.length === 0) {
+      if (freeGift) {
+        setFreeGift(null);
+        localStorage.removeItem(FREE_GIFT_KEY);
+      }
+      return;
+    }
+
+    // If cart has items and no free gift yet, assign 1 random free gift (1 time 1 gift only)
+    if (items.length > 0 && !freeGift) {
+      let isCancelled = false;
+      fetch("/api/free-gift")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (!isCancelled && data?.enabled && data?.gift) {
+            setFreeGift(data.gift);
+            localStorage.setItem(FREE_GIFT_KEY, JSON.stringify(data.gift));
+          }
+        })
+        .catch((err) => console.warn("Failed to fetch free gift", err));
+
+      return () => {
+        isCancelled = true;
+      };
+    }
+  }, [items.length, freeGift, isHydrated]);
 
   useEffect(() => {
     if (!isHydrated || status === "loading") return;
 
     if (!isLoggedIn) {
       setItems([]);
+      setFreeGift(null);
       setWishlistItems([]);
       localStorage.removeItem(GUEST_CART_KEY);
       localStorage.removeItem(GUEST_WISHLIST_KEY);
+      localStorage.removeItem(FREE_GIFT_KEY);
       return;
     }
 
@@ -353,9 +405,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => {
     setItems([]);
+    setFreeGift(null);
     setPromoCode("");
     localStorage.removeItem(GUEST_CART_KEY);
     localStorage.removeItem(PROMO_CODE_KEY);
+    localStorage.removeItem(FREE_GIFT_KEY);
 
     if (isLoggedIn) {
       fetch("/api/cart?all=true", { method: "DELETE" }).catch((error) =>
@@ -481,6 +535,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     <CartContext.Provider
       value={{
         items,
+        freeGift,
         cartCount,
         subtotal,
         discount,

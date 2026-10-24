@@ -53,6 +53,7 @@ export async function GET() {
         itemsCount: order.items.length,
         sampleImage: firstItem?.product.images[0] || "",
         itemsSummary: summary || "Custom Order Item",
+        freeGift: (order as unknown as { freeGift?: unknown }).freeGift || null,
       };
     });
 

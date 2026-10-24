@@ -27,7 +27,7 @@ interface SavedAddressItem {
 export default function CheckoutPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const { items, subtotal, discount, shipping, total, promoCode, clearCart } = useCart();
+  const { items, freeGift, subtotal, discount, shipping, total, promoCode, clearCart } = useCart();
 
   const [loading, setLoading] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<SavedAddressItem[]>([]);
@@ -336,6 +336,7 @@ export default function CheckoutPage() {
         country: formData.country,
       },
       items,
+      freeGift: freeGift ? { id: freeGift.id, name: freeGift.name, image: freeGift.image, price: 0 } : null,
       totalAmount: total,
       promoCode,
       paymentMethod: formData.paymentMethod,
@@ -862,6 +863,27 @@ export default function CheckoutPage() {
                     </span>
                   </div>
                 ))}
+
+                {/* Complimentary Free Gift (1 per order) */}
+                {freeGift && (
+                  <div className="pt-3 flex items-center justify-between text-xs bg-amber-50/80 p-2.5 rounded-lg border border-[#D4AF37]/50 mt-1">
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <div className="relative w-12 h-14 rounded bg-white shrink-0 overflow-hidden border border-amber-200">
+                        <Image src={freeGift.image} alt={freeGift.name} fill className="object-cover" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[9px] font-bold tracking-widest text-[#9b7a1d] uppercase px-1.5 py-0.5 bg-[#C9A648]/20 rounded">
+                          🎁 Complimentary Gift
+                        </span>
+                        <p className="font-semibold text-gray-900 line-clamp-1 mt-0.5">{freeGift.name}</p>
+                        <p className="text-[11px] text-gray-500">Qty: 1 • Complimentary</p>
+                      </div>
+                    </div>
+                    <span className="font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded text-[11px] shrink-0 ml-2">
+                      ₹0 (FREE)
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Totals */}
@@ -870,6 +892,15 @@ export default function CheckoutPage() {
                   <span>Subtotal</span>
                   <span className="font-semibold text-gray-900">&#8377;{subtotal.toLocaleString("en-IN")}</span>
                 </div>
+                {freeGift && (
+                  <div className="flex justify-between text-amber-900 font-medium">
+                    <span className="flex items-center gap-1">
+                      <span>🎁</span>
+                      <span>Complimentary Gift</span>
+                    </span>
+                    <span className="font-bold text-emerald-600 uppercase text-[10px]">₹0 (FREE)</span>
+                  </div>
+                )}
                 {discount > 0 && (
                   <div className="flex justify-between text-emerald-700 font-medium">
                     <span>Promo Savings ({promoCode})</span>

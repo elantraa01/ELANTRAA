@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
       userEmail,
       shippingAddress,
       items,
+      freeGift,
       promoCode,
       paymentMethod = "COD",
       razorpay_payment_id,
@@ -276,6 +277,29 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // Check and attach free gift if eligible (1 time 1 gift only)
+      let savedFreeGift: { id: string; name: string; image: string; price: number } | null = null;
+      if (freeGift && typeof freeGift === "object" && freeGift.id) {
+        const giftRecord = await tx.freeGift.findUnique({
+          where: { id: freeGift.id },
+        });
+
+        if (giftRecord && giftRecord.isActive && giftRecord.stock > 0) {
+          // Decrement stock by 1
+          await tx.freeGift.update({
+            where: { id: giftRecord.id },
+            data: { stock: { decrement: 1 } },
+          });
+
+          savedFreeGift = {
+            id: giftRecord.id,
+            name: giftRecord.name,
+            image: giftRecord.image,
+            price: 0,
+          };
+        }
+      }
+
       const dbOrder = await tx.order.create({
         data: {
           userId: orderUserId,
@@ -288,6 +312,7 @@ export async function POST(req: NextRequest) {
           razorpayOrderId: payment.razorpayOrderId,
           razorpayPaymentId: payment.razorpayPaymentId,
           razorpaySignature: payment.razorpaySignature,
+          freeGift: savedFreeGift || undefined,
           shippingAddress: {
             ...shippingAddress,
             phone: customerPhone,
@@ -299,6 +324,7 @@ export async function POST(req: NextRequest) {
               advanceAmount,
               balanceAmount,
               paymentMethod: payment.paymentMethod,
+              freeGift: savedFreeGift,
             },
           },
           items: {
@@ -320,6 +346,7 @@ export async function POST(req: NextRequest) {
         balanceAmount,
         paymentMethod: payment.paymentMethod,
         items: pricedItems,
+        freeGift: savedFreeGift,
       };
     });
 

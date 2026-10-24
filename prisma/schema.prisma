@@ -126,6 +126,7 @@ model Order {
   razorpayOrderId   String?
   razorpayPaymentId String?
   razorpaySignature String?
+  freeGift          Json?
   createdAt         DateTime      @default(now())
   user              User          @relation(fields: [userId], references: [id], onDelete: Restrict)
   items             OrderItem[]
@@ -257,7 +258,20 @@ model StoreSetting {
   shippingCharge        Decimal  @default(0) @db.Decimal(10, 2)
   freeShippingThreshold Decimal  @default(900) @db.Decimal(10, 2)
   taxPercentage         Decimal  @default(0) @db.Decimal(5, 2)
+  isFreeGiftEnabled     Boolean  @default(true)
   updatedAt             DateTime @updatedAt
+}
+
+model FreeGift {
+  id        String   @id @default(cuid())
+  name      String
+  image     String
+  stock     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
 }
 
 model WhatsAppSubscriber {

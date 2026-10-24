@@ -65,6 +65,7 @@ export const ModelName = {
   HeroBanner: 'HeroBanner',
   Coupon: 'Coupon',
   StoreSetting: 'StoreSetting',
+  FreeGift: 'FreeGift',
   WhatsAppSubscriber: 'WhatsAppSubscriber'
 } as const
 
@@ -171,6 +172,7 @@ export const OrderScalarFieldEnum = {
   razorpayOrderId: 'razorpayOrderId',
   razorpayPaymentId: 'razorpayPaymentId',
   razorpaySignature: 'razorpaySignature',
+  freeGift: 'freeGift',
   createdAt: 'createdAt'
 } as const
 
@@ -293,10 +295,24 @@ export const StoreSettingScalarFieldEnum = {
   shippingCharge: 'shippingCharge',
   freeShippingThreshold: 'freeShippingThreshold',
   taxPercentage: 'taxPercentage',
+  isFreeGiftEnabled: 'isFreeGiftEnabled',
   updatedAt: 'updatedAt'
 } as const
 
 export type StoreSettingScalarFieldEnum = (typeof StoreSettingScalarFieldEnum)[keyof typeof StoreSettingScalarFieldEnum]
+
+
+export const FreeGiftScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  image: 'image',
+  stock: 'stock',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FreeGiftScalarFieldEnum = (typeof FreeGiftScalarFieldEnum)[keyof typeof FreeGiftScalarFieldEnum]
 
 
 export const WhatsAppSubscriberScalarFieldEnum = {
@@ -326,6 +342,14 @@ export const JsonNullValueInput = {
 } as const
 
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {

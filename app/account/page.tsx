@@ -35,6 +35,7 @@ interface OrderHistoryItem {
   itemsCount: number;
   sampleImage: string;
   itemsSummary: string;
+  freeGift?: { id: string; name: string; image?: string; price?: number } | null;
 }
 
 function AccountPageContent() {
@@ -315,6 +316,12 @@ function AccountPageContent() {
                               </div>
                               <p className="text-xs text-gray-600 mt-1 line-clamp-1">{order.itemsSummary}</p>
                               <p className="text-[11px] text-gray-400">Placed on {order.date}</p>
+                              {order.freeGift && (
+                                <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 border border-[#D4AF37]/50 text-[10px] text-amber-900 font-medium">
+                                  <span>🎁</span>
+                                  <span>Complimentary Gift: <strong>{order.freeGift.name}</strong> (₹0)</span>
+                                </div>
+                              )}
                             </div>
                           </div>
 
@@ -419,6 +426,21 @@ function AccountPageContent() {
                                               <td style="text-align: right;">₹${order.totalAmount.toLocaleString("en-IN")}</td>
                                               <td style="text-align: right; font-weight: 700; color: #111827;">₹${order.totalAmount.toLocaleString("en-IN")}</td>
                                             </tr>
+                                            ${
+                                              order.freeGift
+                                                ? `<tr>
+                                                    <td>02</td>
+                                                    <td>
+                                                      <strong style="color: #111827; font-family: 'Cinzel', serif; font-size: 13px;">Complimentary Gift: ${order.freeGift.name}</strong>
+                                                      <br />
+                                                      <span style="font-size: 10px; color: #6b7280;">Special Atelier Complimentary Addition (Included Free)</span>
+                                                    </td>
+                                                    <td style="text-align: center; font-weight: 600;">1</td>
+                                                    <td style="text-align: right;">₹0</td>
+                                                    <td style="text-align: right; font-weight: 700; color: #047857;">FREE (₹0)</td>
+                                                  </tr>`
+                                                : ""
+                                            }
                                           </tbody>
                                         </table>
 

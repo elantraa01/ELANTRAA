@@ -81,6 +81,7 @@ export type OrderCountAggregateOutputType = {
   razorpayOrderId: number
   razorpayPaymentId: number
   razorpaySignature: number
+  freeGift: number
   createdAt: number
   _all: number
 }
@@ -141,6 +142,7 @@ export type OrderCountAggregateInputType = {
   razorpayOrderId?: true
   razorpayPaymentId?: true
   razorpaySignature?: true
+  freeGift?: true
   createdAt?: true
   _all?: true
 }
@@ -244,6 +246,7 @@ export type OrderGroupByOutputType = {
   razorpayOrderId: string | null
   razorpayPaymentId: string | null
   razorpaySignature: string | null
+  freeGift: runtime.JsonValue | null
   createdAt: Date
   _count: OrderCountAggregateOutputType | null
   _avg: OrderAvgAggregateOutputType | null
@@ -283,6 +286,7 @@ export type OrderWhereInput = {
   razorpayOrderId?: Prisma.StringNullableFilter<"Order"> | string | null
   razorpayPaymentId?: Prisma.StringNullableFilter<"Order"> | string | null
   razorpaySignature?: Prisma.StringNullableFilter<"Order"> | string | null
+  freeGift?: Prisma.JsonNullableFilter<"Order">
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   items?: Prisma.OrderItemListRelationFilter
@@ -301,6 +305,7 @@ export type OrderOrderByWithRelationInput = {
   razorpayOrderId?: Prisma.SortOrderInput | Prisma.SortOrder
   razorpayPaymentId?: Prisma.SortOrderInput | Prisma.SortOrder
   razorpaySignature?: Prisma.SortOrderInput | Prisma.SortOrder
+  freeGift?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   items?: Prisma.OrderItemOrderByRelationAggregateInput
@@ -322,6 +327,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   razorpayOrderId?: Prisma.StringNullableFilter<"Order"> | string | null
   razorpayPaymentId?: Prisma.StringNullableFilter<"Order"> | string | null
   razorpaySignature?: Prisma.StringNullableFilter<"Order"> | string | null
+  freeGift?: Prisma.JsonNullableFilter<"Order">
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   items?: Prisma.OrderItemListRelationFilter
@@ -340,6 +346,7 @@ export type OrderOrderByWithAggregationInput = {
   razorpayOrderId?: Prisma.SortOrderInput | Prisma.SortOrder
   razorpayPaymentId?: Prisma.SortOrderInput | Prisma.SortOrder
   razorpaySignature?: Prisma.SortOrderInput | Prisma.SortOrder
+  freeGift?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.OrderCountOrderByAggregateInput
   _avg?: Prisma.OrderAvgOrderByAggregateInput
@@ -364,6 +371,7 @@ export type OrderScalarWhereWithAggregatesInput = {
   razorpayOrderId?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
   razorpayPaymentId?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
   razorpaySignature?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
+  freeGift?: Prisma.JsonNullableWithAggregatesFilter<"Order">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Order"> | Date | string
 }
 
@@ -379,6 +387,7 @@ export type OrderCreateInput = {
   razorpayOrderId?: string | null
   razorpayPaymentId?: string | null
   razorpaySignature?: string | null
+  freeGift?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutOrdersInput
   items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
@@ -397,6 +406,7 @@ export type OrderUncheckedCreateInput = {
   razorpayOrderId?: string | null
   razorpayPaymentId?: string | null
   razorpaySignature?: string | null
+  freeGift?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
 }
@@ -413,6 +423,7 @@ export type OrderUpdateInput = {
   razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  freeGift?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
   items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
@@ -431,6 +442,7 @@ export type OrderUncheckedUpdateInput = {
   razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  freeGift?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
 }
@@ -448,6 +460,7 @@ export type OrderCreateManyInput = {
   razorpayOrderId?: string | null
   razorpayPaymentId?: string | null
   razorpaySignature?: string | null
+  freeGift?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -463,6 +476,7 @@ export type OrderUpdateManyMutationInput = {
   razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  freeGift?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -479,6 +493,7 @@ export type OrderUncheckedUpdateManyInput = {
   razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  freeGift?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -505,6 +520,7 @@ export type OrderCountOrderByAggregateInput = {
   razorpayOrderId?: Prisma.SortOrder
   razorpayPaymentId?: Prisma.SortOrder
   razorpaySignature?: Prisma.SortOrder
+  freeGift?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -631,6 +647,7 @@ export type OrderCreateWithoutUserInput = {
   razorpayOrderId?: string | null
   razorpayPaymentId?: string | null
   razorpaySignature?: string | null
+  freeGift?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
 }
@@ -647,6 +664,7 @@ export type OrderUncheckedCreateWithoutUserInput = {
   razorpayOrderId?: string | null
   razorpayPaymentId?: string | null
   razorpaySignature?: string | null
+  freeGift?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
 }
@@ -693,6 +711,7 @@ export type OrderScalarWhereInput = {
   razorpayOrderId?: Prisma.StringNullableFilter<"Order"> | string | null
   razorpayPaymentId?: Prisma.StringNullableFilter<"Order"> | string | null
   razorpaySignature?: Prisma.StringNullableFilter<"Order"> | string | null
+  freeGift?: Prisma.JsonNullableFilter<"Order">
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
 }
 
@@ -708,6 +727,7 @@ export type OrderCreateWithoutItemsInput = {
   razorpayOrderId?: string | null
   razorpayPaymentId?: string | null
   razorpaySignature?: string | null
+  freeGift?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutOrdersInput
 }
@@ -725,6 +745,7 @@ export type OrderUncheckedCreateWithoutItemsInput = {
   razorpayOrderId?: string | null
   razorpayPaymentId?: string | null
   razorpaySignature?: string | null
+  freeGift?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -756,6 +777,7 @@ export type OrderUpdateWithoutItemsInput = {
   razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  freeGift?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
 }
@@ -773,6 +795,7 @@ export type OrderUncheckedUpdateWithoutItemsInput = {
   razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  freeGift?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -788,6 +811,7 @@ export type OrderCreateManyUserInput = {
   razorpayOrderId?: string | null
   razorpayPaymentId?: string | null
   razorpaySignature?: string | null
+  freeGift?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
@@ -803,6 +827,7 @@ export type OrderUpdateWithoutUserInput = {
   razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  freeGift?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
 }
@@ -819,6 +844,7 @@ export type OrderUncheckedUpdateWithoutUserInput = {
   razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  freeGift?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
 }
@@ -835,6 +861,7 @@ export type OrderUncheckedUpdateManyWithoutUserInput = {
   razorpayOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  freeGift?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -882,6 +909,7 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   razorpayOrderId?: boolean
   razorpayPaymentId?: boolean
   razorpaySignature?: boolean
+  freeGift?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   items?: boolean | Prisma.Order$itemsArgs<ExtArgs>
@@ -901,6 +929,7 @@ export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   razorpayOrderId?: boolean
   razorpayPaymentId?: boolean
   razorpaySignature?: boolean
+  freeGift?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
@@ -918,6 +947,7 @@ export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   razorpayOrderId?: boolean
   razorpayPaymentId?: boolean
   razorpaySignature?: boolean
+  freeGift?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
@@ -935,10 +965,11 @@ export type OrderSelectScalar = {
   razorpayOrderId?: boolean
   razorpayPaymentId?: boolean
   razorpaySignature?: boolean
+  freeGift?: boolean
   createdAt?: boolean
 }
 
-export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "totalAmount" | "advanceAmount" | "balanceAmount" | "paymentMethod" | "status" | "shippingAddress" | "paymentStatus" | "razorpayOrderId" | "razorpayPaymentId" | "razorpaySignature" | "createdAt", ExtArgs["result"]["order"]>
+export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "totalAmount" | "advanceAmount" | "balanceAmount" | "paymentMethod" | "status" | "shippingAddress" | "paymentStatus" | "razorpayOrderId" | "razorpayPaymentId" | "razorpaySignature" | "freeGift" | "createdAt", ExtArgs["result"]["order"]>
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   items?: boolean | Prisma.Order$itemsArgs<ExtArgs>
@@ -970,6 +1001,7 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     razorpayOrderId: string | null
     razorpayPaymentId: string | null
     razorpaySignature: string | null
+    freeGift: runtime.JsonValue | null
     createdAt: Date
   }, ExtArgs["result"]["order"]>
   composites: {}
@@ -1408,6 +1440,7 @@ export interface OrderFieldRefs {
   readonly razorpayOrderId: Prisma.FieldRef<"Order", 'String'>
   readonly razorpayPaymentId: Prisma.FieldRef<"Order", 'String'>
   readonly razorpaySignature: Prisma.FieldRef<"Order", 'String'>
+  readonly freeGift: Prisma.FieldRef<"Order", 'Json'>
   readonly createdAt: Prisma.FieldRef<"Order", 'DateTime'>
 }
     

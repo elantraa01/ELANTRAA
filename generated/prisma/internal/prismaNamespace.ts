@@ -411,6 +411,7 @@ export const ModelName = {
   HeroBanner: 'HeroBanner',
   Coupon: 'Coupon',
   StoreSetting: 'StoreSetting',
+  FreeGift: 'FreeGift',
   WhatsAppSubscriber: 'WhatsAppSubscriber'
 } as const
 
@@ -427,7 +428,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "address" | "category" | "product" | "order" | "orderItem" | "cart" | "cartItem" | "wishlist" | "review" | "collection" | "heroBanner" | "coupon" | "storeSetting" | "whatsAppSubscriber"
+    modelProps: "user" | "address" | "category" | "product" | "order" | "orderItem" | "cart" | "cartItem" | "wishlist" | "review" | "collection" | "heroBanner" | "coupon" | "storeSetting" | "freeGift" | "whatsAppSubscriber"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1467,6 +1468,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    FreeGift: {
+      payload: Prisma.$FreeGiftPayload<ExtArgs>
+      fields: Prisma.FreeGiftFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FreeGiftFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FreeGiftPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FreeGiftFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FreeGiftPayload>
+        }
+        findFirst: {
+          args: Prisma.FreeGiftFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FreeGiftPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FreeGiftFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FreeGiftPayload>
+        }
+        findMany: {
+          args: Prisma.FreeGiftFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FreeGiftPayload>[]
+        }
+        create: {
+          args: Prisma.FreeGiftCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FreeGiftPayload>
+        }
+        createMany: {
+          args: Prisma.FreeGiftCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FreeGiftCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FreeGiftPayload>[]
+        }
+        delete: {
+          args: Prisma.FreeGiftDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FreeGiftPayload>
+        }
+        update: {
+          args: Prisma.FreeGiftUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FreeGiftPayload>
+        }
+        deleteMany: {
+          args: Prisma.FreeGiftDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FreeGiftUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FreeGiftUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FreeGiftPayload>[]
+        }
+        upsert: {
+          args: Prisma.FreeGiftUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FreeGiftPayload>
+        }
+        aggregate: {
+          args: Prisma.FreeGiftAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFreeGift>
+        }
+        groupBy: {
+          args: Prisma.FreeGiftGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FreeGiftGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FreeGiftCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FreeGiftCountAggregateOutputType> | number
+        }
+      }
+    }
     WhatsAppSubscriber: {
       payload: Prisma.$WhatsAppSubscriberPayload<ExtArgs>
       fields: Prisma.WhatsAppSubscriberFieldRefs
@@ -1667,6 +1742,7 @@ export const OrderScalarFieldEnum = {
   razorpayOrderId: 'razorpayOrderId',
   razorpayPaymentId: 'razorpayPaymentId',
   razorpaySignature: 'razorpaySignature',
+  freeGift: 'freeGift',
   createdAt: 'createdAt'
 } as const
 
@@ -1789,10 +1865,24 @@ export const StoreSettingScalarFieldEnum = {
   shippingCharge: 'shippingCharge',
   freeShippingThreshold: 'freeShippingThreshold',
   taxPercentage: 'taxPercentage',
+  isFreeGiftEnabled: 'isFreeGiftEnabled',
   updatedAt: 'updatedAt'
 } as const
 
 export type StoreSettingScalarFieldEnum = (typeof StoreSettingScalarFieldEnum)[keyof typeof StoreSettingScalarFieldEnum]
+
+
+export const FreeGiftScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  image: 'image',
+  stock: 'stock',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FreeGiftScalarFieldEnum = (typeof FreeGiftScalarFieldEnum)[keyof typeof FreeGiftScalarFieldEnum]
 
 
 export const WhatsAppSubscriberScalarFieldEnum = {
@@ -1822,6 +1912,14 @@ export const JsonNullValueInput = {
 } as const
 
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -2152,6 +2250,7 @@ export type GlobalOmitConfig = {
   heroBanner?: Prisma.HeroBannerOmit
   coupon?: Prisma.CouponOmit
   storeSetting?: Prisma.StoreSettingOmit
+  freeGift?: Prisma.FreeGiftOmit
   whatsAppSubscriber?: Prisma.WhatsAppSubscriberOmit
 }
 

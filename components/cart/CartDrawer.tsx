@@ -10,6 +10,7 @@ export default function CartDrawer() {
   const router = useRouter();
   const {
     items,
+    freeGift,
     cartOpen,
     setCartOpen,
     updateQuantity,
@@ -193,6 +194,40 @@ export default function CartDrawer() {
                 </div>
               ))
             )}
+
+            {/* Free Gift Card (1 time 1 gift only) */}
+            {items.length > 0 && freeGift && (
+              <div className="py-3 px-3 my-2 rounded-xl bg-gradient-to-r from-amber-50/90 to-amber-100/40 border border-[#D4AF37]/50 shadow-sm flex gap-3 items-center">
+                <div className="relative w-14 h-16 rounded-lg bg-white overflow-hidden shrink-0 border border-amber-200/80">
+                  <Image
+                    src={freeGift.image}
+                    alt={freeGift.name}
+                    fill
+                    className="object-cover object-center"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-[#171717] text-[#D4AF37]">
+                      🎁 Complimentary Gift
+                    </span>
+                    <span className="text-[10px] text-amber-800 font-medium">(1 per order)</span>
+                  </div>
+                  <p className="text-xs font-serif font-semibold text-gray-900 truncate mt-1">
+                    {freeGift.name}
+                  </p>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-[11px] text-gray-500">Qty: 1</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] line-through text-gray-400">₹999</span>
+                      <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                        ₹0 (FREE)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Footer & Checkout Summary */}
@@ -243,6 +278,15 @@ export default function CartDrawer() {
                   <span>Subtotal</span>
                   <span className="font-medium text-gray-900">₹{subtotal.toLocaleString("en-IN")}</span>
                 </div>
+                {freeGift && (
+                  <div className="flex justify-between text-amber-900 font-medium">
+                    <span className="flex items-center gap-1">
+                      <span>🎁</span>
+                      <span>Complimentary Gift</span>
+                    </span>
+                    <span className="text-emerald-600 font-bold uppercase text-[10px]">₹0 (FREE)</span>
+                  </div>
+                )}
                 {discount > 0 && (
                   <div className="flex justify-between text-emerald-700">
                     <span>Promo Discount</span>

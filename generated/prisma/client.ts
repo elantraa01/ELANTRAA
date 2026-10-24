@@ -112,6 +112,11 @@ export type Coupon = Prisma.CouponModel
  */
 export type StoreSetting = Prisma.StoreSettingModel
 /**
+ * Model FreeGift
+ * 
+ */
+export type FreeGift = Prisma.FreeGiftModel
+/**
  * Model WhatsAppSubscriber
  * 
  */

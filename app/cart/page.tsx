@@ -10,6 +10,7 @@ import { useCart } from "@/context/CartContext";
 export default function CartPage() {
   const {
     items,
+    freeGift,
     updateQuantity,
     removeItem,
     clearCart,
@@ -164,6 +165,58 @@ export default function CartPage() {
                       </div>
                     );
                   })}
+
+                  {/* Free Gift Row (1 time 1 gift only) */}
+                  {freeGift && (
+                    <div className="py-6 flex flex-col sm:grid sm:grid-cols-12 gap-4 items-center bg-gradient-to-r from-amber-50/70 to-amber-100/30 rounded-xl px-4 border border-[#D4AF37]/40 my-3">
+                      <div className="sm:col-span-6 flex items-center space-x-4 w-full">
+                        <div className="relative w-20 h-24 sm:w-24 sm:h-28 rounded-lg overflow-hidden bg-white shrink-0 border border-amber-200 shadow-sm">
+                          <Image
+                            src={freeGift.image}
+                            alt={freeGift.name}
+                            fill
+                            className="object-cover object-center"
+                          />
+                        </div>
+
+                        <div className="flex-1">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <span className="text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-[#171717] text-[#D4AF37]">
+                              🎁 Free Gift
+                            </span>
+                            <span className="text-[10px] text-amber-800 font-medium">(1 per order)</span>
+                          </div>
+                          <p className="text-sm font-serif font-semibold text-gray-900">
+                            {freeGift.name}
+                          </p>
+                          <div className="text-xs text-gray-500 mt-1 font-light">
+                            <p>Special Atelier Complimentary Gift</p>
+                            <p className="text-emerald-700 font-semibold mt-0.5">
+                              100% Free with your order
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Quantity */}
+                      <div className="sm:col-span-3 flex items-center justify-center w-full sm:w-auto">
+                        <span className="px-3 py-1 bg-white border border-amber-200 rounded text-xs font-semibold text-gray-700 shadow-sm">
+                          Qty: 1 (Included)
+                        </span>
+                      </div>
+
+                      {/* Price */}
+                      <div className="sm:col-span-3 text-right w-full sm:w-auto flex justify-between sm:block">
+                        <span className="sm:hidden text-xs text-gray-500">Price:</span>
+                        <div>
+                          <span className="text-xs line-through text-gray-400 mr-2">₹999</span>
+                          <span className="text-sm font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                            ₹0 (FREE)
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -250,6 +303,18 @@ export default function CartPage() {
                       &#8377;{subtotal.toLocaleString("en-IN")}
                     </span>
                   </div>
+
+                  {freeGift && (
+                    <div className="flex justify-between text-amber-900 font-medium">
+                      <span className="flex items-center gap-1">
+                        <span>🎁</span>
+                        <span>Complimentary Gift</span>
+                      </span>
+                      <span className="text-emerald-600 font-bold uppercase text-[10px]">
+                        COMPLIMENTARY (₹0)
+                      </span>
+                    </div>
+                  )}
 
                   {discount > 0 && (
                     <div className="flex justify-between text-emerald-700 font-medium">
