@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, password } = body;
+    const { name, email, password, phone } = body;
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -14,7 +14,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!phone || String(phone).trim().replace(/\D/g, "").length < 10) {
+      return NextResponse.json(
+        { error: "Please enter a valid 10-digit phone number." },
+        { status: 400 }
+      );
+    }
+
     const cleanEmail = email.trim().toLowerCase();
+    const cleanPhone = String(phone).trim();
 
     // Check if user exists
     const existing = await prisma.user.findUnique({
@@ -31,11 +39,12 @@ export async function POST(req: NextRequest) {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Create User in DB
+    // Create User in DB with phone
     const newUser = await prisma.user.create({
       data: {
-        name,
+        name: name.trim(),
         email: cleanEmail,
+        phone: cleanPhone,
         passwordHash,
         role: "CUSTOMER",
       },
@@ -48,6 +57,7 @@ export async function POST(req: NextRequest) {
         id: newUser.id,
         name: newUser.name,
         email: newUser.email,
+        phone: newUser.phone,
         role: newUser.role,
       },
     });

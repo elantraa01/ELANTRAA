@@ -73,7 +73,7 @@ export async function sendOrderConfirmationEmail(details: EmailOrderDetails) {
             <!-- Brand Header -->
             <div style="background-color: #171717; color: #D4AF37; text-align: center; padding: 30px 20px; border-bottom: 2px solid #C9A648;">
               <h1 style="font-family: Georgia, serif; letter-spacing: 4px; margin: 0; font-size: 26px; text-transform: uppercase;">ELANTRAA</h1>
-              <span style="font-size: 9px; letter-spacing: 3px; uppercase; color: #C9A648;">ELANTRAA PRIVÉ</span>
+              <span style="font-size: 9px; letter-spacing: 3px; uppercase; color: #C9A648;">HAUTE COUTURE</span>
             </div>
 
             <!-- Email Body -->

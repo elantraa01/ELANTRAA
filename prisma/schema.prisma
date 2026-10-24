@@ -30,17 +30,19 @@ enum PaymentStatus {
 }
 
 model User {
-  id           String     @id @default(cuid())
-  name         String
-  email        String     @unique
-  passwordHash String?
-  role         UserRole   @default(CUSTOMER)
-  createdAt    DateTime   @default(now())
-  addresses    Address[]
-  orders       Order[]
-  carts        Cart[]
-  wishlist     Wishlist[]
-  reviews      Review[]
+  id              String     @id @default(cuid())
+  name            String
+  email           String     @unique
+  phone           String?
+  phoneVerifiedAt DateTime?
+  passwordHash    String?
+  role            UserRole   @default(CUSTOMER)
+  createdAt       DateTime   @default(now())
+  addresses       Address[]
+  orders          Order[]
+  carts           Cart[]
+  wishlist        Wishlist[]
+  reviews         Review[]
 }
 
 model Address {
@@ -257,3 +259,18 @@ model StoreSetting {
   taxPercentage         Decimal  @default(0) @db.Decimal(5, 2)
   updatedAt             DateTime @updatedAt
 }
+
+model WhatsAppSubscriber {
+  id           String   @id @default(cuid())
+  phone        String   @unique
+  name         String?
+  source       String   @default("POPUP")
+  isOptedIn    Boolean  @default(true)
+  discountCode String?  @default("ELANTRAAGOLD")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([phone])
+  @@index([isOptedIn])
+}
+

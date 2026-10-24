@@ -150,8 +150,10 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
                   product={product}
                   onQuickView={(p) => setSelectedProduct(p)}
                   onAddToCart={(p) => {
-                    addItem(p);
-                    showNotification(`Added ${p.name} to your shopping bag.`);
+                    const success = addItem(p);
+                    if (success) {
+                      showNotification(`Added ${p.name} to your shopping bag.`);
+                    }
                   }}
                   onToggleWishlist={(p) => showNotification(`Saved ${p.name} to wishlist.`)}
                 />
@@ -180,8 +182,10 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
         onAddToCart={(p) => {
-          addItem(p);
-          showNotification(`Added ${p.name} to shopping bag.`);
+          const success = addItem(p);
+          if (success) {
+            showNotification(`Added ${p.name} to shopping bag.`);
+          }
         }}
       />
 

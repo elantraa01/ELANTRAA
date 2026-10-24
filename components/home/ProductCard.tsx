@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Product } from "./mockData";
 import { useCart } from "@/context/CartContext";
+import ProductShareButton from "@/components/product/ProductShareButton";
 
 interface ProductCardProps {
   product: Product;
@@ -29,16 +30,26 @@ export default function ProductCard({
   const handleWishlistClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleWishlist(product);
-    if (onToggleWishlist) {
+    const success = toggleWishlist(product);
+    if (success && onToggleWishlist) {
       onToggleWishlist(product);
+    }
+  };
+
+  const saveScrollPosition = () => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("elantraa_home_scroll", window.scrollY.toString());
     }
   };
 
   return (
     <div className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col justify-between">
       {/* Product Image Box - Links to dedicated PDP */}
-      <Link href={`/products/${product.slug}`} className="block relative w-full aspect-[3/4] bg-[#FAF8F5] overflow-hidden">
+      <Link
+        href={`/products/${product.slug}`}
+        onClick={saveScrollPosition}
+        className="block relative w-full aspect-[3/4] bg-[#FAF8F5] overflow-hidden"
+      >
         {imgSrc ? (
           <Image
             src={imgSrc}
@@ -69,21 +80,26 @@ export default function ProductCard({
           </div>
         )}
 
-        {/* Wishlist Button */}
-        <button
-          type="button"
-          onClick={handleWishlistClick}
-          className={`absolute top-3 right-3 z-10 p-2 rounded-full backdrop-blur-md transition-all duration-300 shadow-md ${
-            liked
-              ? "bg-red-50 text-red-500"
-              : "bg-white/80 text-gray-600 hover:text-red-500 hover:bg-white"
-          }`}
-          aria-label="Toggle Wishlist"
-        >
-          <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-          </svg>
-        </button>
+        {/* Top-Right Quick Actions: Wishlist & Share */}
+        <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5">
+          <button
+            type="button"
+            onClick={handleWishlistClick}
+            className={`p-2 rounded-full backdrop-blur-md transition-all duration-300 shadow-md ${
+              liked
+                ? "bg-red-50 text-red-500"
+                : "bg-white/80 text-gray-600 hover:text-red-500 hover:bg-white"
+            }`}
+            title="Add to Wishlist"
+            aria-label="Toggle Wishlist"
+          >
+            <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+            </svg>
+          </button>
+
+          <ProductShareButton product={product} variant="card-icon" />
+        </div>
 
         {/* Action Overlay */}
         <div className="absolute inset-x-0 bottom-0 p-2 sm:p-3 bg-gradient-to-t from-black/70 via-black/40 to-transparent sm:opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-1.5 sm:gap-2">
@@ -150,7 +166,7 @@ export default function ProductCard({
           </div>
 
           {/* Product Title */}
-          <Link href={`/products/${product.slug}`}>
+          <Link href={`/products/${product.slug}`} onClick={saveScrollPosition}>
             <h4 className="text-sm font-serif text-gray-900 group-hover:text-[#C9A648] transition-colors line-clamp-1 cursor-pointer font-medium">
               {product.name}
             </h4>

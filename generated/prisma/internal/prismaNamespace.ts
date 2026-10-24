@@ -410,7 +410,8 @@ export const ModelName = {
   Collection: 'Collection',
   HeroBanner: 'HeroBanner',
   Coupon: 'Coupon',
-  StoreSetting: 'StoreSetting'
+  StoreSetting: 'StoreSetting',
+  WhatsAppSubscriber: 'WhatsAppSubscriber'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -426,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "address" | "category" | "product" | "order" | "orderItem" | "cart" | "cartItem" | "wishlist" | "review" | "collection" | "heroBanner" | "coupon" | "storeSetting"
+    modelProps: "user" | "address" | "category" | "product" | "order" | "orderItem" | "cart" | "cartItem" | "wishlist" | "review" | "collection" | "heroBanner" | "coupon" | "storeSetting" | "whatsAppSubscriber"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1466,6 +1467,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    WhatsAppSubscriber: {
+      payload: Prisma.$WhatsAppSubscriberPayload<ExtArgs>
+      fields: Prisma.WhatsAppSubscriberFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.WhatsAppSubscriberFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppSubscriberPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.WhatsAppSubscriberFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppSubscriberPayload>
+        }
+        findFirst: {
+          args: Prisma.WhatsAppSubscriberFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppSubscriberPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.WhatsAppSubscriberFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppSubscriberPayload>
+        }
+        findMany: {
+          args: Prisma.WhatsAppSubscriberFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppSubscriberPayload>[]
+        }
+        create: {
+          args: Prisma.WhatsAppSubscriberCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppSubscriberPayload>
+        }
+        createMany: {
+          args: Prisma.WhatsAppSubscriberCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.WhatsAppSubscriberCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppSubscriberPayload>[]
+        }
+        delete: {
+          args: Prisma.WhatsAppSubscriberDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppSubscriberPayload>
+        }
+        update: {
+          args: Prisma.WhatsAppSubscriberUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppSubscriberPayload>
+        }
+        deleteMany: {
+          args: Prisma.WhatsAppSubscriberDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.WhatsAppSubscriberUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.WhatsAppSubscriberUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppSubscriberPayload>[]
+        }
+        upsert: {
+          args: Prisma.WhatsAppSubscriberUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WhatsAppSubscriberPayload>
+        }
+        aggregate: {
+          args: Prisma.WhatsAppSubscriberAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWhatsAppSubscriber>
+        }
+        groupBy: {
+          args: Prisma.WhatsAppSubscriberGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WhatsAppSubscriberGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.WhatsAppSubscriberCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WhatsAppSubscriberCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1509,6 +1584,8 @@ export const UserScalarFieldEnum = {
   id: 'id',
   name: 'name',
   email: 'email',
+  phone: 'phone',
+  phoneVerifiedAt: 'phoneVerifiedAt',
   passwordHash: 'passwordHash',
   role: 'role',
   createdAt: 'createdAt'
@@ -1718,6 +1795,20 @@ export const StoreSettingScalarFieldEnum = {
 export type StoreSettingScalarFieldEnum = (typeof StoreSettingScalarFieldEnum)[keyof typeof StoreSettingScalarFieldEnum]
 
 
+export const WhatsAppSubscriberScalarFieldEnum = {
+  id: 'id',
+  phone: 'phone',
+  name: 'name',
+  source: 'source',
+  isOptedIn: 'isOptedIn',
+  discountCode: 'discountCode',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type WhatsAppSubscriberScalarFieldEnum = (typeof WhatsAppSubscriberScalarFieldEnum)[keyof typeof WhatsAppSubscriberScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1779,20 +1870,6 @@ export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMod
 
 
 /**
- * Reference to a field of type 'UserRole'
- */
-export type EnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserRole'>
-    
-
-
-/**
- * Reference to a field of type 'UserRole[]'
- */
-export type ListEnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserRole[]'>
-    
-
-
-/**
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -1803,6 +1880,20 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'UserRole'
+ */
+export type EnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserRole'>
+    
+
+
+/**
+ * Reference to a field of type 'UserRole[]'
+ */
+export type ListEnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserRole[]'>
     
 
 
@@ -2061,6 +2152,7 @@ export type GlobalOmitConfig = {
   heroBanner?: Prisma.HeroBannerOmit
   coupon?: Prisma.CouponOmit
   storeSetting?: Prisma.StoreSettingOmit
+  whatsAppSubscriber?: Prisma.WhatsAppSubscriberOmit
 }
 
 /* Types for Logging */

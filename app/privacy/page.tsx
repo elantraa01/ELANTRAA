@@ -30,7 +30,7 @@ export default function PrivacyPolicyPage() {
 
           <div className="prose prose-slate max-w-none text-xs sm:text-sm text-gray-600 font-light space-y-6 leading-relaxed">
             <p>
-              ELANTRAA Privé values your privacy. This policy outlines how we collect, protect, and use your personal information across our website and digital services.
+              ELANTRAA values your privacy. This policy outlines how we collect, protect, and use your personal information across our website and digital services.
             </p>
 
             <h3 className="text-lg font-serif text-gray-900 font-semibold mt-6">1. Information Collection</h3>

@@ -50,6 +50,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           role: user.role,
+          phone: user.phone || null,
         };
       },
     }),
@@ -79,20 +80,29 @@ export const authOptions: NextAuthOptions = {
 
       user.id = dbUser.id;
       (user as { role?: string }).role = dbUser.role;
+      (user as { phone?: string | null }).phone = dbUser.phone || null;
       return true;
     },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: string }).role || "CUSTOMER";
+        token.phone = (user as { phone?: string | null }).phone || null;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        const u = session.user as { id?: string; role?: string; name?: string | null; email?: string | null };
+        const u = session.user as {
+          id?: string;
+          role?: string;
+          name?: string | null;
+          email?: string | null;
+          phone?: string | null;
+        };
         u.id = token.id as string;
         u.role = token.role as string;
+        u.phone = (token.phone as string | null) || null;
       }
       return session;
     },

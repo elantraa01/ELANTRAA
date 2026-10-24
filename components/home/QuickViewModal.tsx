@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Product } from "./mockData";
 import SizeGuideModal from "@/components/product/SizeGuideModal";
 import ProductOffers from "@/components/product/ProductOffers";
+import ProductShareButton from "@/components/product/ProductShareButton";
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -223,7 +224,7 @@ function QuickViewModalContent({
           </div>
 
           {/* Action Buttons */}
-          <div className="pt-4 border-t border-gray-100 flex gap-3">
+          <div className="pt-4 border-t border-gray-100 flex gap-3 items-center">
             <button
               type="button"
               disabled={isOutOfStock || quantity > stock}
@@ -238,6 +239,7 @@ function QuickViewModalContent({
                 ? "Out Of Stock"
                 : `Add To Bag • ₹${((product.discountPrice || product.price) * quantity).toLocaleString("en-IN")}`}
             </button>
+            <ProductShareButton product={product} variant="pdp-button" />
           </div>
         </div>
       </div>

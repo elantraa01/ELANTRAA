@@ -22,7 +22,6 @@ export default function BrandStory() {
                 fill
                 className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                 sizes="(max-width: 768px) 100vw, 35vw"
-                priority
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
               

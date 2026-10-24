@@ -1,0 +1,21 @@
+[
+  {
+    "id": "wa_1792816227639_lu9t9",
+    "phone": "918544796216",
+    "source": "VIP_MODAL",
+    "isOptedIn": true,
+    "discountCode": "ELANTRAAGOLD",
+    "createdAt": "2026-10-24T04:30:27.639Z",
+    "updatedAt": "2026-10-24T04:55:28.262Z"
+  },
+  {
+    "id": "wa_1792816147049_aimgl",
+    "phone": "919876543210",
+    "name": "Test Visitor",
+    "source": "VIP_MODAL",
+    "isOptedIn": true,
+    "discountCode": "ELANTRAAGOLD",
+    "createdAt": "2026-10-24T04:29:07.048Z",
+    "updatedAt": "2026-10-24T04:29:07.048Z"
+  }
+]

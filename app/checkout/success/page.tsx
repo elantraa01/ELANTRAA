@@ -46,7 +46,7 @@ function OrderSuccessContent() {
               ESTIMATED DELIVERY
             </p>
             <p className="text-sm font-semibold text-emerald-700">
-              2 - 4 Business Days (Express)
+              10 - 15 Days
             </p>
           </div>
         </div>

@@ -32,7 +32,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     color?: string,
     quantity: number = 1
   ) => {
-    addItem(p, size, color, quantity);
+    const success = addItem(p, size, color, quantity);
+    if (!success) return;
     const sizeInfo = size ? ` (Size: ${size})` : "";
     showNotification(`Added ${p.name}${sizeInfo} to your shopping bag.`);
   };
@@ -55,6 +56,21 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
       <div className="bg-[#FAF8F5] border-b border-gray-200 py-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex items-center space-x-1.5 sm:space-x-2 text-[11px] sm:text-xs text-gray-500 uppercase tracking-wider sm:tracking-widest font-light overflow-x-auto whitespace-nowrap no-scrollbar">
+            <button
+              type="button"
+              onClick={() => {
+                if (window.history.length > 1) {
+                  window.history.back();
+                } else {
+                  window.location.href = "/";
+                }
+              }}
+              className="inline-flex items-center gap-1 text-[11px] sm:text-xs text-gray-700 hover:text-[#C9A648] font-semibold uppercase tracking-wider mr-2 pr-2.5 border-r border-gray-300 transition-colors shrink-0 group"
+              title="Return to previous page"
+            >
+              <span className="transition-transform group-hover:-translate-x-0.5">←</span>
+              <span>Back</span>
+            </button>
             <Link href="/" className="hover:text-[#C9A648] transition-colors">
               Home
             </Link>

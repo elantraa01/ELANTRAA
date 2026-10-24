@@ -66,6 +66,7 @@ function AccountPageContent() {
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [addresses, setAddresses] = useState<SavedAddress[]>([]);
   const [ordersList, setOrdersList] = useState<OrderHistoryItem[]>([]);
+  const [profilePhone, setProfilePhone] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -89,9 +90,10 @@ function AccountPageContent() {
     async function loadUserData() {
       if (!session?.user) return;
       try {
-        const [ordersRes, addrRes] = await Promise.all([
+        const [ordersRes, addrRes, profileRes] = await Promise.all([
           fetch("/api/user/orders"),
           fetch("/api/user/address"),
+          fetch("/api/user/profile"),
         ]);
 
         if (ordersRes.ok) {
@@ -103,12 +105,28 @@ function AccountPageContent() {
           const data = await addrRes.json();
           if (data.addresses) setAddresses(data.addresses);
         }
+
+        if (profileRes.ok) {
+          const pData = await profileRes.json();
+          if (pData.user?.phone) setProfilePhone(pData.user.phone);
+        }
       } catch (err) {
         console.warn("Failed to load user account data", err);
       }
     }
     loadUserData();
   }, [session]);
+
+  useEffect(() => {
+    const handleUserUpdated = (e: Event) => {
+      const customEvent = e as CustomEvent<{ phone?: string }>;
+      if (customEvent.detail?.phone) {
+        setProfilePhone(customEvent.detail.phone);
+      }
+    };
+    window.addEventListener("elantraa-user-updated", handleUserUpdated);
+    return () => window.removeEventListener("elantraa-user-updated", handleUserUpdated);
+  }, []);
 
   const showNotification = (msg: string) => {
     setToastMessage(msg);
@@ -214,8 +232,14 @@ function AccountPageContent() {
                   </span>
                 </div>
                 <p className="text-xs text-gray-400 font-light mt-0.5 truncate">{userEmail}</p>
+                {(profilePhone || (session?.user as { phone?: string | null })?.phone) && (
+                  <p className="text-xs text-gray-300 font-light mt-0.5 flex items-center gap-1.5">
+                    <span className="text-[#D4AF37]">📞</span>
+                    <span>{profilePhone || (session?.user as { phone?: string | null })?.phone}</span>
+                  </p>
+                )}
                 <p className="text-[10px] sm:text-[11px] text-[#D4AF37] uppercase tracking-widest mt-1 font-medium">
-                  ✦ ELANTRAA Privé VIP Connoisseur
+                  ✦ ELANTRAA Member
                 </p>
               </div>
             </div>

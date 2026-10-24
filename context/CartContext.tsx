@@ -4,6 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { useSession } from "next-auth/react";
 import { Product } from "@/components/home/mockData";
 import { trackAddToCart } from "@/lib/analytics";
+import LoginPromptModal from "@/components/auth/LoginPromptModal";
 
 export interface CartItemType {
   id: string;
@@ -31,7 +32,7 @@ interface CartContextType {
   total: number;
   cartOpen: boolean;
   setCartOpen: (open: boolean) => void;
-  addItem: (product: Product, size?: string, color?: string, quantity?: number) => void;
+  addItem: (product: Product, size?: string, color?: string, quantity?: number) => boolean;
   updateQuantity: (itemId: string, quantity: number) => void;
   removeItem: (itemId: string) => void;
   clearCart: () => void;
@@ -41,8 +42,12 @@ interface CartContextType {
   guestId: string;
   wishlistItems: Product[];
   wishlistCount: number;
-  toggleWishlist: (product: Product) => void;
+  toggleWishlist: (product: Product) => boolean;
   isInWishlist: (productId: string) => boolean;
+  loginPromptOpen: boolean;
+  loginPromptReason: "cart" | "wishlist" | null;
+  openLoginPrompt: (reason: "cart" | "wishlist") => void;
+  closeLoginPrompt: () => void;
 }
 
 type DbCartItem = {
@@ -129,6 +134,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [storeShippingCharge, setStoreShippingCharge] = useState<number>(0);
   const [storeFreeShippingThreshold, setStoreFreeShippingThreshold] = useState<number>(900);
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+  const [loginPromptReason, setLoginPromptReason] = useState<"cart" | "wishlist" | null>(null);
+
+  const openLoginPrompt = useCallback((reason: "cart" | "wishlist") => {
+    setLoginPromptReason(reason);
+    setLoginPromptOpen(true);
+  }, []);
+
+  const closeLoginPrompt = useCallback(() => {
+    setLoginPromptOpen(false);
+  }, []);
 
   useEffect(() => {
     async function fetchStoreSettings() {
@@ -217,50 +233,34 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (!isHydrated || status === "loading") return;
 
     if (!isLoggedIn) {
-      setItems(JSON.parse(localStorage.getItem(GUEST_CART_KEY) || "[]"));
-      setWishlistItems(JSON.parse(localStorage.getItem(GUEST_WISHLIST_KEY) || "[]"));
+      setItems([]);
+      setWishlistItems([]);
+      localStorage.removeItem(GUEST_CART_KEY);
+      localStorage.removeItem(GUEST_WISHLIST_KEY);
       return;
     }
 
     async function loadUserData() {
       await mergeCartOnLogin(session?.user?.email || "");
-
-      const guestWishlist = JSON.parse(localStorage.getItem(GUEST_WISHLIST_KEY) || "[]") as Product[];
-      if (guestWishlist.length > 0) {
-        for (const product of guestWishlist) {
-          await fetch("/api/wishlist", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ productId: product.id }),
-          });
-        }
-        localStorage.removeItem(GUEST_WISHLIST_KEY);
-      }
-
       await Promise.all([loadServerCart(), loadServerWishlist()]);
     }
 
     loadUserData();
   }, [isHydrated, isLoggedIn, loadServerCart, loadServerWishlist, mergeCartOnLogin, session?.user?.email, status]);
 
-  useEffect(() => {
-    if (!isHydrated || isLoggedIn) return;
-    localStorage.setItem(GUEST_CART_KEY, JSON.stringify(items));
-  }, [items, isHydrated, isLoggedIn]);
-
-  useEffect(() => {
-    if (!isHydrated || isLoggedIn) return;
-    localStorage.setItem(GUEST_WISHLIST_KEY, JSON.stringify(wishlistItems));
-  }, [wishlistItems, isHydrated, isLoggedIn]);
-
   const addItem = (
     product: Product,
     size: string = product.sizes[0] || "M",
     color: string = "Default",
     quantity: number = 1
-  ) => {
+  ): boolean => {
+    if (!isLoggedIn) {
+      openLoginPrompt("cart");
+      return false;
+    }
+
     const maxStock = typeof product.stock === "number" ? Math.max(0, product.stock) : 99;
-    if (maxStock <= 0) return;
+    if (maxStock <= 0) return false;
 
     let finalQuantity = quantity;
 
@@ -299,18 +299,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // Ignore tracking errors
     }
 
-    if (isLoggedIn) {
-      fetch("/api/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: product.id, size, color, quantity: finalQuantity }),
+    fetch("/api/cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId: product.id, size, color, quantity: finalQuantity }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.cart) setItems(mapDbCart(data.cart));
       })
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (data?.cart) setItems(mapDbCart(data.cart));
-        })
-        .catch((error) => console.error("Failed to save cart item", error));
-    }
+      .catch((error) => console.error("Failed to save cart item", error));
+
+    return true;
   };
 
   const updateQuantity = (itemId: string, newQuantity: number) => {
@@ -400,21 +400,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(PROMO_CODE_KEY);
   };
 
-  const toggleWishlist = (product: Product) => {
+  const toggleWishlist = (product: Product): boolean => {
+    if (!isLoggedIn) {
+      openLoginPrompt("wishlist");
+      return false;
+    }
+
     setWishlistItems((prev) => {
       const exists = prev.some((item) => item.id === product.id);
       const next = exists ? prev.filter((item) => item.id !== product.id) : [...prev, product];
 
-      if (isLoggedIn) {
-        fetch("/api/wishlist", {
-          method: exists ? "DELETE" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productId: product.id }),
-        }).catch((err) => console.error("Wishlist sync error", err));
-      }
+      fetch("/api/wishlist", {
+        method: exists ? "DELETE" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: product.id }),
+      }).catch((err) => console.error("Wishlist sync error", err));
 
       return next;
     });
+
+    return true;
   };
 
   const subtotal = useMemo(
@@ -462,9 +467,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return promoDiscountAmount;
   }, [promoCode, promoDiscountAmount]);
 
-  const isInWishlist = (productId: string) => wishlistItems.some((item) => item.id === productId);
-  const wishlistCount = wishlistItems.length;
-  const cartCount = useMemo(() => items.reduce((acc, item) => acc + item.quantity, 0), [items]);
+  const isInWishlist = (productId: string) => (isLoggedIn ? wishlistItems.some((item) => item.id === productId) : false);
+  const wishlistCount = isLoggedIn ? wishlistItems.length : 0;
+  const cartCount = useMemo(() => (isLoggedIn ? items.reduce((acc, item) => acc + item.quantity, 0) : 0), [items, isLoggedIn]);
   const shipping = useMemo(
     () => (subtotal >= storeFreeShippingThreshold || subtotal === 0 ? 0 : storeShippingCharge),
     [subtotal, storeFreeShippingThreshold, storeShippingCharge]
@@ -498,9 +503,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         wishlistCount,
         toggleWishlist,
         isInWishlist,
+        loginPromptOpen,
+        loginPromptReason,
+        openLoginPrompt,
+        closeLoginPrompt,
       }}
     >
       {children}
+      <LoginPromptModal />
     </CartContext.Provider>
   );
 }

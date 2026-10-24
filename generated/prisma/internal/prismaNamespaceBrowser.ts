@@ -64,7 +64,8 @@ export const ModelName = {
   Collection: 'Collection',
   HeroBanner: 'HeroBanner',
   Coupon: 'Coupon',
-  StoreSetting: 'StoreSetting'
+  StoreSetting: 'StoreSetting',
+  WhatsAppSubscriber: 'WhatsAppSubscriber'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -87,6 +88,8 @@ export const UserScalarFieldEnum = {
   id: 'id',
   name: 'name',
   email: 'email',
+  phone: 'phone',
+  phoneVerifiedAt: 'phoneVerifiedAt',
   passwordHash: 'passwordHash',
   role: 'role',
   createdAt: 'createdAt'
@@ -294,6 +297,20 @@ export const StoreSettingScalarFieldEnum = {
 } as const
 
 export type StoreSettingScalarFieldEnum = (typeof StoreSettingScalarFieldEnum)[keyof typeof StoreSettingScalarFieldEnum]
+
+
+export const WhatsAppSubscriberScalarFieldEnum = {
+  id: 'id',
+  phone: 'phone',
+  name: 'name',
+  source: 'source',
+  isOptedIn: 'isOptedIn',
+  discountCode: 'discountCode',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type WhatsAppSubscriberScalarFieldEnum = (typeof WhatsAppSubscriberScalarFieldEnum)[keyof typeof WhatsAppSubscriberScalarFieldEnum]
 
 
 export const SortOrder = {

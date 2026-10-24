@@ -145,8 +145,10 @@ function ShopContent() {
   };
 
   const handleAddToCart = (product: Product) => {
-    addItem(product);
-    showNotification(`Added ${product.name} to your shopping bag.`);
+    const success = addItem(product);
+    if (success) {
+      showNotification(`Added ${product.name} to your shopping bag.`);
+    }
   };
 
   const handleToggleWishlist = (product: Product) => {

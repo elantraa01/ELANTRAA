@@ -6,9 +6,20 @@ import { signOut, useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { parseAddressDetails, formatAddress } from "@/lib/address";
 
-type Tab = "dashboard" | "products" | "categories" | "inventory" | "orders" | "customers" | "hero" | "coupons" | "settings";
+type Tab = "dashboard" | "products" | "categories" | "inventory" | "orders" | "customers" | "whatsapp" | "hero" | "coupons" | "settings";
 type Status = "idle" | "loading" | "error" | "ready";
 type OrderStatus = "PENDING" | "CONFIRMED" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+
+type WhatsAppSubscriberData = {
+  id: string;
+  phone: string;
+  name?: string;
+  source: string;
+  isOptedIn: boolean;
+  discountCode: string;
+  createdAt: string;
+  updatedAt?: string;
+};
 
 type Product = {
   id: string;
@@ -132,6 +143,7 @@ const navItems: { id: Tab; label: string }[] = [
   { id: "inventory", label: "Inventory" },
   { id: "orders", label: "Orders" },
   { id: "customers", label: "Customers" },
+  { id: "whatsapp", label: "WhatsApp Members" },
   { id: "hero", label: "Hero Banner" },
   { id: "coupons", label: "Promocodes" },
   { id: "settings", label: "Settings" },
@@ -219,6 +231,7 @@ export default function AdminPanel() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [whatsappSubscribers, setWhatsappSubscribers] = useState<WhatsAppSubscriberData[]>([]);
   const [heroForm, setHeroForm] = useState<HeroBannerData>(emptyHero);
   const [settings, setSettings] = useState<Settings>({
     storeName: "ELANTRAA",
@@ -486,9 +499,10 @@ export default function AdminPanel() {
         request<{ settings: Settings }>("/api/admin/settings"),
         request<{ hero: HeroBannerData }>("/api/admin/hero"),
         request<{ coupons: Coupon[] }>("/api/admin/coupons"),
+        request<{ subscribers: WhatsAppSubscriberData[] }>("/api/whatsapp/subscribe"),
       ]);
 
-      const [productRes, categoryRes, orderRes, customerRes, settingsRes, heroRes, couponRes] = results;
+      const [productRes, categoryRes, orderRes, customerRes, settingsRes, heroRes, couponRes, whatsappRes] = results;
 
       if (productRes.status === "fulfilled") setProducts(productRes.value.products || []);
       if (categoryRes.status === "fulfilled") setCategories(categoryRes.value.categories || []);
@@ -511,6 +525,9 @@ export default function AdminPanel() {
         });
       }
       if (couponRes.status === "fulfilled") setCoupons(couponRes.value.coupons || []);
+      if (whatsappRes && whatsappRes.status === "fulfilled") {
+        setWhatsappSubscribers(whatsappRes.value.subscribers || []);
+      }
 
       setStatus("ready");
     } catch (err) {
@@ -626,6 +643,17 @@ export default function AdminPanel() {
     [customers, query]
   );
 
+  const filteredWhatsappSubscribers = useMemo(
+    () =>
+      whatsappSubscribers.filter((sub) =>
+        [sub.phone, sub.name || "", sub.discountCode || "", sub.source || ""]
+          .join(" ")
+          .toLowerCase()
+          .includes(query.toLowerCase())
+      ),
+    [whatsappSubscribers, query]
+  );
+
   const inventoryProducts = useMemo(
     () => products.filter((product) => [product.name, product.sku].join(" ").toLowerCase().includes(query.toLowerCase())),
     [products, query]
@@ -635,7 +663,36 @@ export default function AdminPanel() {
   const visibleCategories = paginate(filteredCategories, page, pageSize);
   const visibleOrders = paginate(filteredOrders, page, pageSize);
   const visibleCustomers = paginate(filteredCustomers, page, pageSize);
+  const visibleWhatsappSubscribers = paginate(filteredWhatsappSubscribers, page, pageSize);
   const visibleInventory = paginate(inventoryProducts, page, pageSize);
+
+  function exportWhatsAppCsv() {
+    if (!whatsappSubscribers.length) {
+      notify("error", "No WhatsApp contacts available to export.");
+      return;
+    }
+    const headers = ["Phone Number", "Discount Code", "Channel / Source", "Status", "Joined At"];
+    const rows = whatsappSubscribers.map((s) => [
+      `+${s.phone}`,
+      s.discountCode || "ELANTRAAGOLD",
+      s.source || "OFFER_BUTTON",
+      s.isOptedIn ? "Opted In" : "Opted Out",
+      new Date(s.createdAt).toLocaleString("en-IN"),
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((e) => e.map((cell) => `"${cell}"`).join(","))].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `elantraa_whatsapp_members_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    notify("success", `Exported ${whatsappSubscribers.length} WhatsApp contacts to CSV.`);
+  }
 
   function openProduct(product?: Product) {
     const savedDefaultChartIn = typeof window !== "undefined" ? localStorage.getItem("elantraa_default_size_chart_in") || localStorage.getItem("elantraa_default_size_chart") || "" : "";
@@ -1386,6 +1443,127 @@ export default function AdminPanel() {
                   </div>
 
                   <Pagination page={page} total={filteredCustomers.length} pageSize={pageSize} onPageChange={setPage} />
+                </Panel>
+              )}
+
+              {activeTab === "whatsapp" && (
+                <Panel
+                  title="WhatsApp Members"
+                  action={
+                    <div className="flex items-center gap-2">
+                      <span className="hidden sm:inline-flex text-xs px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full font-semibold">
+                        {whatsappSubscribers.length} Contacts
+                      </span>
+                      <Button onClick={exportWhatsAppCsv}>
+                        Export CSV 📥
+                      </Button>
+                    </div>
+                  }
+                >
+                  <Toolbar>
+                    <SearchBar
+                      value={query}
+                      onChange={setQuery}
+                      placeholder="Search phone number or discount code..."
+                    />
+                  </Toolbar>
+
+                  {/* Summary Metric Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                      <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-0.5">Total Contacts</p>
+                      <p className="text-2xl font-serif font-bold text-slate-900">{whatsappSubscribers.length}</p>
+                      <p className="text-[11px] text-emerald-600 font-medium mt-1">✓ 100% Opted-In for WhatsApp notifications</p>
+                    </div>
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                      <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-0.5">Welcome Promo Code</p>
+                      <p className="text-2xl font-mono font-bold text-[#AA771C]">ELANTRAAGOLD</p>
+                      <p className="text-[11px] text-slate-500 mt-1">10% OFF Welcome Offer</p>
+                    </div>
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                      <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-0.5">Marketing Status</p>
+                      <p className="text-2xl font-serif font-bold text-slate-900">Broadcast Ready</p>
+                      <p className="text-[11px] text-slate-500 mt-1">Exportable for Meta / Broadcast campaigns</p>
+                    </div>
+                  </div>
+
+                  {/* Desktop Data Table */}
+                  <div className="hidden md:block">
+                    <DataTable
+                      headers={["Phone Number", "Discount Code", "Channel / Source", "Joined Date", "Status", "Quick Action"]}
+                      empty="No WhatsApp members found."
+                      rows={visibleWhatsappSubscribers.map((sub) => [
+                        <span key="phone" className="font-mono font-bold text-slate-900 text-sm">
+                          +{sub.phone}
+                        </span>,
+                        <span key="code" className="font-mono px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded text-xs font-semibold">
+                          {sub.discountCode || "ELANTRAAGOLD"}
+                        </span>,
+                        <span key="source" className="text-xs text-slate-600 font-medium">
+                          {sub.source ? sub.source.replace(/_/g, " ") : "Web Offer"}
+                        </span>,
+                        <span key="date" className="text-xs text-slate-500">
+                          {new Date(sub.createdAt).toLocaleString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>,
+                        <span key="status" className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          Opted In
+                        </span>,
+                        <div key="actions" className="flex items-center gap-2">
+                          <a
+                            href={`https://wa.me/${sub.phone}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-semibold rounded-md text-xs flex items-center gap-1 transition-colors"
+                          >
+                            <span>Chat on WhatsApp 💬</span>
+                          </a>
+                        </div>,
+                      ])}
+                    />
+                  </div>
+
+                  {/* Mobile Android Native Cards */}
+                  <div className="md:hidden space-y-3">
+                    {visibleWhatsappSubscribers.length ? (
+                      visibleWhatsappSubscribers.map((sub) => (
+                        <div key={sub.id} className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono font-bold text-slate-900 text-sm">+{sub.phone}</span>
+                            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                              Opted In
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-xs text-slate-500">
+                            <span>Code: <strong className="text-amber-800 font-mono">{sub.discountCode || "ELANTRAAGOLD"}</strong></span>
+                            <span>{new Date(sub.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</span>
+                          </div>
+                          <div className="pt-2 border-t border-slate-100 flex justify-end">
+                            <a
+                              href={`https://wa.me/${sub.phone}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3.5 py-1.5 bg-[#25D366] text-white font-semibold rounded-md text-xs flex items-center gap-1.5"
+                            >
+                              <span>Chat on WhatsApp 💬</span>
+                            </a>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-8 text-center text-sm text-slate-500 bg-white rounded-xl border border-slate-200">
+                        No WhatsApp members found.
+                      </div>
+                    )}
+                  </div>
+
+                  <Pagination page={page} total={filteredWhatsappSubscribers.length} pageSize={pageSize} onPageChange={setPage} />
                 </Panel>
               )}
 

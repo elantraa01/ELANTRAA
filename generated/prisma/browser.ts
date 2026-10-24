@@ -87,3 +87,8 @@ export type Coupon = Prisma.CouponModel
  * 
  */
 export type StoreSetting = Prisma.StoreSettingModel
+/**
+ * Model WhatsAppSubscriber
+ * 
+ */
+export type WhatsAppSubscriber = Prisma.WhatsAppSubscriberModel

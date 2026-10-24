@@ -23,12 +23,12 @@ export default function Newsletter() {
         {/* Luxury Gold Ornament */}
         <div className="flex items-center justify-center space-x-3 mb-4">
           <div className="w-10 h-[1px] bg-[#C9A648]" />
-          <span className="text-[#C9A648] text-xs font-serif">✦ ELANTRAA PRIVÉ ✦</span>
+          <span className="text-[#C9A648] text-xs font-serif">✦ ELANTRAA EXCLUSIVE ✦</span>
           <div className="w-10 h-[1px] bg-[#C9A648]" />
         </div>
 
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-gray-900 tracking-tight">
-          Join The ELANTRAA Privé Club
+          Join The ELANTRAA Circle
         </h2>
 
         <p className="text-sm sm:text-base text-gray-600 font-light mt-3 max-w-xl mx-auto">
@@ -39,7 +39,7 @@ export default function Newsletter() {
         <div className="mt-8 max-w-md mx-auto">
           {subscribed ? (
             <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-sm font-medium animate-in fade-in duration-500">
-              ✓ Welcome to ELANTRAA Privé! Check your inbox for your 10% welcome code.
+              ✓ Welcome to ELANTRAA! Check your inbox for your 10% welcome code.
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import QuickViewModal from "@/components/home/QuickViewModal";
@@ -10,6 +11,7 @@ import { Product } from "@/components/home/mockData";
 import { useCart } from "@/context/CartContext";
 
 export default function WishlistPage() {
+  const { data: session, status } = useSession();
   const { wishlistItems, toggleWishlist, addItem } = useCart();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -20,13 +22,17 @@ export default function WishlistPage() {
   };
 
   const handleAddToCart = (product: Product) => {
-    addItem(product);
-    showNotification(`Added "${product.name}" to your shopping bag.`);
+    const success = addItem(product);
+    if (success) {
+      showNotification(`Added "${product.name}" to your shopping bag.`);
+    }
   };
 
   const handleRemoveFromWishlist = (product: Product) => {
-    toggleWishlist(product);
-    showNotification(`Removed "${product.name}" from your wishlist.`);
+    const success = toggleWishlist(product);
+    if (success) {
+      showNotification(`Removed "${product.name}" from your wishlist.`);
+    }
   };
 
   return (
@@ -68,7 +74,39 @@ export default function WishlistPage() {
             <div className="w-12 h-[2px] bg-[#C9A648] mx-auto mt-4" />
           </div>
 
-          {wishlistItems.length > 0 ? (
+          {status !== "loading" && !session ? (
+            <div className="max-w-md mx-auto bg-gradient-to-b from-[#1E1E1E] to-[#121212] text-white rounded-2xl p-8 sm:p-10 text-center border border-[#C9A648]/40 shadow-2xl space-y-5">
+              <div className="w-16 h-16 rounded-full bg-[#2A2A2A] border border-[#C9A648]/50 flex items-center justify-center mx-auto text-[#D4AF37] shadow-inner">
+                <svg className="w-8 h-8 fill-current" viewBox="0 0 24 24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+              </div>
+              <div>
+                <span className="text-[10px] tracking-[0.3em] uppercase text-[#C9A648] font-bold block mb-1">
+                  ACCOUNT REQUIRED
+                </span>
+                <h2 className="text-2xl font-serif text-[#FBFBFB]">Sign In to View Wishlist</h2>
+                <p className="text-xs text-gray-400 font-light leading-relaxed mt-2">
+                  Please log in to your ELANTRAA account to access your saved handcrafted pieces and curated styles across all your devices.
+                </p>
+              </div>
+
+              <div className="pt-2 space-y-3">
+                <Link
+                  href="/login?callbackUrl=/wishlist"
+                  className="block w-full py-3.5 bg-gradient-to-r from-[#D4AF37] via-[#C9A648] to-[#AA771C] text-white text-xs uppercase tracking-widest font-semibold rounded-lg shadow-lg hover:brightness-110 active:scale-[0.99] transition-all"
+                >
+                  Sign In to Account
+                </Link>
+                <Link
+                  href="/signup?callbackUrl=/wishlist"
+                  className="block w-full py-3 bg-[#242424] hover:bg-[#2e2e2e] text-gray-300 hover:text-white border border-[#C9A648]/30 text-xs uppercase tracking-widest font-medium rounded-lg transition-colors"
+                >
+                  Create An Account
+                </Link>
+              </div>
+            </div>
+          ) : wishlistItems.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
               {wishlistItems.map((product) => {
                 const effectivePrice = product.discountPrice || product.price;
